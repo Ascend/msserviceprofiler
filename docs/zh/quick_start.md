@@ -74,19 +74,62 @@ vllm serve Qwen/Qwen2.5-0.5B-Instruct &
 
 #### 2.3 SGLang 
 
-首次集成时，需要在 SGLang 服务化启动入口中接入 msServiceProfiler，之后再按常规方式启动服务。
+### 1. 准备采集
+
+a. 在启动服务前，需要在SGLang框架的**三个入口文件**中导入采集模块。
+
+> [!NOTE]
+>
+> SGLang 使用 `spawn` 方式启动多进程，主进程（TokenizerManager）、调度进程（Scheduler/ModelRunner）、解码进程（DetokenizerManager）**各自运行在独立的 Python 解释器中**，彼此不共享 monkey-patch 状态。因此必须在每个子进程的入口函数里单独注册 profiler，否则 Scheduler、ModelRunner、DetokenizerManager 相关点位将无法采集。
+>
+
+**（1）主进程入口（TokenizerManager / HTTP 服务）**
 
 ```bash
-# 在SGLang服务化启动入口文件处导入数据采集模块
-vim /usr/local/python3.11.13/lib/python3.11/site-packages/sglang/launch_server.py # 其中/usr/local/python3.11.13/lib/python3.11/site-packages为pip show sglang回显的sglang安装路径
-# 在原本所有import模块后插入如下代码：
+# 编辑 SGLang 服务化启动入口文件
+# /usr/local/pythonx.xx.xx/lib/pythonx.xx/site-packages 为 pip show sglang 回显的安装路径
+vim /usr/local/pythonx.xx.xx/lib/pythonx.xx/site-packages/sglang/launch_server.py
+# 在原本所有 import 语句后插入如下代码：
 from ms_service_profiler.patcher.sglang import register_service_profiler
 register_service_profiler()
+```
 
-# 启动 SGLang 服务（示例）
-python3 -m sglang.launch_server \
-    --model-path=/Qwen2.5-0.5B-Instruct \
-    --device npu
+**（2）调度子进程入口（Scheduler / ModelRunner）**
+
+```bash
+vim /usr/local/pythonx.xx.xx/lib/pythonx.xx/site-packages/sglang/srt/managers/scheduler.py
+# 在 run_scheduler_process 函数体最开头（dp_rank = configure_scheduler_process(...) 之前）插入：
+try:
+    from ms_service_profiler.patcher.sglang import register_service_profiler
+    register_service_profiler()
+except ImportError:
+    pass
+```
+
+**（3）解码子进程入口（DetokenizerManager）**
+
+```bash
+vim /usr/local/pythonx.xx.xx/lib/pythonx.xx/site-packages/sglang/srt/managers/detokenizer_manager.py
+# 在 run_detokenizer_process 函数体最开头（kill_itself_when_parent_died() 之前）插入：
+try:
+    from ms_service_profiler.patcher.sglang import register_service_profiler
+    register_service_profiler()
+except ImportError:
+    pass
+```
+
+### 2. 环境变量设置及启动服务
+
+- `SERVICE_PROF_CONFIG_PATH`：指定性能分析配置文件路径
+- `PROFILING_SYMBOLS_PATH`：指定符号配置文件路径（可选，如不设置默认读取本项目路径下ms_service_profiler/patcher/sglang/config/service_profiling_symbols.yaml文件）
+
+```bash
+cd ${path_to_store_profiling_files}
+export SERVICE_PROF_CONFIG_PATH=ms_service_profiler_config.json
+export PROFILING_SYMBOLS_PATH=service_profiling_symbols.yaml
+
+# 启动 SGLang 服务
+python3 -m sglang.launch_server --model-path=/Qwen2.5-0.5B-Instruct --device npu
 ```
 
 ### 3. 数据采集<a name="li10670349115211"></a>
