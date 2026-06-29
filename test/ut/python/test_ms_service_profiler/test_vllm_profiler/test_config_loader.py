@@ -1,4 +1,5 @@
 # -------------------------------------------------------------------------
+# pylint: disable=attribute-defined-outside-init,no-member,unspecified-encoding
 # This file is part of the MindStudio project.
 # Copyright (c) 2025 Huawei Technologies Co.,Ltd.
 #
@@ -32,21 +33,22 @@ from ms_service_profiler.patcher.core.config_loader import (
     ConfigLoader,
     ProfilingConfig,
     MetricsConfig,
-    PatternEntry,
-    ConfigHooker,
 )
 
 
 class TestParseSymbolPath:
     """测试_parse_symbol_path函数"""
 
-    @pytest.mark.parametrize("symbol_path,expected", [
-        ("my_module.path:MyClass.my_method", ("my_module.path", "my_method", "MyClass")),
-        ("my_module.path:my_function", ("my_module.path", "my_function", None)),
-        ("module.path.ClassName.methodName", ("", "", None)),
-        ("", ("", "", None)),
-        ("my_module.path:MyClass.method.name.with.dots", ("my_module.path", "method.name.with.dots", "MyClass")),
-    ])
+    @pytest.mark.parametrize(
+        "symbol_path,expected",
+        [
+            ("my_module.path:MyClass.my_method", ("my_module.path", "my_method", "MyClass")),
+            ("my_module.path:my_function", ("my_module.path", "my_function", None)),
+            ("module.path.ClassName.methodName", ("", "", None)),
+            ("", ("", "", None)),
+            ("my_module.path:MyClass.method.name.with.dots", ("my_module.path", "method.name.with.dots", "MyClass")),
+        ],
+    )
     def test_parse_symbol_path(self, symbol_path, expected):
         assert _parse_symbol_path(symbol_path) == expected
 
@@ -54,11 +56,14 @@ class TestParseSymbolPath:
 class TestBuildHookPoints:
     """测试_build_hook_points函数"""
 
-    @pytest.mark.parametrize("module_path,method_name,class_name,expected", [
-        ("my_module.path", "my_method", "MyClass", [("my_module.path", "MyClass.my_method")]),
-        ("my_module.path", "my_function", None, [("my_module.path", "my_function")]),
-        ("", "", None, [("", "")]),
-    ])
+    @pytest.mark.parametrize(
+        "module_path,method_name,class_name,expected",
+        [
+            ("my_module.path", "my_method", "MyClass", [("my_module.path", "MyClass.my_method")]),
+            ("my_module.path", "my_function", None, [("my_module.path", "my_function")]),
+            ("", "", None, [("", "")]),
+        ],
+    )
     def test_build_hook_points(self, module_path, method_name, class_name, expected):
         assert _build_hook_points(module_path, method_name, class_name) == expected
 
@@ -66,12 +71,15 @@ class TestBuildHookPoints:
 class TestIsPatternSymbol:
     """测试 _is_pattern_symbol 函数"""
 
-    @pytest.mark.parametrize("symbol_path,expected", [
-        ("vllm.model_executor.models.*:*.embed_multimodal", True),
-        ("module.path:ClassName.method_name", False),
-        ("module.*:*.foo", True),
-        ("", False),
-    ])
+    @pytest.mark.parametrize(
+        "symbol_path,expected",
+        [
+            ("vllm.model_executor.models.*:*.embed_multimodal", True),
+            ("module.path:ClassName.method_name", False),
+            ("module.*:*.foo", True),
+            ("", False),
+        ],
+    )
     def test_is_pattern_symbol(self, symbol_path, expected):
         assert _is_pattern_symbol(symbol_path) == expected
 
@@ -94,10 +102,13 @@ class TestParseSymbolPattern:
         with patch("ms_service_profiler.patcher.core.config_loader.logger"):
             assert _parse_symbol_pattern("some.module:func_name") is None
 
-    @pytest.mark.parametrize("symbol_path", [
-        "no_colon",
-        "module:*",
-    ])
+    @pytest.mark.parametrize(
+        "symbol_path",
+        [
+            "no_colon",
+            "module:*",
+        ],
+    )
     def test_parse_pattern_invalid_returns_none(self, symbol_path):
         with patch("ms_service_profiler.patcher.core.config_loader.logger"):
             assert _parse_symbol_pattern(symbol_path) is None
@@ -167,16 +178,16 @@ class TestResolveHandlerFunc:
 
 class TestConfigLoader:
     """测试ConfigLoader类"""
-    
+
     def setup_method(self):
         self.temp_dir = tempfile.mkdtemp()
         self.config_path = os.path.join(self.temp_dir, "test_config.yaml")
         self.loader = ConfigLoader(self.config_path)
-    
+
     def teardown_method(self):
         if os.path.exists(self.temp_dir):
             shutil.rmtree(self.temp_dir)
-    
+
     def _create_test_config(self, content):
         with open(self.config_path, 'w') as f:
             f.write(content)
@@ -188,8 +199,14 @@ class TestConfigLoader:
     def test_load_valid_yaml_returns_handler_dict(self):
         self._create_test_config("- symbol: a\n  domain: D\n")
         raw = [
-            {"symbol": "module.path:ClassName.method_name", "domain": "TestDomain", "name": "test_name",
-             "min_version": "1.0.0", "max_version": "2.0.0", "attributes": {"attr1": "value1", "attr2": "value2"}},
+            {
+                "symbol": "module.path:ClassName.method_name",
+                "domain": "TestDomain",
+                "name": "test_name",
+                "min_version": "1.0.0",
+                "max_version": "2.0.0",
+                "attributes": {"attr1": "value1", "attr2": "value2"},
+            },
             {"symbol": "another.module:function_name", "handler": "custom.handlers:my_handler"},
         ]
         with patch("ms_service_profiler.patcher.core.config_loader.load_yaml_config", return_value=raw):
@@ -200,7 +217,7 @@ class TestConfigLoader:
         assert isinstance(result, ProfilingConfig)
         assert result.concrete["module.path:ClassName.method_name"] == [h1]
         assert result.concrete["another.module:function_name"] == [h2]
-                
+
     def test_load_multiple_handlers_same_symbol_returns_all(self):
         self._create_test_config("")
         with patch("ms_service_profiler.patcher.core.config_loader.load_yaml_config") as mock_yaml:
@@ -220,10 +237,20 @@ class TestConfigLoader:
             result = self.loader.load_profiling()
             assert isinstance(result, ProfilingConfig)
             assert not result.concrete and not result.patterns
-    @pytest.mark.parametrize("raw_config", [
-        [{"domain": "TestDomain", "name": "test"}, {"symbol": "module.path:ClassName.method_name", "domain": "Valid"}],
-        [{"symbol": "invalid_format_without_colon"}, {"symbol": "module.path:ClassName.method_name", "domain": "Valid"}],
-    ])
+
+    @pytest.mark.parametrize(
+        "raw_config",
+        [
+            [
+                {"domain": "TestDomain", "name": "test"},
+                {"symbol": "module.path:ClassName.method_name", "domain": "Valid"},
+            ],
+            [
+                {"symbol": "invalid_format_without_colon"},
+                {"symbol": "module.path:ClassName.method_name", "domain": "Valid"},
+            ],
+        ],
+    )
     def test_load_skips_invalid_items(self, raw_config):
         with patch("ms_service_profiler.patcher.core.config_loader.load_yaml_config", return_value=raw_config):
             with patch("ms_service_profiler.patcher.core.config_loader.ConfigHooker") as MockDH:
@@ -231,6 +258,7 @@ class TestConfigLoader:
                 result = self.loader.load_profiling()
         assert len(result.concrete) == 1
         assert "module.path:ClassName.method_name" in result.concrete
+
     def test_load_real_yaml_parses_correctly(self):
         self._create_test_config(
             '- symbol: "sglang.srt.managers.scheduler:Scheduler.get_next_batch_to_run"\n  domain: "Schedule"\n'
@@ -308,9 +336,7 @@ class TestResolveMetricsHandlerFunc:
         with patch("ms_service_profiler.patcher.core.config_loader.wrap_handler_with_metrics") as mock_wrap:
             wrapped = MagicMock()
             mock_wrap.return_value = wrapped
-            result = _resolve_metrics_handler_func(
-                {"domain": "D", "name": "n"}, "method"
-            )
+            result = _resolve_metrics_handler_func({"domain": "D", "name": "n"}, "method")
             mock_wrap.assert_called_once()
             assert mock_wrap.call_args[0][0].__name__ == "_metrics_noop_handler"
             assert mock_wrap.call_args[0][1] == {"domain": "D", "name": "n"}

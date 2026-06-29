@@ -17,7 +17,7 @@ vLLM Service Profiler is used for performance profiling analysis when deploying 
 
 >[!NOTE]
 >
->For details about Ascend product models, see [Ascend Product Models](<>).
+>For details about Ascend product models, see [Ascend Product Models](https://www.hiascend.com/document/detail/zh/AscendFAQ/ProduTech/productform/hardwaredesc_0001.html).
 
 |Product Type| Supported (Yes/No)|
 |--|:----:|
@@ -31,7 +31,7 @@ vLLM Service Profiler is used for performance profiling analysis when deploying 
 
 #### Environment Setup
 
-1. In the Ascend environment, install the matching CANN Toolkit and ops operator packages, and configure CANN environment variables. For details, see [CANN Installation Guide](<>).
+1. In the Ascend environment, install the matching CANN Toolkit and ops operator packages, and configure CANN environment variables. For details, see [CANN Installation Guide](https://www.hiascend.com/cann/download).
 2. Install vLLM and vLLM-Ascend. Verify that vLLM-ascend can run properly. For details, see [vLLM-Ascend installation](https://vllm-ascend.readthedocs.io/en/latest/installation.html).
 3. Upgrade msServiceProfiler. Build the `.run` file from the source code and upgrade the tool. For details, see the section *Upgrade* in [msServiceProfiler Installation Guide](./msserviceprofiler_install_guide.md#upgrade).
 
@@ -200,15 +200,15 @@ attributes:
   # Obtains the tensor shape
   - name: tensor_shape
     expr: input_tensor | attr shape | str
-  
+
   # Obtaining a specific value from a dictionary
   - name: batch_size
     expr: kwargs['batch_size']
-  
+
   # Condition expression (custom processing function required)
   - name: is_training_mode
     expr: training | bool
-  
+
   # Complex data processing
   - name: processed_data_len
     expr: data | attr items | len | str
@@ -222,13 +222,13 @@ When the `handler` field specifies a custom handler function, the function must 
 def custom_handler(original_func, this, *args, **kwargs):
     """
     Customize handler functions
-    
+
     Args:
         original_func: original function object
         this: calling object (for method calling)
         *args: position parameter
         **kwargs: keyword arguments
-    
+
     Returns:
         Handling result
     """
