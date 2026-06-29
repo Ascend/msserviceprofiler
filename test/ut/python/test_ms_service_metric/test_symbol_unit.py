@@ -1,4 +1,5 @@
 # -------------------------------------------------------------------------
+# pylint: disable=no-name-in-module,redefined-outer-name
 # This file is part of the MindStudio project.
 # Copyright (c) 2025 Huawei Technologies Co.,Ltd.
 #
@@ -47,9 +48,7 @@ def test_given_path_without_colon_when_construct_symbol_then_raises_symbol_error
 
 def test_given_same_handler_twice_when_add_handler_then_single_entry(no_watch_symbol):
     sym, _, _ = no_watch_symbol
-    h = MetricHandler.from_config(
-        {"handler": "ms_service_metric.handlers:default_handler"}, "my.mod:MyClass.run"
-    )
+    h = MetricHandler.from_config({"handler": "ms_service_metric.handlers:default_handler"}, "my.mod:MyClass.run")
     sym.add_handler(h)
     sym.add_handler(h)
     assert len(sym.get_all_handlers()) == 1
@@ -62,9 +61,7 @@ def test_given_unknown_handler_id_when_remove_handler_then_noop(no_watch_symbol)
 
 def test_given_handler_added_when_remove_then_get_returns_none(no_watch_symbol):
     sym, _, _ = no_watch_symbol
-    h = MetricHandler.from_config(
-        {"handler": "ms_service_metric.handlers:default_handler"}, "my.mod:MyClass.run"
-    )
+    h = MetricHandler.from_config({"handler": "ms_service_metric.handlers:default_handler"}, "my.mod:MyClass.run")
     sym.add_handler(h)
     hid = h.id
     assert sym.get_handler(hid) is h

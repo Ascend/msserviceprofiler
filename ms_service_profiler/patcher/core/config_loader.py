@@ -1,4 +1,5 @@
 # -------------------------------------------------------------------------
+# pylint: disable=logging-fstring-interpolation
 # This file is part of the MindStudio project.
 # Copyright (c) 2025 Huawei Technologies Co.,Ltd.
 #
@@ -81,17 +82,17 @@ def _build_hook_points(module_path: str, method_name: str, class_name: Optional[
 
 def _resolve_handler_func(symbol_info: dict, method_name: str) -> Callable:
     """根据配置解析 handler 函数。
-    
+
     若 yml 中定义了 handler 则导入使用；否则使用 make_default_time_hook 生成默认 handler。
     """
     handler_path = symbol_info.get('handler')
-    
+
     if not handler_path:
         domain = symbol_info.get('domain', 'Default')
         name = symbol_info.get('name', method_name)
         attributes = symbol_info.get('attributes')
         return make_default_time_hook(domain=domain, name=name, attributes=attributes)
-    
+
     # 自定义 handler: "module.path:func_name"
     if isinstance(handler_path, str) and ':' in handler_path:
         try:
@@ -103,7 +104,7 @@ def _resolve_handler_func(symbol_info: dict, method_name: str) -> Callable:
             logger.warning(f"Handler '{handler_path}' is not callable, using default")
         except Exception as e:
             logger.warning(f"Failed to import handler '{handler_path}': {e}, using default")
-    
+
     domain = symbol_info.get('domain', 'Default')
     name = symbol_info.get('name', method_name)
     attributes = symbol_info.get('attributes')
@@ -199,49 +200,49 @@ class MetricsConfig:
 
 class ConfigLoader:
     """配置加载器：读取 yml 文件，返回以 symbol 为粒度的 Handler 列表。
-    
+
     将 yml 配置加载为 handler 列表，以 handler 为粒度，每个 handler 对应自己的 symbol。
     - 若 yml 中对同一 symbol 配置了多个 handler，则放在同一列表中
     - 若 yml 中只定义了 symbol 而未定义 handler，则使用 make_default_time_hook 生成默认 handler
     - Handler 为 DynamicHooker 类实例（继承自 VLLMHookerBase，类似 AutoHooker）
-    
+
     Attributes:
         _config_path: 配置文件路径
         _framework_version: 框架版本号，用于版本检查
     """
-    
+
     def __init__(self, config_path: str, framework_version: Optional[str] = None):
         """初始化 ConfigLoader。
-        
+
         Args:
             config_path: yml 配置文件路径
             framework_version: 框架版本号，如 "0.9.1"，用于版本检查
         """
         self._config_path = config_path
         self._framework_version = framework_version
-    
+
     def load_profiling(self) -> ProfilingConfig:
         """加载 profiling yml 配置并解析为 Handler 列表与模式列表。
-        
+
         Returns:
             ProfilingConfig: concrete (symbol_path -> Handler 列表) + patterns (模式列表)。
         """
         raw_config = load_yaml_config(self._config_path)
         if not raw_config:
             return ProfilingConfig()
-        
+
         if not isinstance(raw_config, list):
             logger.warning("Config should be a list of symbol configurations")
             return ProfilingConfig()
-        
+
         result: Dict[str, List[ConfigHooker]] = {}
         pattern_entries: List[PatternEntry] = []
-        
+
         for item in raw_config:
             if not isinstance(item, dict) or 'symbol' not in item:
                 logger.warning("Skip invalid config item: missing 'symbol'")
                 continue
-            
+
             symbol_path = item['symbol']
             need_locals = "expr" in json.dumps(item) or "handler" in json.dumps(item)
 
@@ -253,28 +254,30 @@ class ConfigLoader:
                 handler_func = _resolve_handler_func(item, method_name)
                 name = item.get('name', method_name)
                 domain = item.get('domain', 'Default')
-                pattern_entries.append(PatternEntry(
-                    module_pattern=module_pattern,
-                    method_name=method_name,
-                    class_pattern=class_pattern,
-                    name=name,
-                    domain=domain,
-                    handler_func=handler_func,
-                    min_version=item.get('min_version'),
-                    max_version=item.get('max_version'),
-                    caller_filter=item.get('caller_filter'),
-                    need_locals=need_locals,
-                    pattern_id=symbol_path,
-                ))
+                pattern_entries.append(
+                    PatternEntry(
+                        module_pattern=module_pattern,
+                        method_name=method_name,
+                        class_pattern=class_pattern,
+                        name=name,
+                        domain=domain,
+                        handler_func=handler_func,
+                        min_version=item.get('min_version'),
+                        max_version=item.get('max_version'),
+                        caller_filter=item.get('caller_filter'),
+                        need_locals=need_locals,
+                        pattern_id=symbol_path,
+                    )
+                )
                 continue
 
             module_path, method_name, class_name = _parse_symbol_path(symbol_path)
             if not module_path:
                 continue
-            
+
             hook_points = _build_hook_points(module_path, method_name, class_name)
             handler_func = _resolve_handler_func(item, method_name)
-            
+
             handler_instance = ConfigHooker(
                 hook_list=hook_points,
                 symbol_path=symbol_path,
@@ -285,11 +288,11 @@ class ConfigLoader:
                 need_locals=need_locals,
                 framework_version=self._framework_version,
             )
-            
+
             if symbol_path not in result:
                 result[symbol_path] = []
             result[symbol_path].append(handler_instance)
-        
+
         logger.debug(
             f"ConfigLoader loaded {len(result)} profiling symbols, {len(pattern_entries)} patterns from {self._config_path}"
         )
@@ -324,19 +327,21 @@ class ConfigLoader:
                 handler_func = _resolve_metrics_handler_func(item, method_name)
                 name = item.get('name', method_name)
                 domain = item.get('domain', 'Default')
-                pattern_entries.append(PatternEntry(
-                    module_pattern=module_pattern,
-                    method_name=method_name,
-                    class_pattern=class_pattern,
-                    name=name,
-                    domain=domain,
-                    handler_func=handler_func,
-                    min_version=item.get('min_version'),
-                    max_version=item.get('max_version'),
-                    caller_filter=item.get('caller_filter'),
-                    need_locals=need_locals,
-                    pattern_id=symbol_path,
-                ))
+                pattern_entries.append(
+                    PatternEntry(
+                        module_pattern=module_pattern,
+                        method_name=method_name,
+                        class_pattern=class_pattern,
+                        name=name,
+                        domain=domain,
+                        handler_func=handler_func,
+                        min_version=item.get('min_version'),
+                        max_version=item.get('max_version'),
+                        caller_filter=item.get('caller_filter'),
+                        need_locals=need_locals,
+                        pattern_id=symbol_path,
+                    )
+                )
                 continue
 
             module_path, method_name, class_name = _parse_symbol_path(symbol_path)

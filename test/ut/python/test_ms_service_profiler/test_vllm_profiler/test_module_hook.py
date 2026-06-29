@@ -1,4 +1,5 @@
 # -------------------------------------------------------------------------
+# pylint: disable=redefined-outer-name
 # This file is part of the MindStudio project.
 # Copyright (c) 2025 Huawei Technologies Co.,Ltd.
 #
@@ -14,14 +15,9 @@
 # See the Mulan PSL v2 for more details.
 # -------------------------------------------------------------------------
 
-import os
-import sys
 import importlib
-import inspect
 import asyncio
-import threading
 from unittest.mock import patch, MagicMock
-from packaging.version import Version
 import pytest
 
 
@@ -30,8 +26,7 @@ from ms_service_profiler.patcher.core.module_hook import (
     HookHelper,
     VLLMHookerBase,
     TrackableOriginalFunc,
-    MAX_HOOK_FAILURES,
-    patcher
+    patcher,
 )
 from ms_service_profiler.patcher.core.registry import get_hook_registry, clear_hook_registry
 
@@ -264,17 +259,20 @@ def test_vllmhookerbase_do_hook_given_caller_filter_when_calling_then_filters_co
 
     hooker.hooks[0].recover()
 
+
 class TestHookFuncNotNeedLocals:
     """测试 VLLMHookerBase.hook_func_not_need_locals 方法。
-    
+
     测试策略：
     - 正例：测试正常执行流程
     - 反例：测试异常处理流程
     - 测试同步和异步函数
     - 测试不同的包装函数类型
     """
-    
-    def test_given_sync_function_and_no_wrap_hook_when_call_wrapper_then_execute_context_hooks_and_original_function(self):
+
+    def test_given_sync_function_and_no_wrap_hook_when_call_wrapper_then_execute_context_hooks_and_original_function(
+        self,
+    ):
         """Given: 同步函数，使用默认的包装函数
         When: 调用生成的包装器
         Then: 应该按顺序执行 context hooks 的 enter 和 exit，并返回原函数结果
@@ -282,40 +280,39 @@ class TestHookFuncNotNeedLocals:
         # Given
         mock_enter = MagicMock(return_value=None)
         mock_exit = MagicMock(return_value=None)
-        
+
         # 创建 mock context hook 函数
         def create_context_hook(ctx):
             class ContextHook:
                 def __enter__(self):
                     mock_enter()
                     return self
+
                 def __exit__(self, *args):
                     mock_exit()
+
             return ContextHook()
-        
+
         context_hook_funcs = [create_context_hook]
-        
+
         # 原始函数
         def original_func(x, y):
             return x + y
-        
+
         trackable_ori_func = TrackableOriginalFunc(original_func)
-        
+
         # When
         wrapper = VLLMHookerBase.hook_func_not_need_locals(
-            trackable_ori_func,
-            original_func,
-            context_hook_funcs,
-            VLLMHookerBase.default_hook_func
+            trackable_ori_func, original_func, context_hook_funcs, VLLMHookerBase.default_hook_func
         )
-        
+
         result = wrapper(3, 5)
-        
+
         # Then
         assert result == 8
         mock_enter.assert_called_once()
         mock_exit.assert_called_once()
-    
+
     def test_given_sync_function_with_wrap_hook_when_call_wrapper_then_execute_context_hooks_and_wrap_hook(self):
         """Given: 同步函数，使用自定义的包装函数
         When: 调用生成的包装器
@@ -325,41 +322,42 @@ class TestHookFuncNotNeedLocals:
         mock_enter = MagicMock(return_value=None)
         mock_exit = MagicMock(return_value=None)
         mock_wrap_hook = MagicMock(return_value=100)
-        
+
         def create_context_hook(ctx):
             class ContextHook:
                 def __enter__(self):
                     mock_enter()
                     return self
+
                 def __exit__(self, *args):
                     mock_exit()
+
             return ContextHook()
-        
+
         context_hook_funcs = [create_context_hook]
-        
+
         def original_func(x, y):
             return x + y
-        
+
         trackable_ori_func = TrackableOriginalFunc(original_func)
-        
+
         # When
         wrapper = VLLMHookerBase.hook_func_not_need_locals(
-            trackable_ori_func,
-            original_func,
-            context_hook_funcs,
-            mock_wrap_hook
+            trackable_ori_func, original_func, context_hook_funcs, mock_wrap_hook
         )
-        
+
         result = wrapper(3, 5)
-        
+
         # Then
         assert result == 100
         mock_enter.assert_called_once()
         mock_exit.assert_called_once()
         mock_wrap_hook.assert_called_once_with(trackable_ori_func, 3, 5)
-    
+
     @pytest.mark.asyncio
-    async def test_given_async_function_and_no_wrap_hook_when_call_wrapper_then_execute_context_hooks_and_original_function(self):
+    async def test_given_async_function_and_no_wrap_hook_when_call_wrapper_then_execute_context_hooks_and_original_function(
+        self,
+    ):
         """Given: 异步函数，使用默认的包装函数
         When: 调用生成的包装器
         Then: 应该按顺序执行 context hooks 的 enter 和 exit，并返回原函数结果
@@ -367,39 +365,38 @@ class TestHookFuncNotNeedLocals:
         # Given
         mock_enter = MagicMock(return_value=None)
         mock_exit = MagicMock(return_value=None)
-        
+
         def create_context_hook(ctx):
             class ContextHook:
                 def __enter__(self):
                     mock_enter()
                     return self
+
                 def __exit__(self, *args):
                     mock_exit()
+
             return ContextHook()
-        
+
         context_hook_funcs = [create_context_hook]
-        
+
         async def async_original_func(x, y):
             await asyncio.sleep(0.01)
             return x + y
-        
+
         trackable_ori_func = TrackableOriginalFunc(async_original_func)
-        
+
         # When
         wrapper = VLLMHookerBase.hook_func_not_need_locals(
-            trackable_ori_func,
-            async_original_func,
-            context_hook_funcs,
-            VLLMHookerBase.default_hook_func
+            trackable_ori_func, async_original_func, context_hook_funcs, VLLMHookerBase.default_hook_func
         )
-        
+
         result = await wrapper(3, 5)
-        
+
         # Then
         assert result == 8
         mock_enter.assert_called_once()
         mock_exit.assert_called_once()
-    
+
     @pytest.mark.asyncio
     async def test_given_async_function_with_wrap_hook_when_call_wrapper_then_execute_context_hooks_and_wrap_hook(self):
         """Given: 异步函数，使用自定义的包装函数
@@ -409,44 +406,46 @@ class TestHookFuncNotNeedLocals:
         # Given
         mock_enter = MagicMock(return_value=None)
         mock_exit = MagicMock(return_value=None)
-        
+
         # 创建一个异步的 wrap hook 函数
         async def async_wrap_hook(trackable_func, *args, **kwargs):
             await asyncio.sleep(0.01)  # 模拟异步操作
             return 100
-        
+
         def create_context_hook(ctx):
             class ContextHook:
                 def __enter__(self):
                     mock_enter()
                     return self
+
                 def __exit__(self, *args):
                     mock_exit()
+
             return ContextHook()
-        
+
         context_hook_funcs = [create_context_hook]
-        
+
         async def async_original_func(x, y):
             await asyncio.sleep(0.01)
             return x + y
-        
+
         trackable_ori_func = TrackableOriginalFunc(async_original_func)
-        
+
         # When
         wrapper = VLLMHookerBase.hook_func_not_need_locals(
             trackable_ori_func,
             async_original_func,
             context_hook_funcs,
-            async_wrap_hook  # 使用异步的 wrap hook 函数
+            async_wrap_hook,  # 使用异步的 wrap hook 函数
         )
-        
+
         result = await wrapper(3, 5)
-        
+
         # Then
         assert result == 100
         mock_enter.assert_called_once()
         mock_exit.assert_called_once()
-    
+
     def test_given_multiple_context_hooks_when_call_wrapper_then_execute_all_hooks_in_order(self):
         """Given: 多个 context hook 函数
         When: 调用生成的包装器
@@ -454,94 +453,96 @@ class TestHookFuncNotNeedLocals:
         """
         # Given
         execution_order = []
-        
+
         def create_context_hook(name):
             def hook_factory(ctx):
                 class ContextHook:
                     def __enter__(self):
                         execution_order.append(f"{name}_enter")
                         return self
+
                     def __exit__(self, *args):
                         execution_order.append(f"{name}_exit")
+
                 return ContextHook()
+
             return hook_factory
-        
-        context_hook_funcs = [
-            create_context_hook("hook1"),
-            create_context_hook("hook2"),
-            create_context_hook("hook3")
-        ]
-        
+
+        context_hook_funcs = [create_context_hook("hook1"), create_context_hook("hook2"), create_context_hook("hook3")]
+
         def original_func():
             execution_order.append("original")
             return "done"
-        
+
         trackable_ori_func = TrackableOriginalFunc(original_func)
-        
+
         # When
         wrapper = VLLMHookerBase.hook_func_not_need_locals(
-            trackable_ori_func,
-            original_func,
-            context_hook_funcs,
-            VLLMHookerBase.default_hook_func
+            trackable_ori_func, original_func, context_hook_funcs, VLLMHookerBase.default_hook_func
         )
-        
+
         result = wrapper()
-        
+
         # Then
         assert result == "done"
         assert execution_order == [
-            "hook1_enter", "hook2_enter", "hook3_enter",
+            "hook1_enter",
+            "hook2_enter",
+            "hook3_enter",
             "original",
-            "hook3_exit", "hook2_exit", "hook1_exit"
+            "hook3_exit",
+            "hook2_exit",
+            "hook1_exit",
         ]
-    
-    def test_given_context_hook_enter_throws_exception_when_call_wrapper_then_log_error_and_increment_failure_counter(self):
+
+    def test_given_context_hook_enter_throws_exception_when_call_wrapper_then_log_error_and_increment_failure_counter(
+        self,
+    ):
         """Given: context hook 的 __enter__ 方法抛出异常
         When: 调用生成的包装器
         Then: 应该记录错误，增加失败计数，但仍然执行后续操作
         """
+
         # Given
-        mock_logger = MagicMock()
-        
         def create_failing_hook():
             class FailingHook:
                 def __enter__(self):
                     raise ValueError("Enter failed")
+
                 def __exit__(self, *args):
                     pass
+
             return lambda ctx: FailingHook()
-        
+
         def create_normal_hook():
             mock_enter = MagicMock()
+
             class NormalHook:
                 def __enter__(self):
                     mock_enter()
                     return self
+
                 def __exit__(self, *args):
                     pass
+
             return lambda ctx: NormalHook()
-        
+
         context_hook_funcs = [create_failing_hook(), create_normal_hook()]
-        
+
         def original_func():
             return 42
-        
+
         trackable_ori_func = TrackableOriginalFunc(original_func)
-        
+
         # When
         with patch('ms_service_profiler.patcher.core.module_hook.logger') as mock_logger:
             wrapper = VLLMHookerBase.hook_func_not_need_locals(
-                trackable_ori_func,
-                original_func,
-                context_hook_funcs,
-                VLLMHookerBase.default_hook_func
+                trackable_ori_func, original_func, context_hook_funcs, VLLMHookerBase.default_hook_func
             )
-            
+
             result = wrapper()
-        
+
         # Then
         assert result == 42
         mock_logger.error.assert_called_once()
         assert "function enter failed" in mock_logger.error.call_args[0][0]
-    

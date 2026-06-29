@@ -1,4 +1,5 @@
 # -------------------------------------------------------------------------
+# pylint: disable=logging-fstring-interpolation
 # This file is part of the MindStudio project.
 # Copyright (c) 2025 Huawei Technologies Co.,Ltd.
 #
@@ -30,7 +31,7 @@ vLLM 框架适配器。
 
 import os
 import sys
-from typing import Dict, List, Optional, Tuple, Callable
+from typing import Optional, Tuple, Callable
 
 from ..core.utils import parse_version_tuple, check_profiling_enabled, install_symbol_watcher, get_package_version
 from ..core.config_loader import ConfigLoader, ProfilingConfig, MetricsConfig
@@ -51,26 +52,26 @@ def _is_registry_subprocess() -> bool:
 
 class VLLMProfiler:
     """vLLM 框架适配器。
-    
+
     该类只负责 vLLM 特定的逻辑：
     - 配置文件路径查找
     - vLLM 版本检测
     - handlers 导入
-    
+
     hook 的启用/禁用由 HookController 统一管理。
     """
-    
+
     def __init__(self):
         """初始化 vLLM Profiler。"""
         self._vllm_use_v1 = VLLMProfiler._detect_version()
         self._vllm_version = VLLMProfiler._get_vllm_version()
         self._controller: Optional[HookController] = None
         self._initialized = False
-    
+
     # -------------------------------------------------------------------------
     # 版本检测
     # -------------------------------------------------------------------------
-    
+
     @staticmethod
     def _auto_detect_v1_default() -> str:
         """根据已安装的 vLLM 版本自动决定默认 V1 使用情况。"""
@@ -80,9 +81,7 @@ class VLLMProfiler:
                 raise ValueError("Could not get vllm version")
             major, minor, patch = parse_version_tuple(vllm_version)
             use_v1 = (major, minor, patch) >= (0, 9, 2)
-            logger.info(
-                f"VLLM_USE_V1 not set, auto-detected via vLLM {vllm_version}: default {'1' if use_v1 else '0'}"
-            )
+            logger.info(f"VLLM_USE_V1 not set, auto-detected via vLLM {vllm_version}: default {'1' if use_v1 else '0'}")
             return "1" if use_v1 else "0"
         except Exception:
             logger.info("VLLM_USE_V1 not set and vLLM version unknown; default to 0 (V0)")
@@ -93,23 +92,21 @@ class VLLMProfiler:
         """检测 vLLM 版本。"""
         env_v1 = os.environ.get('VLLM_USE_V1')
         return env_v1 if env_v1 is not None else VLLMProfiler._auto_detect_v1_default()
-    
+
     @staticmethod
     def _get_vllm_version() -> Optional[str]:
         """获取 vLLM 版本号。"""
         return get_package_version("vllm")
-    
+
     # -------------------------------------------------------------------------
     # 配置加载
     # -------------------------------------------------------------------------
-    
+
     @staticmethod
     def _find_default_config_path() -> Optional[str]:
         """查找默认配置文件路径（仅本地或用户目录，不含环境变量）。"""
         try:
-            local_candidate = os.path.join(
-                os.path.dirname(__file__), 'config', 'service_profiling_symbols.yaml'
-            )
+            local_candidate = os.path.join(os.path.dirname(__file__), 'config', 'service_profiling_symbols.yaml')
             if os.path.isfile(local_candidate):
                 logger.debug(f"Loading profiling symbols from local config file: {local_candidate}")
                 return local_candidate
@@ -118,19 +115,23 @@ class VLLMProfiler:
         try:
             try:
                 import vllm  # type: ignore
+
                 vllm_version = getattr(vllm, '__version__', None)
             except Exception as e:
                 logger.debug(f"vllm not available for version detection: {e}")
                 vllm_version = None
             try:
                 from vllm_ascend import register_service_profiling  # type: ignore
+
                 register_service_profiling()
             except Exception as e:
                 logger.debug(f"Cannot using register_service_profiling to get default symbols config: {e}")
             if vllm_version:
                 home_dir = os.path.expanduser('~')
                 candidate = os.path.join(
-                    home_dir, '.config', 'vllm_ascend',
+                    home_dir,
+                    '.config',
+                    'vllm_ascend',
                     f"service_profiling_symbols.{vllm_version}.yaml",
                 )
                 if os.path.isfile(candidate):
@@ -185,12 +186,12 @@ class VLLMProfiler:
 
     def _load_profiling_config(self) -> Optional[ProfilingConfig]:
         """加载 profiling 配置文件并返回 ProfilingConfig（concrete + patterns）。"""
+
         def _write_profiling_symbols(env_path: str, default_cfg: str) -> Optional[ProfilingConfig]:
             try:
                 parent_dir = os.path.dirname(env_path) or '.'
                 os.makedirs(parent_dir, exist_ok=True)
-                with open(default_cfg, 'r', encoding='utf-8') as src, \
-                        open(env_path, 'w', encoding='utf-8') as dst:
+                with open(default_cfg, 'r', encoding='utf-8') as src, open(env_path, 'w', encoding='utf-8') as dst:
                     dst.write(src.read())
                 logger.debug(f"Wrote profiling symbols to env path: {env_path}")
                 logger.info("Loading vLLM profiling symbols from: %s", env_path)
@@ -224,37 +225,36 @@ class VLLMProfiler:
         return self._load_metrics_config(just_default=just_default)
 
     def _load_config(self) -> Tuple[Optional[ProfilingConfig], Optional[MetricsConfig]]:
-        """加载 profiling 配置并返回；metrics 由 C++ 通过 on_start_metric 回调单独控制，此处不读 JSON。
-        """
+        """加载 profiling 配置并返回；metrics 由 C++ 通过 on_start_metric 回调单独控制，此处不读 JSON。"""
         profiling = self._load_profiling_config()
         metrics = None
         return (profiling, metrics)
-    
+
     # -------------------------------------------------------------------------
     # 初始化
     # -------------------------------------------------------------------------
-    
+
     def _import_handlers(self):
         """按版本导入内置 handlers。"""
         if self._vllm_use_v1 == "0":
             logger.debug("Initializing service profiler with vLLM V0 interface")
-            from .handlers.v0 import batch_handlers, kvcache_handlers, model_handlers, request_handlers
+            from .handlers.v0 import batch_handlers, kvcache_handlers, model_handlers, request_handlers  # noqa: F401
         elif self._vllm_use_v1 == "1":
             logger.debug("Initializing service profiler with vLLM V1 interface")
-            from .handlers.v1 import batch_handlers, kvcache_handlers, meta_handlers, model_handlers, request_handlers
+            from .handlers.v1 import batch_handlers, kvcache_handlers, meta_handlers, model_handlers, request_handlers  # noqa: F401
         else:
             logger.error(f"unknown vLLM interface version: VLLM_USE_V1={self._vllm_use_v1}")
 
     def initialize(self) -> bool:
         """初始化服务分析器。
-        
+
         执行完整的初始化流程：
         1. 检查环境变量
         2. 初始化 metrics 模块
         3. 导入内置 handlers
         4. 创建 SymbolWatchFinder 和 HookController
         5. 非 registry 子进程内：与 enable_hooks() 相同流程（load_handlers + 对已有模块 apply + 打开 auto_apply）
-        
+
         Returns:
             bool: 初始化是否成功
         """
@@ -281,7 +281,7 @@ class VLLMProfiler:
             self._initialized = True
             logger.debug("VLLM Service Profiler initialized successfully")
             return True
-            
+
         except Exception as e:
             logger.exception("Failed to initialize VLLM Service Profiler: %s", str(e))
             self._initialized = False
@@ -308,7 +308,7 @@ class VLLMProfiler:
         if self._controller is None:
             logger.warning("Profiler not initialized, cannot enable hooks")
             return
-        
+
         profiling, metrics = self._load_config()
         self._controller.enable(profiling_handlers=profiling, metrics_handlers=metrics)
 
@@ -325,7 +325,7 @@ class VLLMProfiler:
 
     def get_callbacks(self) -> Tuple[Callable[[], None], Callable[[], None]]:
         """返回可注册到 C++ 的回调函数对（start, stop）。
-        
+
         Returns:
             (on_start_callback, on_stop_callback)
         """
@@ -333,6 +333,7 @@ class VLLMProfiler:
             # 如果还没初始化，返回空操作的回调
             def noop():
                 logger.warning("Profiler not initialized, callback ignored")
+
             return noop, noop
         return self._controller.get_callbacks(self._load_config)
 
@@ -342,8 +343,10 @@ class VLLMProfiler:
         stopMetricCallback 时 update_metrics_handlers(None) 停止 metric 采集。
         """
         if self._controller is None:
+
             def noop():
                 logger.warning("Profiler not initialized, metric callback ignored")
+
             return noop, noop
 
         def on_start_metric() -> None:

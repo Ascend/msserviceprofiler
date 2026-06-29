@@ -201,15 +201,15 @@ attributes:
   # 获取张量形状
   - name: tensor_shape
     expr: input_tensor | attr shape | str
-  
+
   # 获取字典中的特定值
   - name: batch_size
     expr: kwargs['batch_size']
-  
+
   # 条件表达式（需要自定义处理函数支持）
   - name: is_training_mode
     expr: training | bool
-  
+
   # 复杂的数据处理
   - name: processed_data_len
     expr: data | attr items | len | str
@@ -223,13 +223,13 @@ attributes:
 def custom_handler(original_func, this, *args, **kwargs):
     """
     自定义处理函数
-    
+
     Args:
         original_func: 原始函数对象
         this: 调用对象（对于方法调用）
         *args: 位置参数
         **kwargs: 关键字参数
-    
+
     Returns:
         处理结果
     """
