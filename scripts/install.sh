@@ -67,9 +67,11 @@ function implement_install() {
     print_log "INFO" "${install_path%/}/python/site-packages/ms_service_profiler is replaced."
     # libms_service_profiler.so
     lib64_right=$(stat -c "%a" ${install_path}/${arch_name}/lib64 2>/dev/null)
+    lib64_right_conf=$(stat -c "%a" ${install_path}/${arch_name}/lib64/plugin/opskernel/config/init.conf 2>/dev/null)
     chmod -R ${right} ${install_path}/${arch_name}/lib64
     copy_file ${install_path%/}/python/site-packages/ms_service_profiler/${LIB_MS_SERVICE_PROFILER} ${install_path}/${arch_name}/lib64/${LIB_MS_SERVICE_PROFILER}
-    chmod -R ${lib64_right} ${install_path}/${arch_name}/lib64
+    chmod -R ${lib64_right} ${install_path}/${arch_name}/lib64 && \
+    chmod ${lib64_right_conf} ${install_path}/${arch_name}/lib64/plugin/opskernel/config/init.conf
     if [ $? -ne 0 ]; then
         print_log "ERROR" "Install msserviceprofiler whl failed."
         return 1
