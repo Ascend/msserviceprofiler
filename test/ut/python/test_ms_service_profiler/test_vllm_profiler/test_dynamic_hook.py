@@ -1,5 +1,4 @@
 # -------------------------------------------------------------------------
-# pylint: disable=comparison-with-callable,redefined-outer-name,use-implicit-booleaness-not-comparison
 # This file is part of the MindStudio project.
 # Copyright (c) 2025 Huawei Technologies Co.,Ltd.
 #
@@ -14,6 +13,8 @@
 # MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 # See the Mulan PSL v2 for more details.
 # -------------------------------------------------------------------------
+# pylint: disable=too-many-lines,redefined-outer-name
+# pylint: disable=comparison-with-callable,use-implicit-booleaness-not-comparison
 
 from unittest.mock import Mock, patch, call
 from unittest.mock import ANY
@@ -187,7 +188,7 @@ class TestRegisterDynamicHook:
             mock_hooker_instance = Mock()
             mock_dynamic_hooker.return_value = mock_hooker_instance
 
-            register_dynamic_hook(hook_list=sample_hook_list, hook_func=mock_hook_func)
+            result = register_dynamic_hook(hook_list=sample_hook_list, hook_func=mock_hook_func)
 
             mock_dynamic_hooker.assert_called_once_with(
                 hook_list=sample_hook_list,
@@ -197,6 +198,7 @@ class TestRegisterDynamicHook:
                 caller_filter=None,
                 need_locals=False,
             )
+            assert result == mock_hooker_instance
 
 
 class TestMakeDefaultTimeHook:
@@ -205,14 +207,8 @@ class TestMakeDefaultTimeHook:
     @staticmethod
     def test_make_default_time_hook_no_profiler():
         """测试没有 ms_service_profiler 的情况"""
-        with patch.dict('sys.modules', {'ms_service_profiler': None}):
-            # 重新导入以应用模拟
-            import importlib
-            import sys
-
-            if 'ms_service_profiler.patcher.core.dynamic_hook' in sys.modules:
-                importlib.reload(sys.modules['ms_service_profiler.patcher.core.dynamic_hook'])
-
+        # 直接 patch 模块级 Profiler 为 None，避免 reload 模块污染全局状态
+        with patch('ms_service_profiler.patcher.core.dynamic_hook.Profiler', None):
             result_func = make_default_time_hook("test_domain", "test_name")
 
             # 测试返回的函数
@@ -263,10 +259,11 @@ class TestMakeDefaultTimeHook:
         with patch('ms_service_profiler.patcher.core.dynamic_hook._safe_eval_expr') as mock_safe_eval:
             mock_safe_eval.side_effect = [6, 3, "test_model"]  # 模拟三个属性的返回值
 
-            result_func(mock_original, *mock_args, **mock_kwargs)
+            result = result_func(mock_original, *mock_args, **mock_kwargs)
 
             # 验证属性设置
             assert mock_profiler_instance.attr.call_count == 3
+            assert result == "result"
             mock_profiler_instance.attr.assert_has_calls(
                 [call("input_length", 6), call("output_length", 3), call("model_name", "test_model")]
             )
@@ -287,10 +284,11 @@ class TestMakeDefaultTimeHook:
         with patch('ms_service_profiler.patcher.core.dynamic_hook._safe_eval_expr') as mock_safe_eval:
             mock_safe_eval.return_value = None  # 所有表达式执行失败
 
-            result_func(mock_original, *mock_args, **mock_kwargs)
+            result = result_func(mock_original, *mock_args, **mock_kwargs)
 
             # 验证没有属性被设置
             mock_profiler_instance.attr.assert_not_called()
+            assert result == "result"
 
     @staticmethod
     @patch('ms_service_profiler.patcher.core.dynamic_hook.Profiler')
@@ -313,11 +311,12 @@ class TestMakeDefaultTimeHook:
         with patch('ms_service_profiler.patcher.core.dynamic_hook._safe_eval_expr') as mock_safe_eval:
             mock_safe_eval.return_value = 5
 
-            result_func(mock_original, 1, 2, 3)
+            result = result_func(mock_original, 1, 2, 3)
 
             # 只有第一个有效属性被处理
             mock_safe_eval.assert_called_once_with("len(args)", ANY)
             mock_profiler_instance.attr.assert_called_once_with("valid", 5)
+            assert result == "result"
 
 
 class TestHandlerResolver:
@@ -341,9 +340,9 @@ class TestHandlerResolver:
         mock_import_module.return_value = mock_module
         mock_module.test_handler = mock_handler
 
-        result = HandlerResolver._try_import("some.module:test_handler")
+        result = HandlerResolver._try_import("ms_service_profiler.handlers:test_handler")
 
-        mock_import_module.assert_called_once_with("some.module")
+        mock_import_module.assert_called_once_with("ms_service_profiler.handlers")
         assert result == mock_handler
 
     @staticmethod
@@ -352,7 +351,7 @@ class TestHandlerResolver:
         """测试导入模块失败"""
         mock_import_module.side_effect = ImportError("Module not found")
 
-        result = HandlerResolver._try_import("nonexistent.module:handler")
+        result = HandlerResolver._try_import("ms_service_profiler.nonexistent:handler")
 
         assert result is None
 
@@ -364,9 +363,18 @@ class TestHandlerResolver:
         mock_module.test_handler = None  # 函数不存在
         mock_import_module.return_value = mock_module
 
-        result = HandlerResolver._try_import("some.module:nonexistent_handler")
+        result = HandlerResolver._try_import("ms_service_profiler.handlers:nonexistent_handler")
 
         assert result is None
+
+    @staticmethod
+    @patch('ms_service_profiler.patcher.core.dynamic_hook.importlib.import_module')
+    def test_try_import_disallowed_module(mock_import_module):
+        """测试非白名单 handler 模块不触发 import"""
+        result = HandlerResolver._try_import("evil.module:test_handler")
+
+        assert result is None
+        mock_import_module.assert_not_called()
 
     @staticmethod
     @patch('ms_service_profiler.patcher.core.dynamic_hook.make_default_time_hook')
@@ -589,11 +597,13 @@ class TestInternalFunctions:
         assert safe_locals['args'] == (mock_self, "arg1_value", "arg2_value")
         assert safe_locals['kwargs'] == {}
         assert safe_locals['return'] == "result_value"
+        assert safe_locals['ret'] == "result_value"
 
         # 验证具名参数
         assert 'self' in safe_locals
-        assert 'arg1' in safe_locals
-        assert 'arg2' in safe_locals
+        assert 'arg1' not in safe_locals
+        assert 'arg2' not in safe_locals
+        assert 'attr' not in safe_locals
 
     @staticmethod
     @pytest.mark.parametrize(
@@ -604,10 +614,16 @@ class TestInternalFunctions:
             ("__import__('os')", False),  # 危险函数
             ("eval('1+1')", False),  # 危险函数
             ("args[0] + args[1]", False),  # 危险操作符
-            ("len(kwargs.get('key', []))", True),  # 安全函数调用
+            ("len(kwargs['key'])", True),  # 安全函数调用
+            ("len(kwargs.get('key', []))", False),  # 不允许对象方法调用
             ("unknown_func()", False),  # 未知函数
             ("(1 + 2) * 3", False),  # 算术运算
             ("args[0] | len", True),  # 管道操作（在后续验证）
+            ("args[0] | attr safe_attr", True),
+            ("args[0] | attr __class__", False),
+            ("len(this.shutdown())", False),
+            ("this.__class__", False),
+            ("kwargs['x'].dangerous()", False),
         ],
     )
     def test_validate_expression_safety(expr, expected):
@@ -619,73 +635,70 @@ class TestInternalFunctions:
         assert result == expected
 
     @staticmethod
-    def test_execute_direct_expression(sample_func_call_context):
-        """测试 _execute_direct_expression 函数"""
+    def test_normalize_expr_keeps_string_literals():
+        """测试 _normalize_expr 仅替换伪变量 return，不修改字符串字面量。"""
 
         hook_func = make_default_time_hook("test", "test")
+        normalize_expr = hook_func.__globals__['_normalize_expr']
 
-        safe_locals = {'args': (1, 2, 3), 'kwargs': {'key': 'value'}, 'return': "result", 'len': len, 'str': str}
-
-        # 测试安全表达式
-        result = hook_func.__globals__['_execute_direct_expression']("len(args)", safe_locals)
-        assert result == 3
-
-        # 测试危险表达式（应该返回 None）
-        result = hook_func.__globals__['_execute_direct_expression']("import os", safe_locals)
-        assert result is None
-
-        # 测试无效表达式
-        result = hook_func.__globals__['_execute_direct_expression']("invalid_syntax", safe_locals)
-        assert result is None
+        assert normalize_expr("return") == "ret"
+        assert normalize_expr("'return'") == "'return'"
+        assert normalize_expr('str("return")') == 'str("return")'
+        assert normalize_expr('["return", return]') == '["return", ret]'
 
     @staticmethod
     @pytest.mark.parametrize(
-        "input_val,operation,expected",
+        "expr,expected",
         [
-            ([1, 2, 3], 'len', 3),  # len 操作
-            ("hello", 'str', "hello"),  # str 操作
-            (Mock(test_attr="value"), 'attr test_attr', "value"),  # attr 操作
-            ([1, 2, 3], 'unknown', None),  # 未知操作
-            (None, 'len', None),  # None 输入
+            ("len(args[0])", 3),
+            ("args[0] | len", 3),
+            ("return | len | str", "11"),
+            ("args[1] | attr safe_attr", "ok"),
+            ("args[0] | attr __class__", None),
+            ("args[0] | unknown", None),
         ],
     )
-    def test_apply_pipe_operation(input_val, operation, expected):
-        """测试 _apply_pipe_operation 函数"""
-
-        hook_func = make_default_time_hook("test", "test")
-
-        result = hook_func.__globals__['_apply_pipe_operation'](input_val, operation)
-
-        if expected is None:
-            assert result is None
-        else:
-            assert result == expected
-
-    @staticmethod
-    def test_execute_pipe_expression(sample_func_call_context):
-        """测试 _execute_pipe_expression 函数"""
+    def test_execute_safe_expression(expr, expected):
+        """测试 _execute_safe_expression 函数"""
 
         hook_func = make_default_time_hook("test", "test")
 
         safe_locals = {
-            'args': ([1, 2, 3],),
+            'args': ([1, 2, 3], Mock(safe_attr="ok")),
             'kwargs': {'key': 'value'},
             'return': "hello world",
-            'len': len,
-            'str': str,
+            'ret': "hello world",
         }
 
-        # 测试简单表达式
-        result = hook_func.__globals__['_execute_pipe_expression']("len(args[0])", safe_locals)
-        assert result == 3
+        result = hook_func.__globals__['_execute_safe_expression'](expr, safe_locals)
+        assert result == expected
 
-        # 测试管道表达式
-        result = hook_func.__globals__['_execute_pipe_expression']("args[0] | len", safe_locals)
-        assert result == 3
+    @staticmethod
+    def test_execute_safe_expression_validates_before_execution():
+        """测试 _execute_safe_expression 会先走前置安全校验。"""
 
-        # 测试多步管道
-        result = hook_func.__globals__['_execute_pipe_expression']("return | len | str", safe_locals)
-        assert result == "11"  # len("hello world") = 11, then str(11) = "11"
+        hook_func = make_default_time_hook("test", "test")
+        safe_locals = {'args': ([1, 2, 3],), 'kwargs': {}, 'return': "hello", 'ret': "hello"}
+
+        with patch('ms_service_profiler.patcher.core.dynamic_hook._validate_expression_safety') as mock_validate:
+            mock_validate.return_value = False
+            result = hook_func.__globals__['_execute_safe_expression']("len(args[0])", safe_locals)
+
+            mock_validate.assert_called_once_with("len(args[0])")
+            assert result is None
+
+    @staticmethod
+    def test_execute_direct_expression_ast():
+        """测试 AST 求值链路。"""
+
+        hook_func = make_default_time_hook("test", "test")
+        safe_locals = {'args': (1, 2, 3), 'kwargs': {'key': 'value'}, 'return': "result", 'ret': "result"}
+        execute_direct = hook_func.__globals__['_execute_direct_expression_ast']
+
+        assert execute_direct("len(args)", safe_locals) == 3
+        assert execute_direct("str('return')", safe_locals) == "return"
+        assert execute_direct('["return", return]', safe_locals) == ["return", "result"]
+        assert execute_direct("len(this.shutdown())", safe_locals) is None
 
     @staticmethod
     def test_safe_eval_expr(sample_func_call_context):
@@ -696,28 +709,75 @@ class TestInternalFunctions:
         # 模拟成功的表达式执行
         with (
             patch('ms_service_profiler.patcher.core.dynamic_hook._build_safe_locals') as mock_build_locals,
-            patch('ms_service_profiler.patcher.core.dynamic_hook._execute_pipe_expression') as mock_execute,
+            patch('ms_service_profiler.patcher.core.dynamic_hook._execute_safe_expression') as mock_execute,
         ):
-            mock_build_locals.return_value = {'args': (1, 2, 3), 'len': len}
+            mock_build_locals.return_value = {'args': (1, 2, 3)}
             mock_execute.return_value = 3
 
             result = hook_func.__globals__['_safe_eval_expr']("len(args)", sample_func_call_context)
 
             mock_build_locals.assert_called_once_with(sample_func_call_context)
-            mock_execute.assert_called_once_with("len(args)", {'args': (1, 2, 3), 'len': len})
+            mock_execute.assert_called_once_with("len(args)", {'args': (1, 2, 3)})
             assert result == 3
 
         # 模拟表达式执行失败
         with (
             patch('ms_service_profiler.patcher.core.dynamic_hook._build_safe_locals') as mock_build_locals,
-            patch('ms_service_profiler.patcher.core.dynamic_hook._execute_pipe_expression') as mock_execute,
+            patch('ms_service_profiler.patcher.core.dynamic_hook._execute_safe_expression') as mock_execute,
         ):
-            mock_build_locals.return_value = {'args': (1, 2, 3), 'len': len}
+            mock_build_locals.return_value = {'args': (1, 2, 3)}
             mock_execute.side_effect = Exception("Test error")
 
             result = hook_func.__globals__['_safe_eval_expr']("len(args)", sample_func_call_context)
 
             assert result is None
+
+    @staticmethod
+    @pytest.mark.parametrize(
+        "expr",
+        [
+            "len(this.shutdown())",
+            "this.__class__",
+            "kwargs['x'].dangerous()",
+            "args[0] | attr __class__",
+        ],
+    )
+    def test_safe_eval_expr_rejects_dangerous_expressions(expr):
+        hook_func = make_default_time_hook("test", "test")
+
+        class Dangerous:
+            safe_value = "visible"
+
+            def shutdown(self):
+                raise AssertionError("shutdown should not be called")
+
+            def dangerous(self):
+                raise AssertionError("dangerous should not be called")
+
+        ctx = FuncCallContext(
+            func_obj=lambda *args, **kwargs: None,
+            this_obj=Dangerous(),
+            args=([1, 2, 3],),
+            kwargs={"x": Dangerous()},
+            ret_val="result",
+        )
+
+        assert hook_func.__globals__['_safe_eval_expr'](expr, ctx) is None
+
+    @staticmethod
+    def test_safe_eval_expr_keeps_simple_supported_expressions():
+        hook_func = make_default_time_hook("test", "test")
+        ctx = FuncCallContext(
+            func_obj=lambda *args, **kwargs: None,
+            this_obj=None,
+            args=([1, 2, 3],),
+            kwargs={"input_ids": [1, 2, 3, 4]},
+            ret_val="ok",
+        )
+
+        assert hook_func.__globals__['_safe_eval_expr']("len(args[0])", ctx) == 3
+        assert hook_func.__globals__['_safe_eval_expr']("len(kwargs['input_ids'])", ctx) == 4
+        assert hook_func.__globals__['_safe_eval_expr']("str(return)", ctx) == "ok"
 
 
 @pytest.fixture(autouse=True)
@@ -897,8 +957,8 @@ class TestConfigHooker:
         """正例：ConfigHooker 初始化应正确设置属性"""
         hook_list = [("mod1", "func1"), ("mod2", "func2")]
 
-        def hook_func(x):
-            return x
+        def hook_func(value):
+            return value
 
         symbol_path = "test.symbol"
         min_v = "1.0"
@@ -986,13 +1046,21 @@ class TestConfigHooker:
 
     def test_given_manager_exists_when_init_then_adds_handler(self, mock_import_object):
         """正例：管理器已存在时 init 直接添加自身"""
+
         # 预先创建管理器
-        hooker = ConfigHooker([], lambda x: x, "sym", None, None, None, False)
+        def identity(value):
+            return value
+
+        hooker = ConfigHooker([], identity, "sym", None, None, None, False)
         hooker.init()
 
     def test_given_handler_exists_when_recover_then_removes_from_manager(self):
         """正例：recover 从管理器中移除自身"""
         manager = MagicMock()
         manager.recover_handler.return_value = 1
-        hooker = ConfigHooker([], lambda x: x, "sym", None, None, None, False)
+
+        def identity(value):
+            return value
+
+        hooker = ConfigHooker([], identity, "sym", None, None, None, False)
         hooker.recover()

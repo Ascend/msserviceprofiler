@@ -1,5 +1,4 @@
 # -------------------------------------------------------------------------
-# pylint: disable=comparison-with-callable,eval-used,global-variable-not-assigned,logging-fstring-interpolation,ungrouped-imports
 # This file is part of the MindStudio project.
 # Copyright (c) 2025 Huawei Technologies Co.,Ltd.
 #
@@ -14,9 +13,14 @@
 # MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 # See the Mulan PSL v2 for more details.
 # -------------------------------------------------------------------------
+# pylint: disable=logging-fstring-interpolation,global-variable-not-assigned
+# pylint: disable=comparison-with-callable,ungrouped-imports
 
+import ast
 import importlib
 import inspect
+import io
+import tokenize
 from dataclasses import dataclass
 from typing import Tuple, List, Optional, Callable, Dict, Any
 
@@ -34,6 +38,7 @@ except Exception:
     Profiler = None  # type: ignore
     Level = None  # type: ignore
 from .module_hook import VLLMHookerBase, import_object_from_string
+from .import_security import is_allowed_handler_module
 
 
 @dataclass
@@ -416,102 +421,193 @@ def _build_safe_locals(ctx: FuncCallContext):
         "args": ctx.args,
         "kwargs": ctx.kwargs,
         "return": ctx.ret_val,
+        "ret": ctx.ret_val,
         "self": self_obj,
-        "len": len,
-        "str": str,
-        "attr": _get_object_attribute,
     }
-    try:
-        safe_locals.update({k: v for k, v in named_params.items() if k != "self"})
-    except Exception as e:
-        logger.warning(f"Failed to update safe locals: {e}")
     return safe_locals
+
+
+_SAFE_EXPR_FUNCTIONS = {
+    "len": len,
+    "str": str,
+    "int": int,
+    "float": float,
+    "bool": bool,
+}
+
+
+def _normalize_expr(expr_str: str) -> str:
+    """Keep YAML compatibility for the 'return' pseudo variable.
+
+    Replace only standalone NAME tokens so string literals like "return"
+    keep their original meaning.
+    """
+    try:
+        tokens = []
+        for token in tokenize.generate_tokens(io.StringIO(expr_str).readline):
+            if token.type == tokenize.NAME and token.string == "return":
+                token = tokenize.TokenInfo(token.type, "ret", token.start, token.end, token.line)
+            tokens.append(token)
+        return tokenize.untokenize(tokens)
+    except tokenize.TokenError:
+        return expr_str
+
+
+def _is_safe_attribute_name(attr_name: str) -> bool:
+    return isinstance(attr_name, str) and attr_name and not attr_name.startswith("_") and "__" not in attr_name
+
+
+class _SafeExpressionEvaluator:
+    """AST evaluator for profiler attribute expressions."""
+
+    def __init__(self, safe_locals: Dict[str, Any]):
+        self.safe_locals = safe_locals
+
+    def validate(self, node: ast.AST) -> None:
+        if isinstance(node, ast.Expression):
+            self.validate(node.body)
+            return
+        if isinstance(node, (ast.Constant, ast.Name)):
+            return
+        if isinstance(node, (ast.Tuple, ast.List)):
+            for item in node.elts:
+                self.validate(item)
+            return
+        if isinstance(node, ast.Subscript):
+            self.validate(node.value)
+            self.validate(node.slice)
+            return
+        if isinstance(node, ast.Attribute):
+            if not _is_safe_attribute_name(node.attr):
+                raise ValueError(f"Unsafe attribute access: {node.attr}")
+            self.validate(node.value)
+            return
+        if isinstance(node, ast.Call):
+            if not isinstance(node.func, ast.Name) or node.func.id not in _SAFE_EXPR_FUNCTIONS:
+                raise ValueError("Only simple allow-listed function calls are supported")
+            if node.keywords:
+                raise ValueError("Keyword arguments are not supported")
+            for arg in node.args:
+                if isinstance(arg, ast.Call):
+                    raise ValueError("Nested function calls are not supported")
+                self.validate(arg)
+            return
+        raise ValueError(f"Unsupported expression node: {type(node).__name__}")
+
+    def evaluate(self, node: ast.AST) -> Any:
+        if isinstance(node, ast.Expression):
+            return self.evaluate(node.body)
+        if isinstance(node, ast.Constant):
+            return node.value
+        if isinstance(node, ast.Name):
+            if node.id in _SAFE_EXPR_FUNCTIONS:
+                raise ValueError(f"Function name cannot be used as a value: {node.id}")
+            if node.id not in self.safe_locals:
+                raise NameError(f"Undefined params: {node.id}")
+            value = self.safe_locals[node.id]
+            if callable(value):
+                raise ValueError(f"Callable value is not allowed: {node.id}")
+            return value
+        if isinstance(node, ast.Tuple):
+            return tuple(self.evaluate(item) for item in node.elts)
+        if isinstance(node, ast.List):
+            return [self.evaluate(item) for item in node.elts]
+        if isinstance(node, ast.Subscript):
+            return self.evaluate(node.value)[self.evaluate(node.slice)]
+        if isinstance(node, ast.Attribute):
+            value = getattr(self.evaluate(node.value), node.attr)
+            if callable(value):
+                raise ValueError(f"Callable attribute is not allowed: {node.attr}")
+            return value
+        if isinstance(node, ast.Call):
+            func = _SAFE_EXPR_FUNCTIONS[node.func.id]
+            return func(*(self.evaluate(arg) for arg in node.args))
+        raise ValueError(f"Unsupported expression node: {type(node).__name__}")
+
+
+def _parse_safe_expression(expr_str: str) -> ast.Expression:
+    return ast.parse(_normalize_expr(expr_str), mode="eval")
+
+
+def _validate_direct_expression(expr_str: str) -> bool:
+    try:
+        tree = _parse_safe_expression(expr_str)
+        _SafeExpressionEvaluator({}).validate(tree)
+        return True
+    except Exception as e:
+        logger.warning(f"Expression validation failed: {expr_str}, err={e}")
+        return False
 
 
 def _validate_expression_safety(expr_str):
     """验证表达式安全性，只允许预定义的安全操作。"""
-    dangerous_chars = ['import', 'exec', 'eval', '__', 'open', 'file', 'input', 'raw_input']
-    # 允许管道符 '|'
-    dangerous_ops = ['+', '-', '*', '/', '%', '**', '//', '&', '^', '~', '<<', '>>']
-    expr_lower = expr_str.lower()
-    for dangerous in dangerous_chars:
-        if dangerous in expr_lower:
-            logger.warning(f"Expression contains dangerous keyword: {dangerous}")
-            return False
-    for op in dangerous_ops:
-        if op in expr_str:
-            logger.warning(f"Expression contains dangerous operator: {op}")
-            return False
-    if expr_str.count('(') != expr_str.count(')'):
-        logger.warning(f"Unmatched parentheses in expression: {expr_str}")
+    if '|' not in expr_str:
+        return _validate_direct_expression(expr_str)
+    parts = [part.strip() for part in expr_str.split('|')]
+    if len(parts) < 2 or not parts[0]:
+        return _validate_direct_expression(expr_str)
+    if not _validate_direct_expression(parts[0]):
         return False
-    if '(' in expr_str and ')' in expr_str:
-        func_name = expr_str.split('(')[0].strip()
-        allowed_functions = ['len', 'str', 'int', 'float', 'bool', 'attr']
-        if func_name not in allowed_functions:
-            logger.warning(f"Function call not allowed: {func_name}")
-            return False
+    for operation in parts[1:]:
+        if operation in ("len", "str"):
+            continue
+        if operation.startswith("attr "):
+            attr_name = operation[5:].strip()
+            if _is_safe_attribute_name(attr_name):
+                continue
+        logger.warning(f"Pipe operation not allowed: {operation}")
+        return False
     return True
 
 
-def _execute_direct_expression(expr_str, safe_locals):
-    """安全执行表达式，严格控制输入参数。"""
-    try:
-        if not _validate_expression_safety(expr_str):
-            return None
-        # 特殊处理关键名 'return'（不是合法标识符）
-        trimmed = expr_str.strip()
-        if trimmed == 'return':
-            return safe_locals.get('return')
-        safe_globals = {
-            "__builtins__": {
-                "len": len,
-                "str": str,
-                "int": int,
-                "float": float,
-                "bool": bool,
-            }
-        }
-        return eval(expr_str, safe_globals, safe_locals)  # nosec B307
-    except Exception as e:
-        logger.warning(f"Safe eval failed: {expr_str}, err={e}")
+def _execute_safe_expression(expr_str, safe_locals):
+    """Execute a safe AST expression with optional len/str pipe operations."""
+    if not _validate_expression_safety(expr_str):
         return None
-
-
-def _apply_pipe_operation(result, operation):
-    """应用单个管道操作。"""
-    if operation == 'str':
-        return str(result)
-    elif operation == 'len':
-        return len(result) if result is not None else None
-    elif operation.startswith('attr '):
-        attr_name = operation[5:].strip()
-        return _get_object_attribute(result, attr_name)
-    else:
-        logger.warning(f"Unknown pipe operation: {operation}")
-        return None
-
-
-def _execute_pipe_expression(expr_str, safe_locals):
-    """执行管道表达式。"""
     if '|' not in expr_str:
-        return _execute_direct_expression(expr_str, safe_locals)
+        return _execute_direct_expression_ast(expr_str, safe_locals)
     parts = [part.strip() for part in expr_str.split('|')]
-    if len(parts) < 2:
-        return _execute_direct_expression(expr_str, safe_locals)
-    result = _execute_direct_expression(parts[0], safe_locals)
+    if len(parts) < 2 or not parts[0]:
+        return _execute_direct_expression_ast(expr_str, safe_locals)
+    result = _execute_direct_expression_ast(parts[0], safe_locals)
     for operation in parts[1:]:
-        result = _apply_pipe_operation(result, operation)
+        if operation == "len":
+            result = len(result) if result is not None else None
+        elif operation == "str":
+            result = str(result)
+        elif operation.startswith("attr "):
+            attr_name = operation[5:].strip()
+            if not _is_safe_attribute_name(attr_name):
+                logger.warning(f"Pipe operation not allowed: {operation}")
+                return None
+            result = _get_object_attribute(result, attr_name)
+        else:
+            logger.warning(f"Pipe operation not allowed: {operation}")
+            return None
         if result is None:
             break
     return result
 
 
+def _execute_direct_expression_ast(expr_str, safe_locals):
+    try:
+        trimmed = expr_str.strip()
+        if trimmed == 'return':
+            return safe_locals.get('return')
+        tree = _parse_safe_expression(expr_str)
+        evaluator = _SafeExpressionEvaluator(safe_locals)
+        evaluator.validate(tree)
+        return evaluator.evaluate(tree)
+    except Exception as e:
+        logger.warning(f"Safe eval failed: {expr_str}, err={e}")
+        return None
+
+
 def _safe_eval_expr(expr: str, ctx: FuncCallContext):
-    """安全执行表达式，支持管道操作和 attr 操作。"""
+    """安全执行表达式，支持 len/str 管道操作。"""
     try:
         safe_locals = _build_safe_locals(ctx)
-        return _execute_pipe_expression(expr, safe_locals)
+        return _execute_safe_expression(expr, safe_locals)
     except Exception as e:
         logger.warning(f"Pipe eval failed: {expr}, err={e}")
         return None
@@ -571,7 +667,7 @@ def make_default_time_hook(domain: str, name: str, attributes: Optional[List[Dic
                 expr = item.get("expr")
                 if not attr_name or not expr:
                     continue
-                # 在 expr 中直接使用参数名或 return 来表示数据来源
+                # Use args/kwargs/return in expr to identify the data source.
                 ctx = FuncCallContext(
                     func_obj=original_func,
                     this_obj=args[0] if len(args) > 0 else None,
@@ -653,6 +749,9 @@ class HandlerResolver:
         """
         try:
             mod, func_name = handler_val.split(":", 1)
+            if not is_allowed_handler_module(mod):
+                logger.warning("Handler module '%s' is not allowed", mod)
+                return None
             mod_obj = importlib.import_module(mod)
             # Avoid Mock auto-creation: inspect module dict directly
             value = getattr(mod_obj, "__dict__", {}).get(func_name, None)

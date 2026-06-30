@@ -1,5 +1,4 @@
 # -------------------------------------------------------------------------
-# pylint: disable=redefined-outer-name
 # This file is part of the MindStudio project.
 # Copyright (c) 2025 Huawei Technologies Co.,Ltd.
 #
@@ -14,9 +13,11 @@
 # MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 # See the Mulan PSL v2 for more details.
 # -------------------------------------------------------------------------
+# pylint: disable=no-member,redefined-outer-name
 
-import importlib
+import sys
 import asyncio
+import types
 from unittest.mock import patch, MagicMock
 import pytest
 
@@ -38,31 +39,79 @@ def cleanup_hook_registry():
     clear_hook_registry()
 
 
+def _install_fake_vllm_module(module_name, module):
+    old_parent = sys.modules.get("vllm")
+    if old_parent is None:
+        parent = types.ModuleType("vllm")
+        parent.__path__ = []
+        sys.modules["vllm"] = parent
+    sys.modules[module_name] = module
+    return old_parent
+
+
+def _cleanup_fake_vllm_module(module_name, old_parent):
+    sys.modules.pop(module_name, None)
+    if old_parent is None:
+        sys.modules.pop("vllm", None)
+    else:
+        sys.modules["vllm"] = old_parent
+
+
 # Test cases for import_object_from_string
 def test_import_object_from_string_given_valid_path_when_importing_module_then_returns_object():
     """Test importing a valid module-level function"""
-    result = import_object_from_string("os", "path")
-    assert result == importlib.import_module("os").path
+    module = types.ModuleType("vllm.fake_module")
+    module.target = object()
+    old_parent = _install_fake_vllm_module("vllm.fake_module", module)
+    try:
+        result = import_object_from_string("vllm.fake_module", "target")
+    finally:
+        _cleanup_fake_vllm_module("vllm.fake_module", old_parent)
+
+    assert result == module.target
 
 
 def test_import_object_from_string_given_nested_attribute_when_importing_then_returns_object():
     """Test importing nested attributes"""
-    result = import_object_from_string("collections", "defaultdict.__class__")
-    from collections import defaultdict
+    module = types.ModuleType("vllm.fake_nested")
 
-    assert result == defaultdict.__class__
+    class Target:
+        value = "nested"
+
+    module.Target = Target
+    old_parent = _install_fake_vllm_module("vllm.fake_nested", module)
+    try:
+        result = import_object_from_string("vllm.fake_nested", "Target.value")
+    finally:
+        _cleanup_fake_vllm_module("vllm.fake_nested", old_parent)
+
+    assert result == "nested"
 
 
 def test_import_object_from_string_given_invalid_module_when_importing_then_returns_none():
     """Test handling of non-existent module"""
-    result = import_object_from_string("nonexistent_module", "anything")
+    result = import_object_from_string("vllm.nonexistent_module", "anything")
     assert result is None
 
 
 def test_import_object_from_string_given_invalid_attribute_when_importing_then_returns_none():
     """Test handling of non-existent attribute"""
-    result = import_object_from_string("os", "nonexistent_attr")
+    module = types.ModuleType("vllm.fake_missing_attr")
+    old_parent = _install_fake_vllm_module("vllm.fake_missing_attr", module)
+    try:
+        result = import_object_from_string("vllm.fake_missing_attr", "nonexistent_attr")
+    finally:
+        _cleanup_fake_vllm_module("vllm.fake_missing_attr", old_parent)
     assert result is None
+
+
+def test_import_object_from_string_given_disallowed_module_when_importing_then_returns_none():
+    """Test that non allow-listed symbol modules are rejected before import"""
+    with patch("importlib.import_module") as mock_import:
+        result = import_object_from_string("evil.module", "Payload.run")
+
+    assert result is None
+    mock_import.assert_not_called()
 
 
 def test_import_object_from_string_given_empty_path_when_importing_then_returns_none():
@@ -512,7 +561,10 @@ class TestHookFuncNotNeedLocals:
                 def __exit__(self, *args):
                     pass
 
-            return lambda ctx: FailingHook()
+            def failing_hook(ctx):
+                return FailingHook()
+
+            return failing_hook
 
         def create_normal_hook():
             mock_enter = MagicMock()
@@ -525,7 +577,10 @@ class TestHookFuncNotNeedLocals:
                 def __exit__(self, *args):
                     pass
 
-            return lambda ctx: NormalHook()
+            def normal_hook(ctx):
+                return NormalHook()
+
+            return normal_hook
 
         context_hook_funcs = [create_failing_hook(), create_normal_hook()]
 
