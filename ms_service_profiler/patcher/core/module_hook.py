@@ -1,5 +1,5 @@
 # -------------------------------------------------------------------------
-# pylint: disable=attribute-defined-outside-init,comparison-with-callable,logging-fstring-interpolation,no-name-in-module,unnecessary-dunder-call
+# pylint: disable=attribute-defined-outside-init,comparison-with-callable,logging-fstring-interpolation,unnecessary-dunder-call
 # This file is part of the MindStudio project.
 # Copyright (c) 2025 Huawei Technologies Co.,Ltd.
 #
@@ -27,6 +27,7 @@ from packaging.version import Version
 from .logger import logger
 from .registry import add_to_hook_registry
 from .utils import FunctionContext
+from .import_security import is_allowed_symbol_module
 
 MAX_HOOK_FAILURES = 5
 
@@ -86,6 +87,9 @@ def import_object_from_string(import_path: str, module_path: str) -> Any:
     """
     if not import_path:
         logger.error("Module import_path is empty")
+        return None
+    if not is_allowed_symbol_module(import_path):
+        logger.error("Module import_path is not allowed: %s", import_path)
         return None
 
     try:
@@ -441,12 +445,12 @@ class VLLMHookerBase(ABC):
         hook_func (Optional[Callable]): hook 处理函数
     """
 
-    vllm_version = (None, None)  # (min_version, max_version)
-    applied_hook_func_name = ""
-
     @staticmethod
     def default_hook_func(ori_func, *args, **kwargs):
         return ori_func(*args, **kwargs)
+
+    vllm_version = (None, None)  # (min_version, max_version)
+    applied_hook_func_name = ""
 
     def __init__(self):
         """初始化 VLLMHookerBase。"""

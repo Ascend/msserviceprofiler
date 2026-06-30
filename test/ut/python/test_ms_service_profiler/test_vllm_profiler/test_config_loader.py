@@ -1,5 +1,4 @@
 # -------------------------------------------------------------------------
-# pylint: disable=attribute-defined-outside-init,no-member,unspecified-encoding
 # This file is part of the MindStudio project.
 # Copyright (c) 2025 Huawei Technologies Co.,Ltd.
 #
@@ -14,6 +13,7 @@
 # MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 # See the Mulan PSL v2 for more details.
 # -------------------------------------------------------------------------
+# pylint: disable=no-member,unspecified-encoding,attribute-defined-outside-init
 
 import importlib
 import os
@@ -127,15 +127,17 @@ class TestResolveHandlerFunc:
         mock_handler = MagicMock()
         mock_module.my_handler = mock_handler
         with patch("importlib.import_module", return_value=mock_module):
-            result = _resolve_handler_func({"handler": "my_module.handlers:my_handler"}, "my_method")
+            result = _resolve_handler_func({"handler": "ms_service_profiler.handlers:my_handler"}, "my_method")
             assert result == mock_handler
-            importlib.import_module.assert_called_once_with("my_module.handlers")
+            importlib.import_module.assert_called_once_with("ms_service_profiler.handlers")
 
     def test_resolve_handler_func_import_fails_returns_default(self):
-        with patch("importlib.import_module", side_effect=ImportError("No module")):
-            with patch("ms_service_profiler.patcher.core.config_loader.make_default_time_hook") as m:
-                default_h = MagicMock()
-                m.return_value = default_h
+        # make_default_time_hook 必须先 patch（外层），否则 patch 字符串目标解析会调用
+        # 已被 mock 的 importlib.import_module 而失败
+        with patch("ms_service_profiler.patcher.core.config_loader.make_default_time_hook") as m:
+            default_h = MagicMock()
+            m.return_value = default_h
+            with patch("importlib.import_module", side_effect=ImportError("No module")):
                 result = _resolve_handler_func(
                     {"handler": "x:y", "domain": "TestDomain", "name": "custom_name"}, "my_method"
                 )
@@ -145,14 +147,24 @@ class TestResolveHandlerFunc:
     def test_resolve_handler_func_not_callable_returns_default(self):
         mock_module = MagicMock()
         mock_module.my_handler = "not_a_function"
-        with patch("importlib.import_module", return_value=mock_module):
-            with patch("ms_service_profiler.patcher.core.config_loader.make_default_time_hook") as m:
-                default_h = MagicMock()
-                m.return_value = default_h
+        with patch("ms_service_profiler.patcher.core.config_loader.make_default_time_hook") as m:
+            default_h = MagicMock()
+            m.return_value = default_h
+            with patch("importlib.import_module", return_value=mock_module):
                 result = _resolve_handler_func(
-                    {"handler": "my_module.handlers:my_handler", "domain": "TestDomain"}, "my_method"
+                    {"handler": "ms_service_profiler.handlers:my_handler", "domain": "TestDomain"}, "my_method"
                 )
                 assert result == default_h
+                m.assert_called_once_with(domain="TestDomain", name="my_method", attributes=None)
+
+    def test_resolve_handler_func_disallowed_module_returns_default(self):
+        with patch("ms_service_profiler.patcher.core.config_loader.make_default_time_hook") as m:
+            default_h = MagicMock()
+            m.return_value = default_h
+            with patch("importlib.import_module") as mock_import:
+                result = _resolve_handler_func({"handler": "evil.module:payload", "domain": "TestDomain"}, "my_method")
+                assert result == default_h
+                mock_import.assert_not_called()
                 m.assert_called_once_with(domain="TestDomain", name="my_method", attributes=None)
 
     def test_resolve_handler_func_no_handler_returns_default(self):
@@ -326,10 +338,23 @@ class TestResolveMetricsHandlerFunc:
             mock_mod = MagicMock()
             mock_mod.my_func = imported_func
             mock_import.return_value = mock_mod
-            symbol_info = {"handler": "some.module:my_func", "metrics": []}
+            symbol_info = {"handler": "ms_service_metric.handlers:my_func", "metrics": []}
             result = _resolve_metrics_handler_func(symbol_info, "my_method")
-            mock_import.assert_called_once_with("some.module")
+            mock_import.assert_called_once_with("ms_service_metric.handlers")
             assert result is imported_func
+
+    def test_resolve_metrics_handler_func_disallowed_module_wraps_noop(self):
+        # wrap_handler_with_metrics 必须先 patch（外层），避免其字符串目标解析被
+        # 已 mock 的 importlib.import_module 干扰
+        with patch("ms_service_profiler.patcher.core.config_loader.wrap_handler_with_metrics") as mock_wrap:
+            wrapped = MagicMock()
+            mock_wrap.return_value = wrapped
+            with patch("ms_service_profiler.patcher.core.config_loader.importlib.import_module") as mock_import:
+                result = _resolve_metrics_handler_func({"handler": "evil.module:payload", "metrics": []}, "my_method")
+                mock_import.assert_not_called()
+                mock_wrap.assert_called_once()
+                assert mock_wrap.call_args[0][0].__name__ == "_metrics_noop_handler"
+                assert result == wrapped
 
     def test_resolve_metrics_handler_func_no_handler_wraps_noop(self):
         """无 handler 时用 wrap_handler_with_metrics 封装透传函数"""

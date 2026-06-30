@@ -1,5 +1,4 @@
 # -------------------------------------------------------------------------
-# pylint: disable=logging-fstring-interpolation
 # This file is part of the MindStudio project.
 # Copyright (c) 2025 Huawei Technologies Co.,Ltd.
 #
@@ -14,6 +13,7 @@
 # MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 # See the Mulan PSL v2 for more details.
 # -------------------------------------------------------------------------
+# pylint: disable=logging-fstring-interpolation
 
 """
 ConfigLoader: 加载 YAML 配置并解析为 Handler 列表。
@@ -34,6 +34,7 @@ from .utils import load_yaml_config
 from .logger import logger
 from .dynamic_hook import make_default_time_hook, ConfigHooker
 from .metric_hook import wrap_handler_with_metrics
+from .import_security import is_allowed_handler_module
 
 
 def _is_pattern_symbol(symbol_path: str) -> bool:
@@ -97,6 +98,9 @@ def _resolve_handler_func(symbol_info: dict, method_name: str) -> Callable:
     if isinstance(handler_path, str) and ':' in handler_path:
         try:
             mod_str, func_name = handler_path.split(':', 1)
+            if not is_allowed_handler_module(mod_str):
+                logger.warning("Handler module '%s' is not allowed, using default", mod_str)
+                raise ImportError(f"Handler module is not allowed: {mod_str}")
             mod_obj = importlib.import_module(mod_str)
             func = getattr(mod_obj, func_name, None)
             if callable(func):
@@ -126,6 +130,9 @@ def _resolve_metrics_handler_func(symbol_info: dict, method_name: str) -> Callab
     if isinstance(handler_path, str) and ':' in handler_path:
         try:
             mod_str, func_name = handler_path.split(':', 1)
+            if not is_allowed_handler_module(mod_str):
+                logger.warning("Metrics handler module '%s' is not allowed, using wrap_handler_with_metrics", mod_str)
+                raise ImportError(f"Metrics handler module is not allowed: {mod_str}")
             mod_obj = importlib.import_module(mod_str)
             func = getattr(mod_obj, func_name, None)
             if callable(func):

@@ -153,6 +153,11 @@ def test_given_invalid_handler_path_when_from_config_then_raises_handler_error()
         MetricHandler.from_config(config, "module:func")
 
 
+def test_given_disallowed_handler_module_when_import_then_raises_handler_error():
+    with pytest.raises(HandlerError, match="not allowed"):
+        MetricHandler._import_handler("evil.module:payload")
+
+
 def test_given_empty_config_when_from_config_then_uses_default_handler():
     config = {}
     handler = MetricHandler.from_config(config, "module:func")

@@ -13,9 +13,10 @@
 # - min_version/max_version: 可选版本约束
 # - caller_filter: 可选，仅当由特定调用者触发时才生效
 # - attributes: 可选，自定义属性采集配置
-#   - expr 中直接使用参数名或 return
+#   - expr 中使用 args[index]、kwargs['name'] 或 return
 #   - 支持管道操作 |：len(return) | str 等价于 str(len(return))
-#   - 支持 attr 操作：return[0] | attr input_ids 获取对象的 input_ids 属性
+#   - 支持直接属性访问：return[0].input_ids 获取对象的 input_ids 属性
+#   - 也支持在管道中使用 attr：return[0] | attr input_ids
 #
 # 三、示例
 # 示例 A：自定义 handler（单一 symbol）
@@ -40,8 +41,8 @@
   name: computing_logits
   attributes:
     - name: input_ids_len
-      expr: len(input_ids)
+      expr: len(kwargs['input_ids'])
     - name: logits_shape_str
       expr: len(return) | str
     - name: first_output_input_ids_len
-      expr: return[0] | attr input_ids | len
+      expr: len(return[0].input_ids)

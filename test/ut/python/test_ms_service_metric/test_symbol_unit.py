@@ -1,5 +1,4 @@
 # -------------------------------------------------------------------------
-# pylint: disable=no-name-in-module,redefined-outer-name
 # This file is part of the MindStudio project.
 # Copyright (c) 2025 Huawei Technologies Co.,Ltd.
 #
@@ -14,6 +13,7 @@
 # MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 # See the Mulan PSL v2 for more details.
 # -------------------------------------------------------------------------
+# pylint: disable=redefined-outer-name
 
 """Lightweight Symbol tests with mocked watcher / manager."""
 
@@ -78,6 +78,15 @@ def test_given_no_handlers_when_is_empty_and_has_handler_then_expected(no_watch_
 def test_given_target_module_not_loaded_when_hook_then_no_apply(no_watch_symbol):
     sym, _, _ = no_watch_symbol
     sym.hook()
+
+
+def test_given_disallowed_symbol_module_when_import_target_then_returns_none(no_watch_symbol):
+    sym, _, _ = no_watch_symbol
+    sym._module_path = "evil.module"
+    sym._attr_path = "Payload.run"
+    with patch("importlib.import_module") as mock_import:
+        assert sym._import_target() is None
+    mock_import.assert_not_called()
 
 
 def test_given_hook_not_applied_when_unhook_then_noop(no_watch_symbol):

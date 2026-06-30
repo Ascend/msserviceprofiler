@@ -38,6 +38,7 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional
 
 from ms_service_metric.utils.exceptions import SymbolError
 from ms_service_metric.utils.logger import get_logger
+from ms_service_metric.utils.import_security import is_allowed_symbol_module
 from ms_service_metric.core.handler import MetricHandler, HandlerType
 from ms_service_metric.core.hook.hook_chain import HookChain
 
@@ -723,6 +724,9 @@ class Symbol:
         """
         try:
             # 导入模块
+            if not is_allowed_symbol_module(self._module_path):
+                logger.error("Symbol module is not allowed: %s", self._module_path)
+                return None
             module = importlib.import_module(self._module_path)
 
             # 解析属性路径

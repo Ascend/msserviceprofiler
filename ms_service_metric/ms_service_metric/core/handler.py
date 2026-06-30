@@ -66,6 +66,7 @@ from typing import Callable, Dict, List, Optional, Tuple, ContextManager
 
 from ms_service_metric.utils.logger import get_logger
 from ms_service_metric.utils.exceptions import HandlerError
+from ms_service_metric.utils.import_security import is_allowed_handler_module
 from ms_service_metric.metrics.metrics_manager import MetricConfig, MetricType
 
 logger = get_logger("handler")
@@ -473,6 +474,8 @@ class MetricHandler(Handler):
 
             module_path, func_name = handler_path.rsplit(':', 1)
             logger.debug("Importing handler: %s.%s", module_path, func_name)
+            if not is_allowed_handler_module(module_path):
+                raise HandlerError(f"Handler module is not allowed: {module_path}")
 
             # 导入模块
             module = importlib.import_module(module_path)

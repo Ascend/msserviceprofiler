@@ -13,12 +13,13 @@
 # MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 # See the Mulan PSL v2 for more details.
 # -------------------------------------------------------------------------
+# pylint: disable=disallowed-name
 
 import types
+from unittest.mock import patch
 
 from ms_service_metric.core.handler import MetricHandler, HandlerType
 from ms_service_metric.core.symbol import Symbol
-from ms_service_metric.metrics.metrics_manager import MetricType
 
 
 class DummyWatcher:
@@ -67,11 +68,11 @@ def test_given_wrap_handler_when_module_loaded_then_wrapped_result_unhook_restor
 
     # Simulate module loaded event -> should apply hook.
     event = types.SimpleNamespace(module_name=module_path)
-    symbol._on_module_loaded(event)
+    with patch("ms_service_metric.core.symbol.is_allowed_symbol_module", return_value=True):
+        symbol._on_module_loaded(event)
 
     assert DummyTarget().foo(5) == 11  # (5*2)+1
 
     # Unhook should restore original behavior.
     symbol.unhook()
     assert DummyTarget().foo(5) == 10
-
