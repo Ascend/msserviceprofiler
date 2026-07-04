@@ -20,8 +20,13 @@ import numpy as np
 from ms_service_profiler.exporters.base import ExporterBase
 from ms_service_profiler.plugins.plugin_req_status import ReqStatus
 from ms_service_profiler.exporters.utils import (
-    write_result_to_db, check_domain_valid, TableConfig, CurveViewConfig,
-    check_columns_valid, save_dataframe_to_csv, ColumnConst
+    write_result_to_db,
+    check_domain_valid,
+    TableConfig,
+    CurveViewConfig,
+    check_columns_valid,
+    save_dataframe_to_csv,
+    ColumnConst,
 )
 from ms_service_profiler.utils.timer import timer
 from ms_service_profiler.utils.log import logger
@@ -37,13 +42,17 @@ class ExporterReqStatus(ExporterBase):
 
     @classmethod
     @timer(logger.debug)
-    @key_except(ColumnConst.DOMAIN_COLUMN, ColumnConst.NAME_COLUMN, \
-        ignore=True, msg="ignoring current exporter by default.")
+    @key_except(
+        ColumnConst.DOMAIN_COLUMN,
+        ColumnConst.NAME_COLUMN,
+        ignore=True,
+        msg="ignoring current exporter by default.",
+    )
     def export(cls, data) -> None:
         if 'db' not in cls.args.format and 'csv' not in cls.args.format:
             return
 
-        if 'csv' in cls.args.format and cls.valid_for_csv_output(data):
+        if 'csv' in cls.args.format and cls.valid_for_csv_output(data) and not cls._is_sglang_profile_data(data):
             df = data.get('tx_data_df')
             if ColumnConst.STATUS_COLUMN in df.columns:
                 state_col = ColumnConst.STATUS_COLUMN
@@ -57,42 +66,46 @@ class ExporterReqStatus(ExporterBase):
                 if ColumnConst.SCOPE_QUEUE_NAME_COLUMN in df.columns
                 else False
             )
-            queue_mask = (
-                (df[ColumnConst.DOMAIN_COLUMN] == 'Schedule') &
-                (
-                    (df[ColumnConst.NAME_COLUMN] == 'Queue') |
-                    queue_name_mask
-                )
+            queue_mask = (df[ColumnConst.DOMAIN_COLUMN] == 'Schedule') & (
+                (df[ColumnConst.NAME_COLUMN] == 'Queue') | queue_name_mask
             )
-            need_columns = [ColumnConst.HOSTUID_COLUMN, ColumnConst.PID_COLUMN, ColumnConst.START_TIME_COLUMN, \
-                ColumnConst.DOMAIN_COLUMN, ColumnConst.NAME_COLUMN, state_col, \
-                    ColumnConst.QUEUESIZE_COLUMN, ColumnConst.START_DATETIME_COLUMN]
-            mask = (
-                queue_mask &
-                (df[state_col].isin(state_values))
-            )
+            need_columns = [
+                ColumnConst.HOSTUID_COLUMN,
+                ColumnConst.PID_COLUMN,
+                ColumnConst.START_TIME_COLUMN,
+                ColumnConst.DOMAIN_COLUMN,
+                ColumnConst.NAME_COLUMN,
+                state_col,
+                ColumnConst.QUEUESIZE_COLUMN,
+                ColumnConst.START_DATETIME_COLUMN,
+            ]
+            mask = queue_mask & (df[state_col].isin(state_values))
             df = df.loc[mask, need_columns]
-            df['waiting'] = np.where(df[state_col] == state_values[0], \
-                df[ColumnConst.QUEUESIZE_COLUMN], None)
-            df['running'] = np.where(df[state_col] == state_values[1], \
-                df[ColumnConst.QUEUESIZE_COLUMN], None)
-            df['swapped'] = np.where(df[state_col] == state_values[2], \
-                df[ColumnConst.QUEUESIZE_COLUMN], None)
+            df['waiting'] = np.where(df[state_col] == state_values[0], df[ColumnConst.QUEUESIZE_COLUMN], None)
+            df['running'] = np.where(df[state_col] == state_values[1], df[ColumnConst.QUEUESIZE_COLUMN], None)
+            df['swapped'] = np.where(df[state_col] == state_values[2], df[ColumnConst.QUEUESIZE_COLUMN], None)
 
             # 增加timestamp(ms)列
             df[ColumnConst.TIMESTAMP_MS_COLUMN] = (df[ColumnConst.START_TIME_COLUMN] / 1000.0).round(2)
 
             # 改为使用真实时间
-            df[ColumnConst.START_DATETIME_COLUMN] = (df[ColumnConst.START_DATETIME_COLUMN])
+            df[ColumnConst.START_DATETIME_COLUMN] = df[ColumnConst.START_DATETIME_COLUMN]
 
             # 增加relative_timestamp(ms)列
-            df[ColumnConst.RELATIVE_TIMESTAMP_MS_COLUMN] = \
-                df.groupby(ColumnConst.PID_COLUMN)[ColumnConst.TIMESTAMP_MS_COLUMN].transform(
-                    lambda x: (x - x.min()).round(2))
+            df[ColumnConst.RELATIVE_TIMESTAMP_MS_COLUMN] = df.groupby(ColumnConst.PID_COLUMN)[
+                ColumnConst.TIMESTAMP_MS_COLUMN
+            ].transform(lambda x: (x - x.min()).round(2))
 
-            desired_columns = [ColumnConst.HOSTUID_COLUMN, ColumnConst.PID_COLUMN, \
-                ColumnConst.START_DATETIME_COLUMN, ColumnConst.RELATIVE_TIMESTAMP_MS_COLUMN, \
-                'waiting', 'running', 'swapped', ColumnConst.TIMESTAMP_MS_COLUMN]
+            desired_columns = [
+                ColumnConst.HOSTUID_COLUMN,
+                ColumnConst.PID_COLUMN,
+                ColumnConst.START_DATETIME_COLUMN,
+                ColumnConst.RELATIVE_TIMESTAMP_MS_COLUMN,
+                'waiting',
+                'running',
+                'swapped',
+                ColumnConst.TIMESTAMP_MS_COLUMN,
+            ]
             df = df[desired_columns]
 
             output = cls.args.output_path
@@ -111,7 +124,8 @@ class ExporterReqStatus(ExporterBase):
             if df.empty:
                 logger.warning(
                     "request_status db output is empty after _process_status_columns, tx_columns=%s, metric_columns=%s",
-                    tx_columns, metric_columns
+                    tx_columns,
+                    metric_columns,
                 )
 
             if 'QueueSize=' not in df.columns and ColumnConst.QUEUESIZE_COLUMN in df.columns:
@@ -126,9 +140,15 @@ class ExporterReqStatus(ExporterBase):
             logger.warning("There is no service prof data, request status data will not be generated. please check")
             return False
 
-        need_columns = [ColumnConst.HOSTUID_COLUMN, ColumnConst.PID_COLUMN, ColumnConst.START_TIME_COLUMN, \
-            ColumnConst.DOMAIN_COLUMN, ColumnConst.NAME_COLUMN, ColumnConst.QUEUESIZE_COLUMN, \
-                ColumnConst.START_DATETIME_COLUMN]
+        need_columns = [
+            ColumnConst.HOSTUID_COLUMN,
+            ColumnConst.PID_COLUMN,
+            ColumnConst.START_TIME_COLUMN,
+            ColumnConst.DOMAIN_COLUMN,
+            ColumnConst.NAME_COLUMN,
+            ColumnConst.QUEUESIZE_COLUMN,
+            ColumnConst.START_DATETIME_COLUMN,
+        ]
         if not check_columns_valid(df, need_columns, cls.name):
             return False
         if ColumnConst.STATUS_COLUMN not in df.columns and ColumnConst.SCOPE_QUEUE_NAME_COLUMN not in df.columns:
@@ -136,6 +156,14 @@ class ExporterReqStatus(ExporterBase):
         if not check_domain_valid(df, ['Schedule'], cls.name):
             return False
         return True
+
+    @classmethod
+    def _is_sglang_profile_data(cls, data):
+        """SGLang docs do not list request_status.csv as a delivered CSV artifact."""
+        df = data.get("tx_data_df")
+        if df is None or ColumnConst.NAME_COLUMN not in df.columns:
+            return False
+        return (df[ColumnConst.NAME_COLUMN] == "recvReq").any()
 
     @classmethod
     def valid_for_db_output(cls, data):
@@ -160,15 +188,15 @@ class ExporterReqStatus(ExporterBase):
         专门处理队列状态数据，确保QueueSize=字段正确保留
         """
         # 筛选出domain为'Schedule'，name为'Queue'的记录
-        mask = (
-                (df[ColumnConst.DOMAIN_COLUMN] == 'Schedule') &
-                (df[ColumnConst.NAME_COLUMN] == 'Queue')
-        )
+        mask = (df[ColumnConst.DOMAIN_COLUMN] == 'Schedule') & (df[ColumnConst.NAME_COLUMN] == 'Queue')
         queue_df = df.loc[mask].copy()
 
         # 如果找不到符合条件的记录，返回空DataFrame
-        if queue_df.empty or not check_columns_valid(queue_df, \
-            [ColumnConst.START_DATETIME_COLUMN, ColumnConst.QUEUESIZE_COLUMN, ColumnConst.STATUS_COLUMN], cls.name):
+        if queue_df.empty or not check_columns_valid(
+            queue_df,
+            [ColumnConst.START_DATETIME_COLUMN, ColumnConst.QUEUESIZE_COLUMN, ColumnConst.STATUS_COLUMN],
+            cls.name,
+        ):
             return pd.DataFrame()
 
         # 创建结果DataFrame
@@ -181,35 +209,29 @@ class ExporterReqStatus(ExporterBase):
         result_df['QueueSize='] = queue_df[ColumnConst.QUEUESIZE_COLUMN]
 
         # 添加status列，并映射状态值
-        status_mapping = {
-            'waiting': 'WAITING',
-            'running': 'RUNNING',
-            'swapped': 'SWAPPED'
-        }
+        status_mapping = {'waiting': 'WAITING', 'running': 'RUNNING', 'swapped': 'SWAPPED'}
         result_df['status'] = queue_df[ColumnConst.STATUS_COLUMN].map(status_mapping)
 
         return result_df
 
     @classmethod
     def _process_queue_columns(cls, df):
-        need_columns = [ColumnConst.NAME_COLUMN, ColumnConst.START_DATETIME_COLUMN, \
-                        ColumnConst.SCOPE_QUEUE_NAME_COLUMN, ColumnConst.QUEUESIZE_COLUMN]
+        need_columns = [
+            ColumnConst.NAME_COLUMN,
+            ColumnConst.START_DATETIME_COLUMN,
+            ColumnConst.SCOPE_QUEUE_NAME_COLUMN,
+            ColumnConst.QUEUESIZE_COLUMN,
+        ]
         if not check_columns_valid(df, need_columns, cls.name):
             return pd.DataFrame()
 
-        queue_mask = (
-            (df[ColumnConst.DOMAIN_COLUMN] == 'Schedule') &
-            (
-                (df[ColumnConst.NAME_COLUMN] == 'Queue') |
-                (df[ColumnConst.SCOPE_QUEUE_NAME_COLUMN].isin(['WAITING', 'RUNNING', 'SWAPPED', 'PENDING']))
-            )
+        queue_mask = (df[ColumnConst.DOMAIN_COLUMN] == 'Schedule') & (
+            (df[ColumnConst.NAME_COLUMN] == 'Queue')
+            | (df[ColumnConst.SCOPE_QUEUE_NAME_COLUMN].isin(['WAITING', 'RUNNING', 'SWAPPED', 'PENDING']))
         )
         queue_df = df[queue_mask]
         df = queue_df.pivot_table(
-            index='start_datetime',
-            columns='scope#QueueName',
-            values='QueueSize=',
-            aggfunc='first'
+            index='start_datetime', columns='scope#QueueName', values='QueueSize=', aggfunc='first'
         ).reset_index()
 
         # 检查并创建所需的列，如果不存在则填充为0
@@ -296,8 +318,8 @@ class ExporterReqStatus(ExporterBase):
 
 
 REQUEST_STATE_VIEW_NAME = "Request_Status_curve"
-CREATE_REQUEST_STATE_VIEW_SQL = f"""
-    CREATE VIEW {REQUEST_STATE_VIEW_NAME} AS
+CREATE_REQUEST_STATE_VIEW_SQL = """
+    CREATE VIEW Request_Status_curve AS
     SELECT
         substr(timestamp, 1, 10) || ' ' || substr(timestamp, 12, 8) || '.' || substr(timestamp, 21, 6) AS time,
         CASE WHEN status = 'WAITING' THEN CAST("QueueSize=" AS REAL) ELSE CAST(0 AS REAL) END as waiting,
@@ -320,6 +342,6 @@ CREATE_REQUEST_STATE_CURVE_VIEW_CONFIG = CurveViewConfig(
     sql=CREATE_REQUEST_STATE_VIEW_SQL,
     description={
         "en": "Queue Size Over Time by Status",
-        "zh": "不同状态下队列大小随时间变化的折线图"
-    }
+        "zh": "不同状态下队列大小随时间变化的折线图",
+    },
 )

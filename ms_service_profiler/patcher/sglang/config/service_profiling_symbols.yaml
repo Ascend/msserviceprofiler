@@ -1,5 +1,5 @@
 ﻿# ===== Scheduler =====
-- symbol: sglang.srt.managers.scheduler:Scheduler.recv_requests
+- symbol: sglang.srt.managers.scheduler_components.request_receiver:SchedulerRequestReceiver.recv_requests
   min_version: "0.5.4"
   handler: ms_service_profiler.patcher.sglang.handlers.scheduler_handlers:recv_requests
   name: recvReq
@@ -42,12 +42,12 @@
   handler: ms_service_profiler.patcher.sglang.handlers.scheduler_handlers:init_next_round_input
   name: HitCache
 
-- symbol: sglang.srt.managers.scheduler_output_processor_mixin:SchedulerOutputProcessorMixin.process_batch_result_prefill
+- symbol: sglang.srt.managers.scheduler_components.batch_result_processor:SchedulerBatchResultProcessor.process_batch_result_prefill
   min_version: "0.5.4"
   handler: ms_service_profiler.patcher.sglang.handlers.scheduler_handlers:process_batch_result_prefill
   name: PrefillEnd
 
-- symbol: sglang.srt.managers.scheduler_output_processor_mixin:SchedulerOutputProcessorMixin.process_batch_result_decode
+- symbol: sglang.srt.managers.scheduler_components.batch_result_processor:SchedulerBatchResultProcessor.process_batch_result_decode
   min_version: "0.5.4"
   handler: ms_service_profiler.patcher.sglang.handlers.scheduler_handlers:process_batch_result_decode
   name: DecodeEnd

@@ -22,7 +22,7 @@ import pytest
 from executor.exec_sglang_server import ExecSGLangServer
 from executor.exec_parse import ExecParse
 from checker.sglang_prof_checker import check_prof_data_contains_sglang_points
-from checker.csv_checker import check_req_csv, check_batch_csv, check_kvcache_csv, check_forward_csv
+from checker.csv_checker import check_req_csv, check_batch_csv, check_kvcache_csv
 from checker.table_checker import db_connect, check_sglang_db_tables
 from checker.trace_checker import check_chrome_tracing
 
@@ -64,8 +64,7 @@ def test_sglang_example(model_path, sglang_port, tmp_workspace):
         prof_data_dir = os.path.join(workspace_path, "prof_data")
         ok, missing = check_prof_data_contains_sglang_points(prof_data_dir)
         assert ok, (
-            f"prof_data 目录下缺少以下 SGLang 数据点位（grep 未匹配）: {missing}. "
-            "请确认 ms_service_profiler 采集正常。"
+            f"prof_data 目录下缺少以下 SGLang 数据点位（grep 未匹配）: {missing}. 请确认 ms_service_profiler 采集正常。"
         )
 
         parser = ExecParse()
@@ -74,7 +73,10 @@ def test_sglang_example(model_path, sglang_port, tmp_workspace):
         assert parser.ready_go(), "解析失败"
 
         output_path = os.path.join(workspace_path, "prof_data_out")
-        check_req_csv(output_path, complete_req_cnt=2) # warmup一条，curl一条
+        assert not os.path.exists(os.path.join(output_path, "request_status.csv")), (
+            "SGLang 解析输出不应包含 request_status.csv"
+        )
+        check_req_csv(output_path, complete_req_cnt=2)  # warmup一条，curl一条
         check_batch_csv(output_path)
         check_kvcache_csv(output_path, complete_req_cnt=2)
         check_chrome_tracing(output_path)
