@@ -34,20 +34,6 @@ The key directories are as follows. For details, see [Project Directory](docs/en
 └─test                             # Test directory
 ```
 
-## Version Description
-
-| Release Version| Release Date      | Release Tag      | Compatibility   |
-| ------- |------------| ------------- | ------------- |
-| 26.0.0-alpha.1 | 2026/02/06 | tag_MindStudio_26.0.0-alpha.1 | Compatible with Ascend CANN 8.5.0 and earlier versions. For details about how to obtain the CANN installation package, see [CANN Installation Guide](<>).|
-
-## Environment Setup
-
-### Environment and Dependency
-
-- For details about the hardware environment, see [Ascend Product Description](<>).
-
-- To use the tool, obtain and install the CANN open-source version in advance. Please stay tuned for the upcoming release of the CANN open-source version.
-
 ## Tool Installation
 
 To install msServiceProfiler, see [msServiceProfiler Installation Guide](docs/en/msserviceprofiler_install_guide.md).

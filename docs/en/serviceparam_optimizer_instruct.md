@@ -313,7 +313,7 @@ If `vllm_benchmark` is used for the test, modify the following parameters:
 |served_model_name|Yes| Model name, which must match `served_model_name` in `[vllm.command]`.|
 |dataset_name|Yes| Dataset name|
 |dataset_path|Yes| Dataset path|
-|num_prompts|Yes| Specifies the number of prompts to run from the dataset.| The value is an integer ranging from 1 to 10000.|
+|num_prompts|Yes| Specifies the number of prompts to run from the dataset.<br> The value is an integer ranging from 1 to 10000.|
 |others|No| Additional parameters. Use spaces to separate them, and no space is allowed within the parameters, for example, `--ignore-eos --custom-output-len 1500`. This parameter is left empty by default.|
 
 **Serving parameters**: Modify these parameters as described in [MindIE Server Configuration Parameter Description] (<https://www.hiascend.com/document/detail/zh/mindie/20RC1/mindieservice/servicedev/mindie_service0285.html>).

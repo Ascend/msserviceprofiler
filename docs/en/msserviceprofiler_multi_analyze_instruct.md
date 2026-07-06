@@ -8,7 +8,7 @@ msServiceProfiler Multi Analyze parses the profile data collected by the msServi
 >
 >[!NOTE]
 >
->For details about Ascend product models, see [Ascend Product Models](<>).
+>For details about Ascend product models, see [Ascend Product Models](https://www.hiascend.com/document/detail/en/AscendFAQ/ProduTech/productform/hardwaredesc_0001.html).
 
 |Product Type| Supported (Yes/No)|
 |--|:----:|
@@ -73,12 +73,12 @@ None
   | Field                | Description                                           |
   | -------------------- | ----------------------------------------------- |
   | Metric | Metric item, including the column header metrics and the row header metrics. |
-  | Metrics (column header)|
+  | Metrics (column header)|-|
   | prefill_batch_num  | Number of records with `batch_type` = `Prefill` in each batch.|
   | decode_batch_num  | Number of records with `batch_type` = `Decode` in each batch.|
   | prefill_exec_time(ms)  | `during_time` of all records with `batch_type` = `Prefill modelExec` in each batch. If `modelExec` is not present, this row is omitted. The unit is ms.|
   | decode_exec_time(ms)  | `during_time` of all records with `batch_type` = `Decode modelExec` in each batch. If `modelExec` is not present, this row is omitted. The unit is ms.|
-  | Metrics (row header) |
+  | Metrics (row header) |-|
   | Average  | Average value. |
   | Max | Maximum value. |
   | Min | Minimum value. |
@@ -91,7 +91,7 @@ None
   | Field                | Description                                           |
   | -------------------- | ----------------------------------------------- |
   | Metric| Metric item, including the column header metrics and the row header metrics. |
-  | Metrics (column header)|
+  | Metrics (column header)|-|
   | first_token_latency(ms)  | Time to first token (TTFT), in ms.|
   | subsequent_token_latency(ms)  | Inter-token latency, measuring the average time (in ms) taken to generate each subsequent token after the first one.|
   | total_time(ms)  | Total duration of an HTTP request, in ms.|
@@ -99,7 +99,7 @@ None
   | waiting_time(ms)  | Request waiting time, in ms.|
   | input_token_num  | Number of input tokens per request.|
   | generated_token_num  | Number of output tokens per request.|
-  | Metrics (row header) |
+  | Metrics (row header) |-|
   | Average  | Average value. |
   | Max  | Maximum value. |
   | Min  | Minimum value. |
@@ -112,12 +112,12 @@ None
   | Field                | Description                                           |
   | -------------------- | ----------------------------------------------- |
   | Metric | Metric item, including the column header metrics and the row header metrics. |
-  | Metrics (column header)|
+  | Metrics (column header)|-|
   | total_input_token_num  | Total number of input tokens.|
   | total_generated_token_num  | Total number of output tokens.|
   | generate_token_speed(token/s)  | Tokens output per second (token/s).|
   | generate_all_token_speed(token/s) | Tokens processed per second (token/s) (total number of input and output tokens).|
-  | Metrics (row header) |
+  | Metrics (row header) |-|
   | Value | Value|
 
 - Mapping between domains and parsed results

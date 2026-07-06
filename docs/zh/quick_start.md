@@ -164,7 +164,7 @@ python3 -m sglang.launch_server \
 
 #### 4.2 调优分析
 
-解析后的性能数据包含db格式、csv格式和json格式，用户可以通过csv进行请求、调度等不同维度的快速分析，也可以通过MindStudio Insight工具导入db文件或者json文件进行可视化分析，详细操作和分析说明请参见《[MindStudio Insight工具用户指南](https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/user_guide/overview.md)》中的“[服务化调优](https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/user_guide/service_optimization.md)”章节。
+解析后的性能数据包含db格式、csv格式和json格式，用户可以通过csv进行请求、调度等不同维度的快速分析，也可以通过MindStudio Insight工具导入db文件或者json文件进行可视化分析，详细操作和分析说明请参见《[MindStudio Insight工具用户指南](https://gitcode.com/Ascend/msinsight/blob/26.1.0/docs/zh/user_guide/overview.md)》中的“[服务化调优](https://gitcode.com/Ascend/msinsight/blob/26.1.0/docs/zh/user_guide/service_optimization.md)”章节。
 
 根据MindStudio Insight工具的可视化呈现性能数据，如下图所示：
 

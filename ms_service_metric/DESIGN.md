@@ -1748,4 +1748,3 @@ ServiceMetricError          # 基础异常类
 3. **Hook应用失败**: 记录错误，标记\_hook\_applied=False
 4. **Hook执行异常**: 异常保护机制确保原函数被调用
 5. **共享内存操作失败**: 抛出SharedMemoryError
-

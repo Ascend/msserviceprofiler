@@ -10,7 +10,7 @@ SGLang Service Profiler is used for performance monitoring and optimization anal
 
 >[!NOTE]
 >
->For details about Ascend product models, see [Ascend Product Models](<>).
+>For details about Ascend product models, see [Ascend Product Models](https://www.hiascend.com/document/detail/en/AscendFAQ/ProduTech/productform/hardwaredesc_0001.html).
 
 |Product Type| Supported (Yes/No)|
 |--|:----:|
@@ -19,14 +19,15 @@ SGLang Service Profiler is used for performance monitoring and optimization anal
 |Atlas 200I/500 A2 inference products|  No  |
 |Atlas inference products|  No  |
 |Atlas training products|  No  |
-The NPU models supported by this tool match those supported by the SGLang framework for inference serving. For details, see [SGLang installation with NPUs support](https://docs.sglang.io/platforms/ascend_npu.html).
+
+The NPU models supported by this tool match those supported by the SGLang framework for inference serving. For details, see [SGLang installation with NPUs support](https://docs.sglang.io/docs/hardware-platforms/ascend-npus/ascend_npu).
 
 ## Preparations
 
 ### Environment Setup
 
-1. In the Ascend environment, install the matching CANN Toolkit and ops operator packages, and configure CANN environment variables. For details, see [CANN Installation Guide](<>).
-2. Install and deploy SGLang on the NPU and ensure that the inference service can run properly. For details, see [SGLang installation with NPUs support](https://docs.sglang.io/platforms/ascend_npu.html).
+1. In the Ascend environment, install the matching CANN Toolkit and ops operator packages, and configure CANN environment variables. For details, see [CANN Installation Guide](https://www.hiascend.com/cann/download).
+2. Install and deploy SGLang on the NPU and ensure that the inference service can run properly. For details, see [SGLang installation with NPUs support](https://docs.sglang.io/docs/hardware-platforms/ascend-npus/ascend_npu).
 3. Build the .run package from the source code and upgrade the tool. For details, see the section *Upgrade* in [msServiceProfiler Installation Guide](./msserviceprofiler_install_guide.md#upgrade).
 
 ### Restrictions
