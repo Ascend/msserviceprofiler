@@ -7,9 +7,9 @@ msServiceProfiler Trace receives, processes, and forwards distributed trace data
 It collects data from the MindIE Motor service, including request response time, response status, client IP/port, and server IP/port. Then, it pushes the collected data to OTLP-compliant open-source monitoring platforms such as Jaeger for visualization.
 
 - The current version primarily targets the MindIE inference framework and supports single-node deployment and multi-node Prefill-Decode (PD) competition deployment.
-- Trace monitoring is currently supported only for core inference endpoints [/v1/chat/completions](https://www.hiascend.com/document/detail/zh/mindie/22RC1/mindieservice/servicedev/mindie_service0078.html) and [/v1/completions](https://www.hiascend.com/document/detail/zh/mindie/22RC1/mindieservice/servicedev/mindie_service0323.html) of MindIE.
+- Trace monitoring is currently supported only for core inference endpoints [/v1/chat](https://www.hiascend.com/document/detail/en/mindie/230/LLMframe/llmdev/mindie_service0078.html) and [/v1/completions](https://www.hiascend.com/document/detail/en/mindie/230/LLMframe/llmdev/mindie_service0323.html) of MindIE.
 - For details about data monitoring APIs of msServiceProfiler Trace, see "msServiceProfiler API Reference (C++) \>  [Trace Data Monitoring](./cpp_api/trace_data_monitoring/README.md).
-- For details about MindIE Motor, see [MindIE Motor Developer Guide](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/README.md).
+- For details about MindIE Motor, see [MindIE Motor Developer Guide](https://gitcode.com/Ascend/MindIE-Motor-CPP/blob/v3.0.0/docs/en/user_guide/README.md).
 
 ## Supported Products<a name="ZH-CN_TOPIC_0000002489576470"></a>
 
@@ -34,7 +34,7 @@ It collects data from the MindIE Motor service, including request response time,
 
 **Environment Setup<a name="section151144214396"></a>**
 
-1. In the Ascend environment, install the matching CANN Toolkit and ops operator packages, and configure CANN environment variables. For details, see [CANN Installation Guide](https://www.hiascend.com/document/detail/zh/canncommercial/850/softwareinst/instg/instg_0000.html?Mode=PmIns&InstallType=netconda&OS=openEuler).
+1. In the Ascend environment, install the matching CANN Toolkit and ops operator packages, and configure CANN environment variables. For details, see [CANN Installation Guide](https://www.hiascend.com/en/cann/download).
 
 2. Install [msServiceProfiler](msserviceprofiler_install_guide.md).
 
@@ -45,7 +45,7 @@ It collects data from the MindIE Motor service, including request response time,
    pip install opentelemetry-exporter-otlp-proto-http==1.33.1
    ```
 
-4. Install and configure MindIE and ensure that MindIE Motor can run properly. For details, see [MindIE Installation Guide](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/install/installing_mindie.md).
+4. Install and configure MindIE and ensure that MindIE Motor can run properly. For details, see [MindIE Installation Guide](https://gitcode.com/Ascend/MindIE-Motor-CPP/blob/v3.0.0/docs/en/user_guide/install/installing_mindie.md).
 
 5. Establish a stable network connection between the Ascend environment hosting the MindIE Motor service and the OTLP collector (such as Jaeger).
 

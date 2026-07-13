@@ -314,28 +314,28 @@ msserviceprofiler optimizer [options]
 |num_prompts|必选| 控制运行数据集的条数。<br>取值范围：1-10000的整数。|
 |others|可选| 拼接其他参数，注意参数间使用空格分隔，参数内部不能留有空格。如`--ignore-eos --custom-output-len 1500`。默认为空。| 
 
-**服务化参数**： 可以参考[MindIE server 配置参数说明](https://www.hiascend.com/document/detail/zh/mindie/20RC1/mindieservice/servicedev/mindie_service0285.html)进行修改。
+**服务化参数**： 可以参考[MindIE server 配置参数说明](https://gitcode.com/Ascend/MindIE-LLM/blob/v3.0.0/docs/zh/user_guide/user_manual/service_parameter_configuration.md)进行修改。
 服务化参数可直接指定参数的范围，如配置服务化参数 `max_batch_size` 的寻优搜索空间为 10 ~ 400，则可设置：
 
 ```shell
 [[mindie.target_field]]
-"name": "max_batch_size",    # 服务化参数名称
-"config_position": "BackendConfig.ScheduleConfig.maxBatchSize",    # 服务化参数在MindIE Server中的位置
-"min": 10,    # 最小值
-"max": 400,    # 最大值
-"dtype": "int"    # 数据类型
+name = "max_batch_size"    # 服务化参数名称
+config_position = "BackendConfig.ScheduleConfig.maxBatchSize"    # 服务化参数在MindIE Server中的位置
+min = 10    # 最小值
+max = 400    # 最大值
+dtype = "int"    # 数据类型
 ```
 
 此外，也可设置参数与另一参数相关，如 `max_prefill_batch_size` 与 `max_batch_size` 相关，`max_prefill_batch_size = ratio * max_batch_size (0 < ratio < 1)`则可设置：
 
 ```shell
 [[mindie.target_field]]
-"name": "max_prefill_batch_size",
-"config_position": "BackendConfig.ScheduleConfig.maxPrefillBatchSize",
-"min": 0,
-"max": 1,
-"dtype": "ratio", 
-"dtype_param": "max_batch_size"    # 表明该参数与max_batch_size相关
+name = "max_prefill_batch_size"
+config_position = "BackendConfig.ScheduleConfig.maxPrefillBatchSize"
+min = 0
+max = 1
+dtype = "ratio" 
+dtype_param = "max_batch_size"    # 表明该参数与max_batch_size相关
 ```
 
 使用vllm框架时，需修改`config.toml`中的`[vllm.command]`参数，如：

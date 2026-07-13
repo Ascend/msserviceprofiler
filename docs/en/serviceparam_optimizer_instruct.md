@@ -31,7 +31,7 @@ The tool has been validated on LLaMA3-8B and Qwen3-8B. In principle, it does not
 
 >[!NOTE]
 >
->For details about Ascend product models, see [Ascend Product Models](https://www.hiascend.com/document/detail/zh/AscendFAQ/ProduTech/productform/hardwaredesc_0001.html).
+>For details about Ascend product models, see [Ascend Product Models](https://www.hiascend.com/document/detail/en/AscendFAQ/ProduTech/productform/hardwaredesc_0001.html).
 
 |Product Type| Supported (Yes/No)|
 |--|:----:|
@@ -49,7 +49,7 @@ The tool has been validated on LLaMA3-8B and Qwen3-8B. In principle, it does not
 ## Preparations
 
 **Environment Setup**
-Set up an environment where serving tools (such as [MindIE Service](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/quick_start.md)/[vLLM Server](https://docs.vllm.ai/projects/ascend/en/latest/quick_start.html)) and benchmark tools (such as `vllm_benchmark`/`ais_bench`, see [Benchmark Tool Deployment](https://gitee.com/aisbench/benchmark/blob/master/README.md)) can run properly.
+Set up an environment where serving tools (such as [MindIE Service](https://gitcode.com/Ascend/MindIE-Motor-CPP/blob/v3.0.0/docs/en/user_guide/quick_start.md)/[vLLM Server](https://docs.vllm.ai/projects/ascend/en/latest/quick_start.html)) and benchmark tools (such as `vllm_benchmark`/`ais_bench`, see [Benchmark Tool Deployment](https://gitee.com/aisbench/benchmark/blob/master/README.md)) can run properly.
 
 ## Tool Installation
 
@@ -187,7 +187,7 @@ The simulation mode prioritizes speed and resource efficiency. It invokes all mo
 
 **Precautions**
 
-The simulation mode requires training on collected serving data. Run the MindIE inference service test script with the profiling feature enabled. See [Service Profiler Manual](https://www.hiascend.com/document/detail/zh/mindstudio/80RC1/T&ITools/Profiling/mindieprofiling_0001.html) for details. Then, parse the collected profile data for model training. The profile data to be collected must include `batch_type`, `batch_size`, `forward_time`, `batch_end_time(ms)`, `request_recv_token_size`, `request_reply_token_size`, `need_blocks`, `request_execution_time(ms)` and `first_token_latency(ms)`.
+The simulation mode requires training on collected serving data. Run the MindIE inference service test script with the profiling feature enabled. See [Service Profiler Manual](https://gitcode.com/Ascend/msserviceprofiler/blob/26.0.0/README_EN.md) for details. Then, parse the collected profile data for model training. The profile data to be collected must include `batch_type`, `batch_size`, `forward_time`, `batch_end_time(ms)`, `request_recv_token_size`, `request_reply_token_size`, `need_blocks`, `request_execution_time(ms)` and `first_token_latency(ms)`.
 
 **Syntax**
 
@@ -313,28 +313,28 @@ If `vllm_benchmark` is used for the test, modify the following parameters:
 |num_prompts|Yes| Specifies the number of prompts to run from the dataset.<br>The value is an integer ranging from 1 to 10000.|
 |others|No| Additional parameters. Use spaces to separate them, and no space is allowed within the parameters, for example, `--ignore-eos --custom-output-len 1500`. This parameter is left empty by default.| 
 
-**Serving parameters**: Modify these parameters as described in [MindIE Server Configuration Parameter Description](<https://www.hiascend.com/document/detail/zh/mindie/20RC1/mindieservice/servicedev/mindie_service0285.html>).
+**Serving parameters**: Modify these parameters as described in [MindIE Server Configuration Parameter Description](https://gitcode.com/Ascend/MindIE-LLM/blob/v3.0.0/docs/en/user_guide/user_manual/service_parameter_configuration.md).
 You can define search ranges directly using these parameters. For example, to set the optimization search space for `max_batch_size` to 10 to 400:
 
 ```shell
 [[mindie.target_field]]
-"name": "max_batch_size," # Serving parameter name
-"config_position": "BackendConfig.ScheduleConfig.maxBatchSize",    # Path to the serving parameters in MindIE Server config
-"min": 10, # Minimum value
-"max": 400, # Maximum value
-"dtype": "int" # Data type
+name = "max_batch_size," # Serving parameter name
+config_position = "BackendConfig.ScheduleConfig.maxBatchSize",    # Path to the serving parameters in MindIE Server config
+min = 10, # Minimum value
+max = 400, # Maximum value
+dtype = "int" # Data type
 ```
 
 You can also define parameters relative to others. For example, to set `max_prefill_batch_size` as a ratio of `max_batch_size`, that is, `max_prefill_batch_size = ratio * max_batch_size (0 < ratio < 1)`:
 
 ```shell
 [[mindie.target_field]]
-"name": "max_prefill_batch_size",
-"config_position": "BackendConfig.ScheduleConfig.maxPrefillBatchSize",
-"min": 0,
-"max": 1,
-"dtype": "ratio", 
-"dtype_param": "max_batch_size" # Indicates that max_prefill_batch_size is proportional to max_batch_size.
+name = "max_prefill_batch_size",
+config_position = "BackendConfig.ScheduleConfig.maxPrefillBatchSize",
+min = 0,
+max = 1,
+dtype = "ratio", 
+dtype_param = "max_batch_size" # Indicates that max_prefill_batch_size is proportional to max_batch_size.
 ```
 
 When the vLLM framework is used, you need to modify the `[vllm.command]` parameter in the `config.toml` file. For example:

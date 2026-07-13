@@ -31,7 +31,7 @@ vLLM Service Profiler is used for performance profiling analysis when deploying 
 
 #### Environment Setup
 
-1. In the Ascend environment, install the matching CANN Toolkit and ops operator packages, and configure CANN environment variables. For details, see [CANN Installation Guide](https://www.hiascend.com/cann/download).
+1. In the Ascend environment, install the matching CANN Toolkit and ops operator packages, and configure CANN environment variables. For details, see [CANN Installation Guide](https://www.hiascend.com/en/cann/download).
 2. Install vLLM and vLLM-Ascend. Verify that vLLM-ascend can run properly. For details, see [vLLM-Ascend installation](https://vllm-ascend.readthedocs.io/en/latest/installation.html).
 3. Upgrade msServiceProfiler. Build the `.run` file from the source code and upgrade the tool. For details, see the section *Upgrade* in [msServiceProfiler Installation Guide](./msserviceprofiler_install_guide.md#5-upgrade).
 
