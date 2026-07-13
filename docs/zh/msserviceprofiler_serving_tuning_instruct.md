@@ -584,7 +584,7 @@ Span 是分布式追踪（Tracing）中的最小性能监测单元，对应推�
 
 ### MindStudio Insight可视化
 
-MindStudio Insight工具支持对服务化调优工具采集并解析的性能数据（[解析结果](#解析结果)）进行可视化，当前支持chrome\_tracing.json文件及profiler.db文件的可视化，详细操作及可视化结果介绍请参见《[MindStudio Insight工具用户指南](https://gitcode.com/Ascend/msinsight/blob/26.0.0/docs/zh/user_guide/overview.md)》中的“[服务化调优](https://gitcode.com/Ascend/msinsight/blob/26.0.0/docs/zh/user_guide/service_optimization.md)”章节。
+MindStudio Insight工具支持对服务化调优工具采集并解析的性能数据（[解析结果](#解析结果)）进行可视化，当前支持chrome\_tracing.json文件及profiler.db文件的可视化，详细操作及可视化结果介绍请参见《[MindStudio Insight工具用户指南](https://gitcode.com/Ascend/msinsight/blob/26.1.0/docs/zh/user_guide/overview.md)》中的“[服务化调优](https://gitcode.com/Ascend/msinsight/blob/26.1.0/docs/zh/user_guide/service_optimization.md)”章节。
 
 ### Chrome tracing可视化
 

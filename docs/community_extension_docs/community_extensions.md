@@ -74,7 +74,7 @@
 
 ### 本项目许可证
 
-msServiceProfiler 本项目采用 **木兰宽松许可证第 2 版（Mulan PSL v2）**，详见仓库 [LICENSE](https://gitcode.com/Ascend/msserviceprofiler/blob/master/LICENSE) 文件。社区扩展由各自作者选择许可证，可能与本项目不同，使用前请分别阅读。
+msServiceProfiler 本项目采用 **木兰宽松许可证第 2 版（Mulan PSL v2）**，详见仓库 [LICENSE](https://gitcode.com/Ascend/msserviceprofiler/blob/26.1.0/LICENSE) 文件。社区扩展由各自作者选择许可证，可能与本项目不同，使用前请分别阅读。
 
 ### 社区扩展常见许可证
 

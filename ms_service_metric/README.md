@@ -143,13 +143,13 @@ ms-service-metric status
 3. 导入 MsServiceMetric Dashboard:
    - 左侧菜单: **Dashboards** → **Import**
    - 点击 **Upload dashboard JSON file**
-   - 选择 [Dashboard 样例文件(下载到本地，匹配默认的采集配置)](https://gitcode.com/Ascend/msserviceprofiler/blob/master/ms_service_metric/example/MsServiceMetric-grafana-Dashboard.json) 文件
+   - 选择 [Dashboard 样例文件(下载到本地，匹配默认的采集配置)](https://gitcode.com/Ascend/msserviceprofiler/blob/26.1.0/ms_service_metric/example/MsServiceMetric-grafana-Dashboard.json) 文件
    - 点击 **Import**
    - 选择刚才创建的 Prometheus 数据源
 
 ### 4. 更多介绍
 
-详细使用方法，请参考：[使用指南](https://gitcode.com/Ascend/msserviceprofiler/blob/master/docs/zh/vLLM_metrics_tool_instruct.md)
+详细使用方法，请参考：[使用指南](https://gitcode.com/Ascend/msserviceprofiler/blob/26.1.0/docs/zh/vLLM_metrics_tool_instruct.md)
 
 ## vLLM 内置指标概览
 
