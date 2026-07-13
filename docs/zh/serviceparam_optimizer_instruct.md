@@ -51,7 +51,7 @@
 ## 使用前准备
 
 **环境准备**
-准备好能正常运行服务化（如[MindIE Service](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/quick_start.md)/[VLLM Server](https://docs.vllm.ai/projects/ascend/en/latest/quick_start.html)）和测评工具（如`vllm_benchmark/AISBench`，参见[测评工具部署](https://gitee.com/aisbench/benchmark/blob/master/README.md)）的环境。
+准备好能正常运行服务化（如[MindIE Service](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/quick_start.md)/[VLLM Server](https://docs.vllm.ai/projects/ascend/en/latest/quick_start.html)）和测评工具（如`vllm_benchmark/AISBench`，参见[测评工具部署](https://github.com/AISBench/benchmark/blob/master/docs/source_zh_cn/get_started/install.md)）的环境。
 
 ## 工具安装
 
@@ -313,13 +313,14 @@ msserviceprofiler optimizer -e vllm -b vllm_benchmark -c ../configs/vllm_config.
 |sample_size|可选|对原始数据集采样大小，用采样后的数据进行调优，可增加寻优效率，取值范围为：1000-10000的整数，建议设为原数据集请求的1 / 3。|
 
 **测评工具参数**：
-若使用`AISBench`测评，需修改以下参数，可以参照[AISBench 使用说明](https://gitee.com/aisbench/benchmark/blob/master/README.md)进行修改。
+若使用`AISBench`测评，需修改以下参数，可以参照[AISBench 使用说明](https://github.com/AISBench/benchmark/blob/master/README.md)进行修改。
 
 |参数|说明|
 |---|---|
-|models| 指定模型任务，可根据[模型配置说明](https://gitee.com/aisbench/benchmark/blob/master/doc/users_guide/models.md)进行配置。|
-|datasets| 指定数据集任务，可根据[数据集准备指南](https://gitee.com/aisbench/benchmark/blob/master/doc/users_guide/datasets.md)进行配置 |
-|mode| 运行模式。可根据[运行模式说明](https://gitee.com/aisbench/benchmark/blob/master/doc/users_guide/mode.md)进行配置。|
+|models| 指定模型任务，可根据[模型配置说明](https://github.com/AISBench/benchmark/blob/master/docs/source_zh_cn/base_tutorials/all_params/models.md)进行配置。|
+|datasets| 指定数据集任务，可根据[数据集准备指南](https://github.com/AISBench/benchmark/blob/master/docs/source_zh_cn/get_started/datasets.md)进行配置 |
+|mode| 运行模式。可根据[运行模式说明](https://github.com/AISBench/benchmark/blob/master/docs/source_zh_cn/base_tutorials/all_params/mode.md)进行配置。|
+|num_prompts| 控制运行数据集的条数，`mode`为`perf`时有效。|
 |num_prompts| 控制运行数据集的条数，`mode`为`perf`时有效。|
 
 若使用`vllm_benchmark`测评，需修改以下参数：
@@ -335,28 +336,28 @@ msserviceprofiler optimizer -e vllm -b vllm_benchmark -c ../configs/vllm_config.
 |num_prompts|必选| 控制运行数据集的条数。<br>取值范围：1-10000的整数。|
 |others|可选| 拼接其他参数，注意参数间使用空格分隔，参数内部不能留有空格。如`--ignore-eos --custom-output-len 1500`。默认为空。|
 
-**服务化参数**： 可以参考[MindIE server 配置参数说明](https://www.hiascend.com/document/detail/zh/mindie/20RC1/mindieservice/servicedev/mindie_service0285.html)进行修改。
+**服务化参数**： 可以参考[MindIE server 配置参数说明](https://gitcode.com/Ascend/MindIE-LLM/blob/master/docs/zh/user_guide/user_manual/service_parameter_configuration.md)进行修改。
 服务化参数可直接指定参数的范围，如配置服务化参数 `max_batch_size` 的寻优搜索空间为 10 ~ 400，则可设置：
 
 ```shell
 [[mindie.target_field]]
-"name": "max_batch_size",    # 服务化参数名称
-"config_position": "BackendConfig.ScheduleConfig.maxBatchSize",    # 服务化参数在MindIE Server中的位置
-"min": 10,    # 最小值
-"max": 400,    # 最大值
-"dtype": "int"    # 数据类型
+name = "max_batch_size"    # 服务化参数名称
+config_position = "BackendConfig.ScheduleConfig.maxBatchSize"    # 服务化参数在MindIE Server中的位置
+min = 10    # 最小值
+max = 400    # 最大值
+dtype = "int"    # 数据类型
 ```
 
 此外，也可设置参数与另一参数相关，如 `max_prefill_batch_size` 与 `max_batch_size` 相关，`max_prefill_batch_size = ratio * max_batch_size (0 < ratio < 1)`则可设置：
 
 ```shell
 [[mindie.target_field]]
-"name": "max_prefill_batch_size",
-"config_position": "BackendConfig.ScheduleConfig.maxPrefillBatchSize",
-"min": 0,
-"max": 1,
-"dtype": "ratio",
-"dtype_param": "max_batch_size"    # 表明该参数与max_batch_size相关
+name = "max_prefill_batch_size"
+config_position = "BackendConfig.ScheduleConfig.maxPrefillBatchSize"
+min = 0
+max = 1
+dtype = "ratio" 
+dtype_param = "max_batch_size"    # 表明该参数与max_batch_size相关
 ```
 
 此外，`target_field` 支持的所有 `dtype` 类型如下：

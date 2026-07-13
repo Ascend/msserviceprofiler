@@ -7,7 +7,7 @@ msServiceProfiler Trace提供基于OpenTelemetry Protocol（OTLP）协议的Trac
 msServiceProfiler Trace采集MindIE Motor服务中的请求响应时间、响应状态、客户端IP/端口、服务端IP/端口等数据，最后将采集到的数据推送至Jaeger等支持OTLP协议的开源监测平台进行可视化分析。
 
 - 当前版本主要面向MindIE推理框架，支持单机及多机PD竞争部署模式。
-- 当前仅支持对MindIE的[/v1/chat/completions](https://www.hiascend.com/document/detail/zh/mindie/22RC1/mindieservice/servicedev/mindie_service0078.html)和[/v1/completions](https://www.hiascend.com/document/detail/zh/mindie/22RC1/mindieservice/servicedev/mindie_service0323.html)两个请求发送的核心接口进行Trace监测。
+- 当前仅支持对MindIE的[/v1/chat](https://www.hiascend.com/document/detail/zh/mindie/300/mindiellm/llmdev/mindie_service0078.html)和[/v1/completions](https://www.hiascend.com/document/detail/zh/mindie/300/mindiellm/llmdev/mindie_service0323.html)两个请求发送的核心接口进行Trace监测。
 - msServiceProfiler Trace数据监测接口包括“msServiceProfiler API参考（C++） \>  [Trace数据监测](./cpp_api/trace_data_monitoring/README.md)”。
 - 有关MindIE Motor相关介绍请参见《[MindIE Motor开发指南](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/README.md)》。
 
