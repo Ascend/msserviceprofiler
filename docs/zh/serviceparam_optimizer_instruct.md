@@ -36,7 +36,7 @@
 
 |产品类型| 是否支持 |
 |--|:----:|
-|Ascend 950 系列产品|x|
+|Ascend 950 系列产品|×|
 |Atlas A3 训练系列产品/Atlas A3 推理系列产品|√|
 |Atlas A2 训练系列产品/Atlas A2 推理系列产品|√|
 |Atlas 200I/500 A2 推理产品|√|
@@ -620,7 +620,7 @@ io_error = ["file not found", "permission denied", "IO error"]
 
 需要在`config.toml`中配置kubectl_default_path字段，将该字段配置为k8s安装脚本解压后的单机执行目录，目录结构需要为：
 
-```ColdFusion
+```text
 K8s_v1.23_MindCluster.7.1.RC1.B098.aarch/
 ├── all_label_a2.sh
 ├── all_label_a3.sh

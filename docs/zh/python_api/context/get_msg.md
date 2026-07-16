@@ -8,7 +8,7 @@
 
 |产品类型|是否支持|
 |--|:-:|
-|Ascend 950 系列产品|x|
+|Ascend 950 系列产品|×|
 |Atlas A3 训练系列产品/Atlas A3 推理系列产品|×|
 |Atlas A2 训练系列产品/Atlas A2 推理系列产品|√|
 |Atlas 200I/500 A2 推理产品|×|
@@ -36,4 +36,4 @@ def get_msg(self)
 
 ## 返回值说明<a name="section776014535188"></a>
 
-str当前记录的数据。
+str：当前记录的数据。

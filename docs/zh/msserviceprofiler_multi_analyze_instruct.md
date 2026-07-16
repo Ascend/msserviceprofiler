@@ -12,7 +12,7 @@
 
 |产品类型| 是否支持 |
 |--|:----:|
-|Ascend 950 系列产品|x|
+|Ascend 950 系列产品|×|
 |Atlas A3 训练系列产品/Atlas A3 推理系列产品|√|
 |Atlas A2 训练系列产品/Atlas A2 推理系列产品|√|
 |Atlas 200I/500 A2 推理产品|√|
@@ -96,7 +96,7 @@
   | first_token_latency(ms)  | 首Token时延，单位ms。 |
   | subsequent_token_latency(ms)  | 非首Token时延，指模型生成第一个Token之后，生成后续每个Token所花费的平均时间，单位ms。 |
   | total_time(ms)  | HTTP请求到结束的总时长，单位ms。 |
-  | exec_time(ms)  | modelExec的执行事件，若无modelExec，则结果中不含此行，单位ms。 |
+  | exec_time(ms)  | modelExec的执行时间，若无modelExec，则结果中不含此行，单位ms。 |
   | waiting_time(ms)  | 请求的等待耗时，单位ms。 |
   | input_token_num  | 每个请求对应的输入Token数量。 |
   | generated_token_num  | 每个请求对应的输出Token数量。 |

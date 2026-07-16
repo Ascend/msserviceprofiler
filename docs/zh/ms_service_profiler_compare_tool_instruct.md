@@ -17,7 +17,7 @@
 
 |产品类型| 是否支持 |
 |--|:----:|
-|Ascend 950 系列产品|x|
+|Ascend 950 系列产品|×|
 |Atlas A3 训练系列产品/Atlas A3 推理系列产品|√|
 |Atlas A2 训练系列产品/Atlas A2 推理系列产品|√|
 |Atlas 200I/500 A2 推理产品|√|
@@ -36,7 +36,7 @@
 **数据准备**
 
 - 完成服务化性能数据采集，获得两份待比对的性能数据，具体采集方式请参见[服务化调优工具](https://gitcode.com/Ascend/msserviceprofiler/blob/master/docs/zh/msserviceprofiler_serving_tuning_instruct.md)。  
-- 算子比对场景要求使用[服务化调优工具](https://gitcode.com/Ascend/msserviceprofiler/blob/master/docs/zh/msserviceprofiler_serving_tuning_instruct.md]采集性能数据时，配置acl_task_time参数值为3，确保采集的性能数据文件目录中包含以_ascend_pt为后缀的算子数据文件)。
+- 算子比对场景要求使用[服务化调优工具](https://gitcode.com/Ascend/msserviceprofiler/blob/master/docs/zh/msserviceprofiler_serving_tuning_instruct.md)采集性能数据时，配置acl_task_time参数值为3，确保采集的性能数据文件目录中包含以_ascend_pt为后缀的算子数据文件。
 
 **约束**
 
