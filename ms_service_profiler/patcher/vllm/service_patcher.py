@@ -73,7 +73,7 @@ class VLLMProfiler:
     # -------------------------------------------------------------------------
 
     @staticmethod
-    def _auto_detect_v1_default() -> str:
+    def _determine_v1_default() -> str:
         """根据已安装的 vLLM 版本自动决定默认 V1 使用情况。"""
         try:
             vllm_version = get_package_version("vllm")
@@ -81,17 +81,14 @@ class VLLMProfiler:
                 raise ValueError("Could not get vllm version")
             major, minor, patch = parse_version_tuple(vllm_version)
             use_v1 = (major, minor, patch) >= (0, 9, 2)
-            logger.info(f"VLLM_USE_V1 not set, auto-detected via vLLM {vllm_version}: default {'1' if use_v1 else '0'}")
             return "1" if use_v1 else "0"
         except Exception:
-            logger.info("VLLM_USE_V1 not set and vLLM version unknown; default to 0 (V0)")
             return "0"
 
     @staticmethod
     def _detect_version() -> str:
         """检测 vLLM 版本。"""
-        env_v1 = os.environ.get('VLLM_USE_V1')
-        return env_v1 if env_v1 is not None else VLLMProfiler._auto_detect_v1_default()
+        return VLLMProfiler._determine_v1_default()
 
     @staticmethod
     def _get_vllm_version() -> Optional[str]:
@@ -243,7 +240,9 @@ class VLLMProfiler:
             logger.debug("Initializing service profiler with vLLM V1 interface")
             from .handlers.v1 import batch_handlers, kvcache_handlers, meta_handlers, model_handlers, request_handlers  # noqa: F401
         else:
-            logger.error(f"unknown vLLM interface version: VLLM_USE_V1={self._vllm_use_v1}")
+            logger.error(
+                f"unknown vLLM interface version: auto_detected={self._vllm_use_v1}, vllm_version={self._vllm_version}"
+            )
 
     def initialize(self) -> bool:
         """初始化服务分析器。

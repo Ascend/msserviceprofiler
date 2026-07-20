@@ -380,23 +380,16 @@ class TestDetectVllmVersion:
     """测试 _detect_version 方法"""
 
     @staticmethod
-    @pytest.mark.parametrize(
-        "env_value,expected",
-        [
-            ("0", "0"),
-            ("1", "1"),
-            (None, "1"),  # 假设 _auto_detect_v1_default 返回 "1"
-        ],
-    )
-    def test_detect_version(env_value, expected):
-        """测试 vLLM 版本检测"""
-        with patch.dict(os.environ, {'VLLM_USE_V1': env_value} if env_value is not None else {}):
-            with patch(
-                'ms_service_profiler.patcher.vllm.service_patcher.VLLMProfiler._auto_detect_v1_default',
-                return_value="1",
-            ):
-                result = VLLMProfiler._detect_version()
-                assert result == expected
+    @pytest.mark.parametrize("env_value", ["0", "1", None])
+    def test_detect_version_uses_auto_detect_default(env_value):
+        """测试 vLLM 版本检测使用自动检测结果"""
+        with patch(
+            'ms_service_profiler.patcher.vllm.service_patcher.VLLMProfiler._determine_v1_default',
+            return_value="1",
+        ) as mock_auto_detect:
+            result = VLLMProfiler._detect_version()
+            assert result == "1"
+            mock_auto_detect.assert_called_once_with()
 
 
 class TestLoadConfig:
@@ -1105,16 +1098,16 @@ class TestWatcherIntegration:
                 os.rmdir(config_dir)
 
 
-class TestAutoDetectV1Default:
-    """测试 _auto_detect_v1_default 函数"""
+class TestDetermineV1Default:
+    """测试 _determine_v1_default 函数"""
 
     @staticmethod
     @patch('ms_service_profiler.patcher.vllm.service_patcher.get_package_version')
-    def test_auto_detect_v1_default_new_version(mock_version):
+    def test_determine_v1_default_new_version(mock_version):
         """测试新版本 vLLM (>= 0.9.2) 返回 '1'"""
         mock_version.return_value = "0.9.2"
 
-        result = VLLMProfiler._auto_detect_v1_default()
+        result = VLLMProfiler._determine_v1_default()
 
         assert result == "1"
         mock_version.assert_called_with("vllm")
@@ -1132,64 +1125,64 @@ class TestAutoDetectV1Default:
             ("0.9.1+dev", "0"),  # 带标识符但仍小于 0.9.2
         ],
     )
-    def test_auto_detect_v1_default_various_versions(mock_version, version, expected):
+    def test_determine_v1_default_various_versions(mock_version, version, expected):
         """测试各种版本号的自动检测"""
         mock_version.return_value = version
 
-        result = VLLMProfiler._auto_detect_v1_default()
+        result = VLLMProfiler._determine_v1_default()
 
         assert result == expected
 
     @staticmethod
     @patch('ms_service_profiler.patcher.vllm.service_patcher.get_package_version')
-    def test_auto_detect_v1_default_old_version(mock_version):
+    def test_determine_v1_default_old_version(mock_version):
         """测试旧版本 vLLM (< 0.9.2) 返回 '0'"""
         mock_version.return_value = "0.9.1"
 
-        result = VLLMProfiler._auto_detect_v1_default()
+        result = VLLMProfiler._determine_v1_default()
 
         assert result == "0"
 
     @staticmethod
     @patch('ms_service_profiler.patcher.vllm.service_patcher.get_package_version')
-    def test_auto_detect_v1_default_version_not_found(mock_version):
+    def test_determine_v1_default_version_not_found(mock_version):
         """测试 vLLM 包未找到的情况"""
         mock_version.side_effect = importlib.metadata.PackageNotFoundError("vllm not found")
 
-        result = VLLMProfiler._auto_detect_v1_default()
+        result = VLLMProfiler._determine_v1_default()
 
         assert result == "0"
 
     @staticmethod
     @patch('ms_service_profiler.patcher.vllm.service_patcher.get_package_version')
-    def test_auto_detect_v1_default_version_parse_error(mock_version):
+    def test_determine_v1_default_version_parse_error(mock_version):
         """测试版本解析错误的情况"""
         mock_version.return_value = "invalid.version.string"
 
-        result = VLLMProfiler._auto_detect_v1_default()
+        result = VLLMProfiler._determine_v1_default()
 
         # 应该回退到 "0"
         assert result == "0"
 
     @staticmethod
     @patch('ms_service_profiler.patcher.vllm.service_patcher.get_package_version')
-    def test_auto_detect_v1_default_general_exception(mock_version):
+    def test_determine_v1_default_general_exception(mock_version):
         """测试其他异常情况"""
         mock_version.side_effect = Exception("Unexpected error")
 
-        result = VLLMProfiler._auto_detect_v1_default()
+        result = VLLMProfiler._determine_v1_default()
 
         assert result == "0"
 
     @staticmethod
     @patch.dict('os.environ', {'VLLM_USE_V1': '1'})
     @patch('ms_service_profiler.patcher.vllm.service_patcher.get_package_version')
-    def test_auto_detect_v1_default_env_var_set(mock_version):
+    def test_determine_v1_default_env_var_set(mock_version):
         """测试环境变量已设置的情况（虽然函数不检查，但确保不影响）"""
         # 注意：函数本身不检查环境变量，但测试确保环境变量不影响函数行为
         mock_version.return_value = "0.9.1"  # 旧版本
 
-        result = VLLMProfiler._auto_detect_v1_default()
+        result = VLLMProfiler._determine_v1_default()
 
         # 函数应该忽略环境变量，只基于版本检测
         assert result == "0"
@@ -1206,7 +1199,7 @@ class TestAutoDetectV1Default:
 
         for version in complex_versions:
             mock_version.return_value = version
-            result = VLLMProfiler._auto_detect_v1_default()
+            result = VLLMProfiler._determine_v1_default()
             # 所有这些都是 >= 0.9.2，应该返回 "1"
             assert result == "1"
 
