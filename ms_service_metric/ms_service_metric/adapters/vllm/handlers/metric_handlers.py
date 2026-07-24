@@ -430,14 +430,10 @@ class TimingContextManager:
 
     def __enter__(self):
         self.start_time = time.time()
-        stack_phase = _infer_phase_from_call_stack()
-        if stack_phase != "mixed":
-            self._captured_phase = stack_phase
-        else:
-            meta_state = get_meta_state()
-            meta_phase = meta_state.get("phase", "mixed")
-            self._captured_phase = meta_phase if meta_phase != "mixed" else stack_phase
         meta_state = get_meta_state()
+        self._captured_phase = meta_state.get("phase", "mixed")
+        if self.label_name in ("sample_token", "draft_token"):
+            self._captured_phase = meta_state.get("last_model_runner_phase", self._captured_phase)
         self._captured_role = meta_state.get("pd_role", meta_state.get("role", "mixed"))
         logger.debug("TimingContextManager.enter: name=%s phase=%s", self.label_name, self._captured_phase)
         return self.original_context.__enter__()
@@ -862,24 +858,6 @@ def _infer_phase_from_scheduler_output(scheduler_output) -> str:
     return "mixed"
 
 
-def _infer_phase_from_call_stack() -> str:
-    try:
-        frame = inspect.currentframe()
-        while frame is not None:
-            func_name = frame.f_code.co_name
-            local_self = frame.f_locals.get("self")
-            is_npu_runner = local_self is not None and type(local_self).__name__ == "NPUModelRunner"
-            if func_name in ("execute_model", "sample_tokens") and is_npu_runner:
-                scheduler_output = frame.f_locals.get("scheduler_output")
-                phase = _infer_phase_from_scheduler_output(scheduler_output)
-                if phase != "mixed":
-                    return phase
-            frame = frame.f_back
-    except Exception:
-        logger.debug("Failed to infer phase from call stack", exc_info=True)
-    return "mixed"
-
-
 def _resolve_worker_phase(self, args=None) -> str:
     try:
         inferred_phase, _ = _infer_model_runner_phase(self)
@@ -905,8 +883,10 @@ def model_runner_phase_handler(metrics_config, is_async: bool = False, **kwargs)
 
     def handler(ori, self, *args, **kwargs):
         phase = _resolve_worker_phase(self, args)
+        meta_state = get_meta_state()
+        meta_state.set("last_model_runner_phase", phase)
         logger.debug("model_runner_phase: phase=%s", phase)
-        with _phase_scope(get_meta_state(), phase):
+        with _phase_scope(meta_state, phase):
             return base_handler(ori, self, *args, **kwargs)
 
     return handler
