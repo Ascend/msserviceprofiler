@@ -14,12 +14,22 @@
 # See the Mulan PSL v2 for more details.
 # -------------------------------------------------------------------------
 
+import ctypes
 import os
 import sys
 import threading
 import types
 
 import pytest
+
+
+def _memfd_create(name, flags=0):
+    """Create an anonymous file - fallback to ctypes when os.memfd_create is not available."""
+    if hasattr(os, 'memfd_create'):
+        return os.memfd_create(name, flags)
+    libc = ctypes.CDLL(None)
+    return libc.memfd_create(name.encode() if isinstance(name, str) else name, flags)
+
 
 _shm_registry = {}
 _sem_registry = {}
@@ -64,7 +74,7 @@ def _install_posix_ipc_dummy():
             if flags & O_CREX:
                 if size is None:
                     raise ValueError("size required for O_CREX")
-                fd = os.memfd_create("ms_metric_ut_shm", 0)
+                fd = _memfd_create("ms_metric_ut_shm", 0)
                 os.ftruncate(fd, size)
                 entry = {"fd": fd, "size": size, "refcount": 1}
                 _shm_registry[name] = entry
@@ -136,15 +146,11 @@ def _find_repo_root() -> str:
     """Locate repository root by project marker files."""
     current = os.path.dirname(os.path.abspath(__file__))
     while current != os.path.dirname(current):
-        if os.path.exists(os.path.join(current, "pyproject.toml")) or os.path.exists(
-            os.path.join(current, "setup.py")
-        ):
+        if os.path.exists(os.path.join(current, "pyproject.toml")) or os.path.exists(os.path.join(current, "setup.py")):
             return current
         current = os.path.dirname(current)
     # Fallback for CI/runtime layouts where marker files are unavailable in parent chain.
-    fallback = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), "..", "..", "..", "..")
-    )
+    fallback = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
     if os.path.exists(os.path.join(fallback, "ms_service_metric")) and os.path.exists(
         os.path.join(fallback, "test", "ut", "python")
     ):
@@ -301,8 +307,8 @@ def _ensure_prometheus_client_dummy():
 @pytest.fixture(autouse=True)
 def _reset_global_state(_ensure_prometheus_client_dummy):
     # Import after dummy installed.
-    from ms_service_metric.metrics.meta_state import reset_meta_state
-    from ms_service_metric.metrics.metrics_manager import reset_metrics_manager
+    from ms_service_metric.metrics.meta_state import reset_meta_state  # pylint: disable=no-name-in-module
+    from ms_service_metric.metrics.metrics_manager import reset_metrics_manager  # pylint: disable=no-name-in-module
     from prometheus_client import REGISTRY
 
     _clear_ipc_registry()
@@ -319,4 +325,3 @@ def _reset_global_state(_ensure_prometheus_client_dummy):
 
     yield
     _clear_ipc_registry()
-

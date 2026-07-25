@@ -17,17 +17,10 @@
 import unittest
 from unittest.mock import patch, MagicMock
 import json
-from ms_service_profiler.profiler import (
-    Profiler,
-    MarkType,
-    Level,
-    initialize_profiler,
-    prof_step
-)
+from ms_service_profiler.profiler import Profiler, MarkType, Level
 
 
 class TestMarkType(unittest.TestCase):
-
     def test_mark_type_values(self):
         """测试MarkType枚举值"""
         self.assertEqual(MarkType.TYPE_EVENT.value, 0)
@@ -37,7 +30,6 @@ class TestMarkType(unittest.TestCase):
 
 
 class TestLevel(unittest.TestCase):
-
     def test_level_values(self):
         """测试Level枚举值"""
         self.assertEqual(Level.ERROR.value, 10)
@@ -53,7 +45,6 @@ class TestLevel(unittest.TestCase):
 
 
 class TestProfiler(unittest.TestCase):
-
     @patch('ms_service_profiler.profiler.service_profiler.is_enable')
     def test_profiler_init_enabled(self, mock_is_enable):
         """测试Profiler初始化（启用状态）"""
@@ -74,7 +65,7 @@ class TestProfiler(unittest.TestCase):
             profiler = Profiler(Level.L0)
             self.assertTrue(profiler.enable)
 
-            result = profiler.__enter__()
+            result = profiler.__enter__()  # pylint: disable=unnecessary-dunder-call
             self.assertEqual(result, profiler)
 
     @patch('ms_service_profiler.profiler.service_profiler.is_enable')
@@ -288,9 +279,7 @@ class TestProfiler(unittest.TestCase):
 
         with patch.object(profiler, '_get_attrs_json', return_value='{"key": "value"}'):
             profiler.span_end()
-            mock_span_end.assert_called_once_with(
-                'test_span', 'TestDomain', '{"key": "value"}', 'handle_123'
-            )
+            mock_span_end.assert_called_once_with('test_span', 'TestDomain', '{"key": "value"}', 'handle_123')
 
     @patch('ms_service_profiler.profiler.service_profiler.is_enable')
     def test_profiler_mark_event_ex_disabled(self, mock_is_enable):
@@ -333,7 +322,6 @@ class TestProfiler(unittest.TestCase):
 
 
 class TestInitializeProfiler(unittest.TestCase):
-
     @patch.dict('ms_service_profiler.profiler.__dict__', {'torch': MagicMock()})
     @patch('ms_service_profiler.profiler.torch_prof_total_steps', 0)
     @patch('ms_service_profiler.profiler.service_profiler.get_acl_task_time_level')
@@ -344,8 +332,14 @@ class TestInitializeProfiler(unittest.TestCase):
     @patch('ms_service_profiler.profiler.service_profiler.get_torch_prof_step_num')
     @patch('ms_service_profiler.profiler.logger')
     def test_initialize_profiler_no_steps(
-        self, mock_logger, mock_get_steps, mock_is_stack, mock_is_modules,
-        mock_get_path, mock_get_aicore, mock_get_task_level
+        self,
+        mock_logger,
+        mock_get_steps,
+        mock_is_stack,
+        mock_is_modules,
+        mock_get_path,
+        mock_get_aicore,
+        mock_get_task_level,
     ):
         """测试initialize_profiler（无步骤限制）"""
         mock_get_task_level.return_value = 'L1'
@@ -356,26 +350,18 @@ class TestInitializeProfiler(unittest.TestCase):
         mock_get_steps.return_value = 0
 
         import sys
-        from unittest.mock import MagicMock
 
         mock_torch = MagicMock()
         mock_torch_npu = MagicMock()
         mock_torch.npu = mock_torch_npu
         type(mock_torch_npu).profiler = MagicMock()
 
-        sys.modules['torch'] = mock_torch
-        sys.modules['torch_npu'] = mock_torch_npu
-
-        try:
+        with patch.dict(sys.modules, {'torch': mock_torch, 'torch_npu': mock_torch_npu}):
             from ms_service_profiler import profiler as profiler_module
+
             profiler_module.torch_prof = None
             profiler_module.torch_prof_total_steps = 0
             profiler_module.initialize_profiler()
-        finally:
-            if 'torch' in sys.modules:
-                del sys.modules['torch']
-            if 'torch_npu' in sys.modules:
-                del sys.modules['torch_npu']
 
 
 class TestProfStepFunction(unittest.TestCase):
@@ -540,6 +526,7 @@ class TestProfStepFunction(unittest.TestCase):
 
         # 因为 torch_prof 仍为 None，后续的 if torch_prof: 块不应执行
         mock_profiler_cls.assert_not_called()
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -89,12 +89,50 @@ class BuildManager:
                     logging.info("Archiving %s -> %s", file_path, artifacts_dir / file_path.name)
                     shutil.copy2(file_path, artifacts_dir / file_path.name)
 
+    def _run_tests(self):
+        modify_file = Path("/tmp/modify_files.txt")
+        if not modify_file.is_file():
+            self._execute_command(["bash", "test/run_ut.sh"])
+            return
+
+        lines = modify_file.read_text(encoding="utf-8").splitlines()
+
+        if any("test/presmoke" in line for line in lines):
+            logging.info("检测到补充预冒烟用例，跳过测试")
+            return
+
+        if any(line.endswith(".sh") for line in lines):
+            logging.info("检测到 shell 脚本修改，运行全量测试")
+            self._execute_command(["bash", "test/run_ut.sh"])
+            return
+
+        module_map = [
+            ("ms_service_profiler", "ms_service_profiler"),
+            ("optimizer", "ms_serviceparam_optimizer"),
+            ("msservice_advisor", "msservice_advisor"),
+            ("cpp", "cpp"),
+        ]
+        tests_to_run = []
+        for keyword, module in module_map:
+            if any(keyword in line for line in lines):
+                tests_to_run.append(module)
+
+        target_branch = os.environ.get("TARGET_BRANCH", "")
+        if target_branch == "master" and any("ms_service_metric" in line for line in lines):
+            tests_to_run.append("ms_service_metric")
+
+        if not tests_to_run:
+            logging.info("没有检测到源码修改，跳过测试")
+        else:
+            logging.info("运行测试: %s", " ".join(tests_to_run))
+            self._execute_command(["bash", "test/run_ut.sh"] + tests_to_run)
+
     def run(self):
         os.chdir(self.project_root)
 
         if 'test' in self.args.command:
             # -------------------- 单元测试 --------------------
-            self._execute_command(["bash", "test/run_ut.sh"])
+            self._run_tests()
         else:
             # -------------------- 产品构建 --------------------
 

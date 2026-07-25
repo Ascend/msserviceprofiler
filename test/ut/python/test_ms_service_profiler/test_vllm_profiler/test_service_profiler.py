@@ -620,6 +620,7 @@ class TestInitSymbolWatcher:
     """测试 initialize 时安装 symbol watcher"""
 
     @staticmethod
+    @patch.dict(sys.modules, {'ms_service_metric.core.module.symbol_watcher': None})
     def test_init_symbol_watcher(service_profiler, mock_handlers_data):
         """测试 initialize 时创建并安装 symbol watcher（不在此处加载配置）"""
         with patch.dict(os.environ, {'SERVICE_PROF_CONFIG_PATH': '/some/path'}):

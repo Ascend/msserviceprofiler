@@ -14,6 +14,8 @@
 # See the Mulan PSL v2 for more details.
 # -------------------------------------------------------------------------
 
+# pylint: disable=redefined-outer-name
+
 """ms_service_profiler.patcher.vllm.handlers.torch_profiler 单元测试
 
 独立于 test_vllm_profiler 目录，避免 conftest 触发 module_hook/inject/bytecode 导入链。
@@ -62,8 +64,7 @@ def _load_torch_profiler_from_file():
         parent = os.path.dirname(proj_root)
         if parent == proj_root:
             raise FileNotFoundError(
-                f"Cannot find torch_profiler.py from {test_dir}. "
-                "Run pytest from project root or test/ directory."
+                f"Cannot find torch_profiler.py from {test_dir}. Run pytest from project root or test/ directory."
             )
         proj_root = parent
         torch_profiler_path = os.path.join(
@@ -137,17 +138,20 @@ def mock_torch_profiler_deps():
     mock_vllm.v1.engine.core = mock_vllm_core
 
     mock_torch = MagicMock()
-    with patch.dict("sys.modules", {
-        "torch": mock_torch,
-        "torch_npu": mock_torch_npu,
-        "vllm_ascend": mock_vllm_ascend,
-        "vllm_ascend.worker": mock_vllm_ascend.worker,
-        "vllm_ascend.worker.worker": mock_vllm_worker,
-        "vllm": mock_vllm,
-        "vllm.v1": mock_vllm.v1,
-        "vllm.v1.engine": mock_vllm.v1.engine,
-        "vllm.v1.engine.core": mock_vllm_core,
-    }):
+    with patch.dict(
+        "sys.modules",
+        {
+            "torch": mock_torch,
+            "torch_npu": mock_torch_npu,
+            "vllm_ascend": mock_vllm_ascend,
+            "vllm_ascend.worker": mock_vllm_ascend.worker,
+            "vllm_ascend.worker.worker": mock_vllm_worker,
+            "vllm": mock_vllm,
+            "vllm.v1": mock_vllm.v1,
+            "vllm.v1.engine": mock_vllm.v1.engine,
+            "vllm.v1.engine.core": mock_vllm_core,
+        },
+    ):
         yield {
             "torch_npu": mock_torch_npu,
             "NPUWorker": mock_npu_worker,
@@ -185,18 +189,23 @@ def torch_profiler_module_without_torch_npu():
     mock_engine_core = MagicMock()
     mock_vllm_core.EngineCore = mock_engine_core
     mock_vllm.v1.engine.core = mock_vllm_core
-    # 不注入 torch_npu 并移除已有，使 import torch_npu 失败，模块内 torch_npu=None
-    with patch.dict("sys.modules", {
-        "torch": mock_torch,
-        "vllm_ascend": mock_vllm_ascend,
-        "vllm_ascend.worker": mock_vllm_ascend.worker,
-        "vllm_ascend.worker.worker": mock_vllm_ascend.worker,
-        "vllm": mock_vllm,
-        "vllm.v1": mock_vllm.v1,
-        "vllm.v1.engine": mock_vllm.v1.engine,
-        "vllm.v1.engine.core": mock_vllm_core,
-    }, clear=False):
-        sys.modules.pop("torch_npu", None)  # 移除，使 import 失败
+    # 将 torch_npu 设为 None，使 import torch_npu 稳定触发 ImportError，
+    # 模拟未安装 torch_npu 的环境。
+    with patch.dict(
+        "sys.modules",
+        {
+            "torch": mock_torch,
+            "torch_npu": None,
+            "vllm_ascend": mock_vllm_ascend,
+            "vllm_ascend.worker": mock_vllm_ascend.worker,
+            "vllm_ascend.worker.worker": mock_vllm_ascend.worker,
+            "vllm": mock_vllm,
+            "vllm.v1": mock_vllm.v1,
+            "vllm.v1.engine": mock_vllm.v1.engine,
+            "vllm.v1.engine.core": mock_vllm_core,
+        },
+        clear=False,
+    ):
         mod = _load_torch_profiler_from_file()
     return mod
 
@@ -217,9 +226,10 @@ class TestRegisterTorchProfiler:
         """用例15：torch_npu 为 None 时，直接返回不调用 patch 函数"""
         mod = torch_profiler_module_without_torch_npu
         assert mod.torch_npu is None
-        with patch.object(mod, "patch_model_runner_with_torch_profiler_register") as mock_register, patch.object(
-            mod, "patch_model_runner_with_torch_profiler_enable"
-        ) as mock_enable:
+        with (
+            patch.object(mod, "patch_model_runner_with_torch_profiler_register") as mock_register,
+            patch.object(mod, "patch_model_runner_with_torch_profiler_enable") as mock_enable,
+        ):
             mod.register_torch_profiler()
             mock_register.assert_not_called()
             mock_enable.assert_not_called()
@@ -244,9 +254,10 @@ class TestPatchModelRunnerWithTorchProfilerEnable:
         self, torch_profiler_module, mock_torch_profiler_deps
     ):
         """用例3：is_start=True 时，new_profile 应调用 prof_build 和 prof_start"""
-        with patch.object(torch_profiler_module, "prof_build") as mock_prof_build, patch.object(
-            torch_profiler_module, "prof_start"
-        ) as mock_prof_start:
+        with (
+            patch.object(torch_profiler_module, "prof_build") as mock_prof_build,
+            patch.object(torch_profiler_module, "prof_start") as mock_prof_start,
+        ):
             torch_profiler_module.patch_model_runner_with_torch_profiler_enable()
             NPUWorker = mock_torch_profiler_deps["NPUWorker"]
             instance = MagicMock()
@@ -277,9 +288,7 @@ class TestPatchModelRunnerWithTorchProfilerRegister:
         orig_init = MagicMock(return_value="result")
         EngineCore._initialize_kv_caches = orig_init
 
-        with patch.object(
-            torch_profiler_module, "service_profiler"
-        ) as mock_sp:
+        with patch.object(torch_profiler_module, "service_profiler") as mock_sp:
             mock_sp.get_torch_prof_step_num.return_value = 0
             mock_sp.is_torch_profiler_enable.return_value = False  # 避免触发 register
             torch_profiler_module.patch_model_runner_with_torch_profiler_register()
@@ -296,13 +305,11 @@ class TestPatchModelRunnerWithTorchProfilerRegister:
         EngineCore = mock_torch_profiler_deps["EngineCore"]
         orig_init = MagicMock(return_value="ok")
 
-        with patch.object(
-            torch_profiler_module, "service_profiler"
-        ) as mock_sp, patch.object(
-            torch_profiler_module, "Level", MagicMock(L0=10)
-        ), patch.object(
-            torch_profiler_module, "torch_profiler_register"
-        ) as mock_register:
+        with (
+            patch.object(torch_profiler_module, "service_profiler") as mock_sp,
+            patch.object(torch_profiler_module, "Level", MagicMock(L0=10)),
+            patch.object(torch_profiler_module, "torch_profiler_register") as mock_register,
+        ):
             mock_sp.get_torch_prof_step_num.return_value = 0
             mock_sp.is_torch_profiler_enable.return_value = True
             EngineCore._initialize_kv_caches = orig_init
@@ -336,9 +343,7 @@ class TestProfStartExecProfStopExec:
         torch_profiler_module.prof_stop_exec()
         mock_executor.profile.assert_called_once_with(False)
 
-    def test_prof_start_exec_given_pointer_none_when_invoked_then_raises_attribute_error(
-        self, torch_profiler_module
-    ):
+    def test_prof_start_exec_given_pointer_none_when_invoked_then_raises_attribute_error(self, torch_profiler_module):
         """用例9：pointer 为 None 时，调用应抛出 AttributeError"""
         torch_profiler_module.pointer = None
         with pytest.raises(AttributeError):
@@ -352,9 +357,7 @@ class TestTorchProfilerRegister:
         self, torch_profiler_module
     ):
         """用例10：service_profiler 可用时，应注册 prof_start_exec 和 prof_stop_exec 为回调"""
-        with patch.object(
-            torch_profiler_module, "service_profiler"
-        ) as mock_sp:
+        with patch.object(torch_profiler_module, "service_profiler") as mock_sp:
             mock_sp.register_profiler_start_callback = MagicMock()
             mock_sp.register_profiler_stop_callback = MagicMock()
 
@@ -381,11 +384,10 @@ class TestProfBuild:
         mock_state._lock.__enter__ = MagicMock(return_value=None)
         mock_state._lock.__exit__ = MagicMock(return_value=None)
 
-        with patch.object(
-            torch_profiler_module, "get_shared_state", return_value=mock_state
-        ), patch.object(
-            torch_profiler_module, "service_profiler"
-        ) as mock_sp:
+        with (
+            patch.object(torch_profiler_module, "get_shared_state", return_value=mock_state),
+            patch.object(torch_profiler_module, "service_profiler") as mock_sp,
+        ):
             mock_sp.get_acl_task_time_level.return_value = "L0"
             mock_sp.get_acl_prof_aicore_metrics.return_value = 0
             mock_sp.get_prof_path.return_value = "/tmp/prof"
@@ -421,9 +423,7 @@ class TestProfStartProfStop:
         mock_prof = MagicMock()
         mock_state = MagicMock(torch_prof=mock_prof)
 
-        with patch.object(
-            torch_profiler_module, "get_shared_state", return_value=mock_state
-        ):
+        with patch.object(torch_profiler_module, "get_shared_state", return_value=mock_state):
             torch_profiler_module.prof_start()
             mock_prof.start.assert_called_once()
 
@@ -431,27 +431,22 @@ class TestProfStartProfStop:
         self, torch_profiler_module
     ):
         """用例13：state 无 torch_prof 时，prof_start 应正常返回不报错"""
+
         # 使用简单对象，无 torch_prof 属性
         class StateWithoutTorchProf:
             _lock = MagicMock()
 
         mock_state = StateWithoutTorchProf()
 
-        with patch.object(
-            torch_profiler_module, "get_shared_state", return_value=mock_state
-        ):
+        with patch.object(torch_profiler_module, "get_shared_state", return_value=mock_state):
             torch_profiler_module.prof_start()  # 不应抛错
 
-    def test_prof_stop_given_state_has_torch_prof_when_invoked_then_calls_torch_prof_stop(
-        self, torch_profiler_module
-    ):
+    def test_prof_stop_given_state_has_torch_prof_when_invoked_then_calls_torch_prof_stop(self, torch_profiler_module):
         """用例14：state 含 torch_prof 时，prof_stop 应调用 torch_prof.stop()"""
         mock_prof = MagicMock()
         mock_state = MagicMock(torch_prof=mock_prof)
 
-        with patch.object(
-            torch_profiler_module, "get_shared_state", return_value=mock_state
-        ):
+        with patch.object(torch_profiler_module, "get_shared_state", return_value=mock_state):
             torch_profiler_module.prof_stop()
             mock_prof.stop.assert_called_once()
 

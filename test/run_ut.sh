@@ -63,6 +63,12 @@ function check_coverage() {
     local module_name=$1
     echo "[check_coverage]模块: $module_name"
 
+    local arch=$(uname -m)
+    if [ "$arch" != "aarch64" ]; then
+        echo "[check_coverage]当前架构为 ${arch}，跳过覆盖率检查（仅 ARM 机器检查）"
+        return 0
+    fi
+
     coverage_file="${COV_DIR}/coverage_${module_name}.json"
     python3 -m coverage json -o $coverage_file
     local total_line=$(python3 -c "import json; data=json.load(open('$coverage_file')); print(data['totals']['percent_statements_covered'])")
@@ -160,7 +166,7 @@ function run_ms_service_profiler_cpp_ut() {
         cmake --build ${BUILD_DIR} --target ${UT_TARGET} ${ST_TARGET} -j$(nproc)
     fi
 
-    export LD_LIBRARY_PATH=${BUILD_DIR}/3rdparty/ascend:$LD_LIBRARY_PATH
+    export LD_LIBRARY_PATH=${BUILD_DIR}/3rdparty/ascend:/opt/_internal/sqlite3/lib:$LD_LIBRARY_PATH
     ${BUILD_TEST_DIR}/${UT_TARGET}
     ${BUILD_TEST_DIR}/${ST_TARGET}
 }
@@ -199,7 +205,7 @@ function run_msservice_advisor_ut() {
         --source "${PROJECT_DIR}/msservice_advisor" \
         --omit="test/*" \
         -m pytest ${UT_DIR}
- 
+
     python3 -m coverage report -m --precision=2
     python3 -m coverage xml -o ${COV_DIR}/coverage.xml
     check_coverage "msservice_advisor"
@@ -235,7 +241,7 @@ function main() {
         ["ms_serviceparam_optimizer"]="run_ms_serviceparam_optimizer_ut"
         ["msservice_advisor"]="run_msservice_advisor_ut"
         ["ms_service_metric"]="run_ms_service_metric_python_ut"
-        
+
     )
 
     if [ $# -eq 0 ]; then

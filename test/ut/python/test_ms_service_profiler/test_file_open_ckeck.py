@@ -67,8 +67,8 @@ class TestPathValidation:
     )
     @patch("ms_service_profiler.utils.file_open_check.PATH_WHITE_LIST_REGEX_WIN")
     @patch("ms_service_profiler.utils.constants.PATH_WHITE_LIST_REGEX")
-    def test_is_match_path_white_list(self, mock_linux_regex, mock_win_regex, platform, path, expected):
-        sys.platform = platform
+    def test_is_match_path_white_list(self, mock_linux_regex, mock_win_regex, platform, path, expected, monkeypatch):
+        monkeypatch.setattr(sys, "platform", platform)
         if platform == "linux":
             mock_linux_regex.search.return_value = True
         else:

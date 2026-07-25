@@ -17,7 +17,11 @@
 import unittest
 from unittest.mock import patch, MagicMock
 
-from ms_serviceparam_optimizer.patch import enable_patch, env_patch, vllm_env_patch
+from ms_serviceparam_optimizer.patch import (  # pylint: disable=no-name-in-module
+    enable_patch,
+    env_patch,
+    vllm_env_patch,
+)
 
 
 class TestEnablePatch(unittest.TestCase):
@@ -27,17 +31,15 @@ class TestEnablePatch(unittest.TestCase):
         self.addCleanup(self.reset_globals)
 
         # 模拟 logger
-        self.logger_patcher = patch(
-            'ms_serviceparam_optimizer.patch.logger',
-            create=True, new_callable=MagicMock
-        )
+        self.logger_patcher = patch('ms_serviceparam_optimizer.patch.logger', create=True, new_callable=MagicMock)
         self.mock_logger = self.logger_patcher.start()
         self.addCleanup(self.logger_patcher.stop)
 
         # 正确模拟 warnings.warn
         self.warn_patcher = patch(
             'warnings.warn',  # 使用正确的路径
-            create=True, new_callable=MagicMock
+            create=True,
+            new_callable=MagicMock,
         )
         self.mock_warn = self.warn_patcher.start()
         self.addCleanup(self.warn_patcher.stop)
@@ -48,24 +50,29 @@ class TestEnablePatch(unittest.TestCase):
         vllm_env_patch.clear()
 
         # 重建初始 patch 字典结构
-        env_patch.update({
-            "MODEL_EVAL_STATE_COLLECT": [],
-            "MODEL_EVAL_STATE_SIMULATE": [],
-            "MODEL_EVAL_STATE_ALL": [],
-            "MODEL_EVAL_STATE_COLLECT_ELEGANT": [],
-            "MODEL_EVAL_STATE_SIMULATE_ELEGANT": [],
-            "MODEL_EVAL_STATE_ALL_ELEGANT": []
-        })
-        vllm_env_patch.update({
-            "MODEL_EVAL_STATE_COLLECT": [],
-            "MODEL_EVAL_STATE_SIMULATE": [],
-            "MODEL_EVAL_STATE_ALL": [],
-            "MODEL_EVAL_STATE_COLLECT_ELEGANT": [],
-            "MODEL_EVAL_STATE_SIMULATE_ELEGANT": [],
-            "MODEL_EVAL_STATE_ALL_ELEGANT": [],
-        })
+        env_patch.update(
+            {
+                "MODEL_EVAL_STATE_COLLECT": [],
+                "MODEL_EVAL_STATE_SIMULATE": [],
+                "MODEL_EVAL_STATE_ALL": [],
+                "MODEL_EVAL_STATE_COLLECT_ELEGANT": [],
+                "MODEL_EVAL_STATE_SIMULATE_ELEGANT": [],
+                "MODEL_EVAL_STATE_ALL_ELEGANT": [],
+            }
+        )
+        vllm_env_patch.update(
+            {
+                "MODEL_EVAL_STATE_COLLECT": [],
+                "MODEL_EVAL_STATE_SIMULATE": [],
+                "MODEL_EVAL_STATE_ALL": [],
+                "MODEL_EVAL_STATE_COLLECT_ELEGANT": [],
+                "MODEL_EVAL_STATE_SIMULATE_ELEGANT": [],
+                "MODEL_EVAL_STATE_ALL_ELEGANT": [],
+            }
+        )
 
-    def test_no_patches_available(self):
+    @patch('ms_serviceparam_optimizer.patch.get_module_version')
+    def test_no_patches_available(self, mock_get_version):
         """测试没有可用补丁的情况"""
         enable_patch("MODEL_EVAL_STATE_SIMULATE")
         self.mock_logger.info.assert_not_called()
@@ -158,11 +165,15 @@ class TestEnablePatch(unittest.TestCase):
         vllm_patch.patch.assert_not_called()
         self.mock_logger.info.assert_called_once()
 
-    def test_target_env_not_found(self):
+    @patch('ms_serviceparam_optimizer.patch.get_module_version')
+    def test_target_env_not_found(self, mock_get_version):
         """测试目标环境未找到的情况"""
         mock_patch = MagicMock()
         mock_patch.check_version.return_value = True
         env_patch["MODEL_EVAL_STATE_SIMULATE"].append(mock_patch)
+
+        # 初始化 vllm_env_patch 中的目标环境，避免 .get() 返回 None
+        vllm_env_patch["INVALID_ENV"] = []
 
         # 使用不存在的目标环境
         enable_patch("INVALID_ENV")
@@ -179,7 +190,7 @@ class TestEnablePatch(unittest.TestCase):
             "MODEL_EVAL_STATE_ALL",
             "MODEL_EVAL_STATE_COLLECT_ELEGANT",
             "MODEL_EVAL_STATE_SIMULATE_ELEGANT",
-            "MODEL_EVAL_STATE_ALL_ELEGANT"
+            "MODEL_EVAL_STATE_ALL_ELEGANT",
         ]
 
         mock_get_version.return_value = "1.0.0"
@@ -231,7 +242,8 @@ class TestEnablePatch(unittest.TestCase):
         self.mock_warn.assert_not_called()
         self.mock_logger.info.assert_not_called()
 
-    def test_no_logging_when_no_patch_applied(self):
+    @patch('ms_serviceparam_optimizer.patch.get_module_version')
+    def test_no_logging_when_no_patch_applied(self, mock_get_version):
         """测试当没有补丁应用时不会记录日志"""
         mock_patch = MagicMock()
         mock_patch.check_version.return_value = False
