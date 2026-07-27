@@ -82,7 +82,7 @@ msServiceProfiler服务化调优工具的快速入门，包括必要的操作步
 
 ## ⚖️ 相关说明
 
-- 《[版本说明](./docs/zh/release_notes.md)》
+- 《[版本说明](https://gitcode.com/Ascend/msserviceprofiler/releases)》
 - 《[贡献指南](CONTRIBUTING.md)》
 - 《[免责声明](./docs/zh/legal/disclaimer.md)》
 - 《[License声明](./docs/zh/legal/license_notice.md)》
