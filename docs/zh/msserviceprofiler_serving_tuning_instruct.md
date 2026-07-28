@@ -36,11 +36,11 @@
 
 ## 使用前准备
 
-工具支持的硬件环境与MindIE一致，详细支持情况请参见《[MindIE安装指南](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/install/installing_mindie.md)》的“[安装说明](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/install/installation_description.md)”。
+工具支持的硬件环境与MindIE一致，详细请参见《[MindIE 环境准备](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/environment_preparation.md)》。
 
 1. 安装配套版本的CANN Toolkit开发套件包和ops算子包并配置CANN环境变量，具体请参见[CANN快速安装](https://www.hiascend.com/cann/download)。
 2. 完成[msServiceProfiler工具](msserviceprofiler_install_guide.md)的安装。
-3. 完成MindIE的安装和配置并确认MindIE Motor可以正常运行，具体请参见《[MindIE安装指南](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/install/installing_mindie.md)》。
+3. 完成MindIE的安装和配置并确认MindIE Motor可以正常运行，具体请参见《[MindIE 安装](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/maintenance/build_motor_image_from_vllm_ascend.md)》。
 4. 完成以上环境准备后，可以进行一次配置预检动作，使用“[msprechecker](https://gitcode.com/Ascend/msit/tree/master/msprechecker)”工具，对环境变量和服务化配置等进行检查。
 
 ## 数据采集
@@ -283,7 +283,7 @@ ms\_service\_profiler.parse解析生成的结果如下。
 |moe_analysis|记录DeepSeek专家模型服务化推理时，基于MSPTI采集的MoeDistributeCombine算子和MoeDistributeDispatch算子快慢卡分析结果。|
 |data_link|用于在trace图显示forward的时候支持单击rid显示请求输入长度信息。|
 
-PD分离部署场景及概念详细介绍请参见《[MindIE Motor开发指南](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/README.md)》中的“集群服务部署 > [PD分离服务部署](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/service_deployment/pd_separation_service_deployment.md)”章节。此文件主要用于可视化阶段连接Grafana等工具展示图像，不对各表项细节做具体解释说明。Grafana为第三方开源软件，不属于MindStudio产品发布包的组成部分，用户可根据实际环境选择其他兼容的可视化系统。
+PD分离部署场景及概念详细介绍请参见[PD分离服务部署](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/deployment/k8s/pd_disaggregation_deployment.md)。此文件主要用于可视化阶段连接Grafana等工具展示图像，不对各表项细节做具体解释说明。Grafana为第三方开源软件，不属于MindStudio产品发布包的组成部分，用户可根据实际环境选择其他兼容的可视化系统。
 
 ### **chrome\_tracing.json**
 
@@ -413,7 +413,7 @@ PD分离部署场景及概念详细介绍请参见《[MindIE Motor开发指南](
 
 PD分离部署场景通信类数据。PD分离部署场景属于多机多卡（集群）场景之一，需要在[采集数据](#li177905365245)时使用共享配置文件。
 
-PD分离部署场景及概念详细介绍请参见《[MindIE Motor开发指南](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/README.md)》中的“集群服务部署 \> [PD分离服务部署](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/service_deployment/pd_separation_service_deployment.md)”章节。
+PD分离部署场景及概念详细介绍请参见[PD分离服务部署](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/deployment/k8s/pd_disaggregation_deployment.md)。
 
 **表 7**  pd\_split\_communication.csv
 
@@ -430,7 +430,7 @@ PD分离部署场景及概念详细介绍请参见《[MindIE Motor开发指南](
 
 记录PD分离推理过程的KVCache在PD节点间的传输情况。PD分离部署场景属于多机多卡（集群）场景之一，需要在[采集数据](#li177905365245)时使用共享配置文件。
 
-PD分离部署场景及概念详细介绍请参见《[MindIE Motor开发指南](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/README.md)》中的“集群服务部署 \> [PD分离服务部署](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/service_deployment/pd_separation_service_deployment.md)”章节。
+PD分离部署场景及概念详细介绍请参见[PD分离服务部署](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/deployment/k8s/pd_disaggregation_deployment.md)。
 
 **表 8**  pd\_split\_kvcache.csv
 
@@ -451,7 +451,7 @@ PD分离部署场景及概念详细介绍请参见《[MindIE Motor开发指南](
 
 记录PD分离推理过程的请求分发到各个节点数量变化情况。PD分离部署场景属于多机多卡（集群）场景之一，需要在[采集数据](#li177905365245)时使用共享配置文件。
 
-PD分离部署场景及概念详细介绍请参见《[MindIE Motor开发指南](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/README.md)》中的“集群服务部署 \> [PD分离服务部署](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/service_deployment/pd_separation_service_deployment.md)”章节。
+PD分离部署场景及概念详细介绍请参见[PD分离服务部署](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/deployment/k8s/pd_disaggregation_deployment.md)。
 
 **表 9**  coordinator.csv
 

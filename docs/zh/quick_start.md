@@ -12,7 +12,7 @@ msServiceProfiler（服务化调优工具）提供全链路性能剖析，清晰
 
 - 在使用性能调优工具前请先完成msServiceProfiler工具安装，具体请参见《[msServiceProfiler工具安装指南](msserviceprofiler_install_guide.md)》。
 - 已完成对应服务框架的安装，并通过可用性验证（服务能够正常启动，且可通过官方示例脚本或 API 成功发起一次推理请求）：
-  - **MindIE Motor**：请参见《[MindIE 安装指南](https://gitcode.com/Ascend/MindIE-Motor/blob/dev/docs/zh/user_guide/install/environment_preparation.md)》完成 MindIE 的安装和配置，并确认 MindIE Motor 服务可以正常启动且能完成一次示例推理请求。
+  - **MindIE Motor**：请参见《[MindIE 安装](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/maintenance/build_motor_image_from_vllm_ascend.md)》完成 MindIE 的安装和配置，并确认 MindIE Motor 服务可以正常启动且能完成一次示例推理请求。
   - **vLLM-Ascend**：请参见《[vLLM 服务化性能采集工具使用指南](vLLM_service_oriented_performance_collection_tool.md)》以及 vLLM-Ascend 官方安装文档，完成环境准备并验证 vLLM 服务可正常对外提供推理接口。
   - **SGLang**：请参见《[SGLang 服务化性能采集工具使用指南](SGLang_service_oriented_performance_collection_tool.md)》以及 SGLang 官方安装文档，完成环境准备并验证 SGLang 服务可正常对外提供推理接口。
 
@@ -46,7 +46,7 @@ msServiceProfiler 的采集能力需要在部署服务之前，通过设置环�
 
 #### 2.1 MindIE Motor
 
-按照《[MindIE 安装指南](https://gitcode.com/Ascend/MindIE-Motor/blob/dev/docs/zh/user_guide/install/environment_preparation.md)》启动推理服务即可。若正确配置了 `SERVICE_PROF_CONFIG_PATH`，在服务部署完成之前会输出如下以 `[msservice_profiler]` 开头的日志，说明 msServiceProfiler 已启动，例如：
+按照《[MindIE 安装](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/maintenance/build_motor_image_from_vllm_ascend.md)》启动推理服务即可。若正确配置了 `SERVICE_PROF_CONFIG_PATH`，在服务部署完成之前会输出如下以 `[msservice_profiler]` 开头的日志，说明 msServiceProfiler 已启动，例如：
 
 ```ColdFusion
 [msservice_profiler] [PID:225] [INFO] [ParseEnable:179] profile enable_: false
