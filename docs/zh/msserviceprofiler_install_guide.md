@@ -25,7 +25,7 @@
 apt-get install libsqlite3-dev  # RHEL/CentOS/Fedora 等使用 yum 的系统请执行：yum install sqlite sqlite-devel
 
 # 2. 拉取源码
-git clone https://gitcode.com/Ascend/msserviceprofiler.git
+git clone https://gitcode.com/Ascend/msserviceprofiler.git -b 26.1.0
 cd msserviceprofiler
 
 # 3. 执行一键构建并升级（自动完成：下载第三方依赖 > 构建 run 包 > 执行安装/升级）
