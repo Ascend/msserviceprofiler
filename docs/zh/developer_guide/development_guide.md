@@ -16,74 +16,18 @@ msServiceProfiler（服务化调优工具）是面向推理服务化场景的性
 | 专家建议      | `msservice_advisor/`         | 性能分析专家建议工具                    |
 | 第三方依赖     | `3rdparty/`                  | OpenTelemetry、Ascend SDK等第三方库 |
 
-## 2. 开发环境配置
+## 2. 编译环境配置
 
-### 2.1 开发软件推荐
+按照《[msServiceProfiler 安装指南 — 源码安装](../msserviceprofiler_install_guide.md#231-环境准备)》章节完成编译和测试环境的搭建。
 
-| 软件      | 用途           |
-| :------ | :----------- |
-| VSCode  | Python/C++开发 |
-| CLion   | C++开发（推荐）    |
-| PyCharm | Python开发（推荐） |
-
-### 2.2 环境依赖
-
-#### 2.2.1 系统要求
-
-- **操作系统**：Linux（CentOS、Ubuntu等主流发行版）
-- **硬件平台**：昇腾NPU
-
-#### 2.2.2 软件依赖
-
-| 软件名     | 版本要求     | 用途      |
-| :------ | :------- | :------ |
-| Python  | >= 3.10  | 运行时环境   |
-| cmake   | >= 3.11  | C++项目构建 |
-| gcc/g++ | 支持 C++14 | C++编译器  |
-| git     | 无        | 代码管理    |
-| sqlite3 | 无        | 数据库依赖   |
-
-#### 2.2.3 Python依赖
-
-**运行时依赖**：
-
-```text
-pandas~=2.2
-openpyxl
-numpy
-pydantic
-psutil
-scipy
-pyyaml
-matplotlib
-msguard
-loguru
-opentelemetry-exporter-otlp-proto-grpc==1.33.1
-opentelemetry-exporter-otlp-proto-http==1.33.1
-bytecode>=0.17.0
-```
-
-**开发测试依赖**：
-
-```text
-coverage
-pytest
-pytest-mock
-pytest_check
-jsonschema
-pytest-asyncio
-```
-
-#### 2.2.4 CANN环境
-
-需要安装配套版本的CANN Toolkit开发套件包并配置CANN环境变量，具体请参见[CANN快速安装](https://www.hiascend.com/cann/download)。
+> **说明：** 环境镜像的构建方法及配套软件版本由 MindStudio 统一镜像制作指南维护，本仓库不重复定义。
 
 ## 3. 代码下载与项目结构
 
 ### 3.1 代码拉取流程
 
 ```bash
-# Fork代码到自己仓库，并使用git从自己远程仓库clone代码到本地
+# Fork代码到自己仓库，并使用git从自己远程仓库clone代码到编译容器内
 git clone https://gitcode.com/Ascend/msserviceprofiler.git
 cd msserviceprofiler
 ```
