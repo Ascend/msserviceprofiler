@@ -51,7 +51,7 @@
 ## 使用前准备
 
 **环境准备**
-准备好能正常运行服务化（如[MindIE Service](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/quick_start.md)/[VLLM Server](https://docs.vllm.ai/projects/ascend/en/latest/quick_start.html)）和测评工具（如`vllm_benchmark/AISBench`，参见[测评工具部署](https://github.com/AISBench/benchmark/blob/master/docs/source_zh_cn/get_started/install.md)）的环境。
+准备好能正常运行服务化（如[MindIE Service](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/quick_start_motor.md)/[VLLM Server](https://docs.vllm.ai/projects/ascend/en/latest/quick_start.html)）和测评工具（如`vllm_benchmark/AISBench`，参见[测评工具部署](https://github.com/AISBench/benchmark/blob/master/docs/source_zh_cn/get_started/install.md)）的环境。
 
 ## 工具安装
 
@@ -207,7 +207,7 @@ msserviceprofiler optimizer -e vllm -b vllm_benchmark -c ../configs/vllm_config.
 
 **注意事项**
 
-仿真模式需要先基于服务化采集数据进行训练，参照[服务化调优工具手册](https://www.hiascend.com/document/detail/zh/mindstudio/80RC1/T&ITools/Profiling/mindieprofiling_0001.html) 开启profiling实际跑一遍MindIE推理服务的测试脚本，将采集的profiling数据进行解析然后用于训练模型。profiling采集数据需要包括batch_type，batch_size，forward_time，batch_end_time(ms)，request_recv_token_size，request_reply_token_size，need_blocks，request_execution_time(ms)，first_token_latency(ms)。
+仿真模式需要先基于服务化采集数据进行训练，参照[服务化调优快速入门](https://gitcode.com/Ascend/msserviceprofiler/blob/master/docs/zh/quick_start.md) 开启profiling实际跑一遍MindIE推理服务的测试脚本，将采集的profiling数据进行解析然后用于训练模型。profiling采集数据需要包括batch_type，batch_size，forward_time，batch_end_time(ms)，request_recv_token_size，request_reply_token_size，need_blocks，request_execution_time(ms)，first_token_latency(ms)。
 
 **命令格式**
 
