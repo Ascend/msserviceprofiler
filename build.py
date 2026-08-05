@@ -135,10 +135,17 @@ class BuildManager:
             self._run_tests()
         else:
             # -------------------- 产品构建 --------------------
-
-            # 在非 local 场景下按需更新依赖；在 local 场景下仅使用本地已有代码，不更新依赖。
             if 'local' not in self.args.command:
                 self._execute_command(["bash", "scripts/download_thirdparty.sh"])
+
+            # only_down_deps 在依赖下载后、构建前检查
+            extra_options = {}
+            for opt in self.args.extra:
+                key, _, val = opt.partition('=')
+                extra_options[key] = val
+            if extra_options.get('only_down_deps') == 'true':
+                logging.info("only_down_deps=true, exiting after dependency download.")
+                return
 
             logging.info("--version: %s", self.args.version)
             for opt in self.args.extra:

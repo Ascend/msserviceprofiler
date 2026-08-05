@@ -1,6 +1,6 @@
 **/__pycache__
 *.pyc
-.vscode
+.vscode/settings.json
 .idea
 build
 test/.coverage
@@ -15,3 +15,12 @@ cmake-build-debug
 3rdparty/opentelemetry/include/opentelemetry/
 3rdparty/protobuf/
 
+# Build artifacts
+/artifacts/
+/output/
+
+# Cache
+.ruff_cache/
+
+# Devcontainer
+.devcontainer/.host-gitconfig
