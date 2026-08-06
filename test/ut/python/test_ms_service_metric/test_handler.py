@@ -122,6 +122,88 @@ class TestMetricHandlerFromConfig:
         assert handler is not None
         assert len(handler.metrics_config) == 1
 
+    def test_given_same_handler_with_distinct_metrics_then_internal_ids_differ(self):
+        first = MetricHandler.from_config(
+            {
+                "handler": "ms_service_metric.handlers:default_handler",
+                "metrics": [{"name": "first_metric"}],
+            },
+            "module:func",
+        )
+        second = MetricHandler.from_config(
+            {
+                "handler": "ms_service_metric.handlers:default_handler",
+                "metrics": [{"name": "second_metric"}],
+            },
+            "module:func",
+        )
+
+        assert first.id != second.id
+
+    def test_given_same_config_with_different_key_order_then_internal_ids_match(self):
+        first = MetricHandler.from_config(
+            {
+                "handler": "ms_service_metric.handlers:default_handler",
+                "metrics": [{"name": "metric", "type": "counter"}],
+            },
+            "module:func",
+        )
+        second = MetricHandler.from_config(
+            {
+                "metrics": [{"type": "counter", "name": "metric"}],
+                "handler": "ms_service_metric.handlers:default_handler",
+            },
+            "module:func",
+        )
+
+        assert first.id == second.id
+
+    def test_given_equivalent_explicit_defaults_then_internal_ids_match(self):
+        implicit = MetricHandler.from_config(
+            {"metrics": [{"name": "duration"}]},
+            "module:func",
+        )
+        explicit = MetricHandler.from_config(
+            {
+                "handler": "ms_service_metric.handlers:default_handler",
+                "type": "wrap",
+                "enabled": True,
+                "need_locals": False,
+                "lock_patch": False,
+                "metrics": [
+                    {
+                        "name": "duration",
+                        "type": "timer",
+                        "expr": "ignored-for-timer",
+                        "labels": [],
+                    }
+                ],
+            },
+            "module:func",
+        )
+
+        assert implicit.id == explicit.id
+
+    def test_given_explicit_effective_name_when_fingerprinted_then_matches_implicit_name(self):
+        handler_path = "ms_service_metric.handlers:default_handler"
+        implicit = MetricHandler.from_config(
+            {
+                "handler": handler_path,
+                "metrics": [{"name": "duration"}],
+            },
+            "module:func",
+        )
+        explicit = MetricHandler.from_config(
+            {
+                "name": handler_path,
+                "handler": handler_path,
+                "metrics": [{"name": "duration"}],
+            },
+            "module:func",
+        )
+
+        assert implicit.id == explicit.id
+
 
 def test_given_invalid_symbol_path_none_when_constructed_then_symbol_path_is_none():
     symbol_info = {"symbol_path": None}

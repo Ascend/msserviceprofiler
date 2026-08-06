@@ -16,6 +16,8 @@
 
 """Allow-list checks for ms_service_metric configuration-driven imports."""
 
+from typing import Sequence
+
 ALLOWED_HANDLER_MODULE_PREFIXES = (
     "ms_service_profiler.",
     "ms_service_metric.",
@@ -30,9 +32,17 @@ ALLOWED_SYMBOL_MODULE_PREFIXES = (
 )
 
 
-def is_allowed_handler_module(module_path: str) -> bool:
-    return isinstance(module_path, str) and module_path.startswith(ALLOWED_HANDLER_MODULE_PREFIXES)
+def is_allowed_handler_module(
+    module_path: str,
+    additional_prefixes: Sequence[str] = (),
+) -> bool:
+    allowed_prefixes = ALLOWED_HANDLER_MODULE_PREFIXES + tuple(additional_prefixes)
+    return isinstance(module_path, str) and module_path.startswith(allowed_prefixes)
 
 
-def is_allowed_symbol_module(module_path: str) -> bool:
-    return isinstance(module_path, str) and module_path.startswith(ALLOWED_SYMBOL_MODULE_PREFIXES)
+def is_allowed_symbol_module(
+    module_path: str,
+    additional_prefixes: Sequence[str] = (),
+) -> bool:
+    allowed_prefixes = ALLOWED_SYMBOL_MODULE_PREFIXES + tuple(additional_prefixes)
+    return isinstance(module_path, str) and module_path.startswith(allowed_prefixes)

@@ -31,10 +31,11 @@ import os
 import re
 from typing import Optional, Tuple
 
+from ms_service_metric.core.config.provider import ProviderRegistry
+from ms_service_metric.core.symbol_handler_manager import SymbolHandlerManager
+from ms_service_metric.metrics.meta_state import get_meta_state, set_dp_rank
 from ms_service_metric.utils.logger import get_logger
 from ms_service_metric.utils.version import get_package_version
-from ms_service_metric.metrics.meta_state import set_dp_rank, get_meta_state
-from ms_service_metric.core.symbol_handler_manager import SymbolHandlerManager
 
 logger = get_logger(__name__)
 
@@ -84,11 +85,18 @@ class VLLMMetricAdapter:
         self._setup_pd_role()
 
         # 创建并初始化SymbolHandlerManager（传入版本信息）
-        self._manager = SymbolHandlerManager(current_version=self._version)
+        self._manager = SymbolHandlerManager(
+            current_version=self._version,
+            provider_registry=ProviderRegistry(),
+        )
 
         # 加载vLLM V1版本的配置
-        config_path, default_config_path = self._get_config_path()
-        self._manager.initialize(config_path, default_config_path)
+        config_path, default_config_path, config_is_user_owned = self._get_config_path()
+        self._manager.initialize(
+            config_path,
+            default_config_path,
+            framework_config_is_user=config_is_user_owned,
+        )
 
         self._initialized = True
         logger.info("VLLMMetricAdapter initialized successfully")
@@ -183,7 +191,10 @@ class VLLMMetricAdapter:
                 pd_role = "prefill" if _ec.is_producer else "decode"
         except Exception:
             try:
-                from vllm.distributed.kv_transfer import get_kv_transfer_group, has_kv_transfer_group
+                from vllm.distributed.kv_transfer import (
+                    get_kv_transfer_group,
+                    has_kv_transfer_group,
+                )
 
                 if has_kv_transfer_group():
                     _kv = get_kv_transfer_group()
@@ -209,7 +220,7 @@ class VLLMMetricAdapter:
             return version
         return None
 
-    def _get_config_path(self) -> Tuple[Optional[str], Optional[str]]:
+    def _get_config_path(self) -> Tuple[Optional[str], Optional[str], bool]:
         """获取配置文件路径
 
         优先使用环境变量指定的配置，否则使用默认V1配置。
@@ -226,16 +237,16 @@ class VLLMMetricAdapter:
         env_config = os.getenv("MS_SERVICE_METRIC_VLLM_CONFIG")
         if env_config and os.path.exists(env_config):
             logger.debug("Using config from environment: %s", env_config)
-            return env_config, default_config_path
+            return env_config, default_config_path, True
 
         # 使用V1配置
         config_path = os.path.join(config_dir, "v1_metrics.yaml")
         if os.path.exists(config_path):
             logger.debug("Using V1 config: %s", config_path)
-            return config_path, default_config_path
+            return config_path, default_config_path, False
 
         logger.warning("No config file found for vLLM adapter")
-        return None, default_config_path
+        return None, default_config_path, False
 
     def get_manager(self) -> Optional[SymbolHandlerManager]:
         """获取SymbolHandlerManager实例

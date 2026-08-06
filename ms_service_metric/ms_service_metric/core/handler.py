@@ -57,17 +57,19 @@ Context Handler 参数签名：
 """
 
 import asyncio
+import hashlib
 import importlib
 import inspect
+import json
 from abc import ABC, abstractmethod
 from contextlib import contextmanager
 from enum import Enum
-from typing import Callable, Dict, List, Optional, Tuple, ContextManager
+from typing import Callable, ContextManager, Dict, List, Optional, Sequence, Tuple
 
-from ms_service_metric.utils.logger import get_logger
+from ms_service_metric.metrics.metrics_manager import MetricConfig, MetricType
 from ms_service_metric.utils.exceptions import HandlerError
 from ms_service_metric.utils.import_security import is_allowed_handler_module
-from ms_service_metric.metrics.metrics_manager import MetricConfig, MetricType
+from ms_service_metric.utils.logger import get_logger
 
 logger = get_logger("handler")
 
@@ -185,6 +187,7 @@ class MetricHandler(Handler):
         max_version: Optional[str] = None,
         metrics_config: Optional[List[MetricConfig]] = None,
         lock_patch: bool = False,
+        config_fingerprint: Optional[str] = None,
     ):
         """
         初始化MetricHandler
@@ -210,6 +213,7 @@ class MetricHandler(Handler):
         self._max_version = max_version
         self._metrics_config = metrics_config or []
         self._lock_patch = lock_patch
+        self._config_fingerprint = config_fingerprint
 
         # 分类hook_func，同时确定handler_type
         handler_type, hook_func = self._classify_hook_func(hook_func)
@@ -240,6 +244,8 @@ class MetricHandler(Handler):
         name = getattr(func, '__name__', 'unknown')
         symbol_path = self._symbol_path or 'unknown'
 
+        if self._config_fingerprint:
+            return f"{symbol_path}:config:{self._config_fingerprint}"
         return f"{symbol_path}:{module}:{name}-{self.name}"
 
     @property
@@ -346,6 +352,7 @@ class MetricHandler(Handler):
             self._id == other._id
             and self._min_version == other._min_version
             and self._max_version == other._max_version
+            and self._config_fingerprint == other._config_fingerprint
         )
 
     def _classify_hook_func(self, func) -> Tuple[HandlerType, Callable]:
@@ -391,7 +398,12 @@ class MetricHandler(Handler):
         return None
 
     @classmethod
-    def from_config(cls, config: Dict, symbol_path: str) -> 'MetricHandler':
+    def from_config(
+        cls,
+        config: Dict,
+        symbol_path: str,
+        allowed_handler_module_prefixes: Sequence[str] = (),
+    ) -> 'MetricHandler':
         """
         从配置创建MetricHandler实例
 
@@ -439,22 +451,85 @@ class MetricHandler(Handler):
         # 解析handler路径
         handler_path = config.get('handler')
         if handler_path:
-            hook_func = cls._import_handler(handler_path)
+            hook_func = cls._import_handler(
+                handler_path,
+                allowed_handler_module_prefixes,
+            )
         else:
             hook_func = cls._import_handler("ms_service_metric.handlers:default_handler")
 
+        handler_name = cls._resolve_handler_name(config)
         return cls(
-            name=config.get('handler', ",".join((x.get('name') for x in config.get('metrics', [])))),
+            name=handler_name,
             symbol_info=symbol_info,
             hook_func=hook_func,
             min_version=config.get('min_version'),
             max_version=config.get('max_version'),
             metrics_config=metrics_config,
             lock_patch=config.get('lock_patch', False),
+            config_fingerprint=cls._fingerprint_config(config),
         )
 
+    @classmethod
+    def _fingerprint_config(cls, config: Dict) -> str:
+        """Derive identity from effective behavior, not YAML spelling."""
+        raw_metrics = config.get("metrics", [])
+        if not isinstance(raw_metrics, list):
+            raw_metrics = [raw_metrics] if raw_metrics else []
+        metrics = cls._parse_metrics_config(raw_metrics)
+        identity = {
+            "handler": config.get("handler") or "ms_service_metric.handlers:default_handler",
+            "name": cls._fingerprint_handler_name(config),
+            "min_version": config.get("min_version"),
+            "max_version": config.get("max_version"),
+            "lock_patch": config.get("lock_patch", False),
+            "metrics": [
+                {
+                    "name": metric.name,
+                    "type": metric.type.value,
+                    "expr": metric.expr,
+                    "buckets": metric.buckets,
+                    "labels": metric.labels,
+                }
+                for metric in metrics
+            ],
+        }
+        serialized = json.dumps(
+            identity,
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=True,
+            default=repr,
+        )
+        return hashlib.sha256(serialized.encode("utf-8")).hexdigest()[:16]
+
     @staticmethod
-    def _import_handler(handler_path: str) -> Callable:
+    def _resolve_handler_name(config: Dict) -> str:
+        """Resolve the effective Handler name used at runtime and in identity."""
+        return (
+            config.get("name")
+            or config.get("handler")
+            or ",".join(metric.get("name", "") for metric in config.get("metrics", []) if isinstance(metric, dict))
+        )
+
+    @classmethod
+    def _fingerprint_handler_name(cls, config: Dict) -> Optional[str]:
+        """Keep only an explicit name that changes the derived runtime name."""
+        configured_name = config.get("name")
+        if not configured_name:
+            return None
+
+        config_without_name = dict(config)
+        config_without_name.pop("name", None)
+        if configured_name == cls._resolve_handler_name(config_without_name):
+            return None
+        return configured_name
+
+    @staticmethod
+    def _import_handler(
+        handler_path: str,
+        allowed_handler_module_prefixes: Sequence[str] = (),
+    ) -> Callable:
         """
         导入handler函数
 
@@ -474,7 +549,10 @@ class MetricHandler(Handler):
 
             module_path, func_name = handler_path.rsplit(':', 1)
             logger.debug("Importing handler: %s.%s", module_path, func_name)
-            if not is_allowed_handler_module(module_path):
+            if not is_allowed_handler_module(
+                module_path,
+                allowed_handler_module_prefixes,
+            ):
                 raise HandlerError(f"Handler module is not allowed: {module_path}")
 
             # 导入模块

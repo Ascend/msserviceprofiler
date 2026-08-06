@@ -16,11 +16,13 @@
 
 """MetricControlWatch behavior without starting SIGUSR1 / full lifecycle."""
 
+# Pytest injects fixtures by matching argument names.
+# pylint: disable=redefined-outer-name
+
 import uuid
 from unittest.mock import MagicMock
 
 import pytest
-
 from ms_service_metric.core.config.metric_control_watch import MetricControlWatch
 
 
@@ -58,3 +60,19 @@ def test_get_last_timestamp_and_is_enabled(unique_shm_prefix):
     assert w.is_enabled() is False
     w._current_state = w.STATE_ON
     assert w.is_enabled() is True
+
+
+def test_check_state_given_callback_failure_then_acknowledges_once(
+    unique_shm_prefix,
+):
+    w = MetricControlWatch()
+    w._read_control_state = MagicMock(return_value=(w.STATE_ON, 7))
+    callback = MagicMock(side_effect=RuntimeError("reload failed"))
+    w.register_callback(callback)
+
+    w._check_control_state()
+    w._check_control_state()
+
+    assert w._current_state == w.STATE_ON
+    assert w._last_timestamp == 7
+    callback.assert_called_once_with(True, 7)

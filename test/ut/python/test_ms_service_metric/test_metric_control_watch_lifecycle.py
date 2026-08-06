@@ -16,11 +16,13 @@
 
 """MetricControlWatch start/stop and control-side helpers."""
 
+# Pytest injects fixtures by matching argument names.
+# pylint: disable=redefined-outer-name
+
 import uuid
 from unittest.mock import patch
 
 import pytest
-
 from ms_service_metric.core.config.metric_control_watch import MetricControlWatch
 from ms_service_metric.utils import shm_manager as shm_mod
 from ms_service_metric.utils.shm_manager import (
@@ -74,9 +76,7 @@ def test_set_control_state_connects_and_updates(shm_prefix):
         mgr.set_state(STATE_OFF)
         with patch.object(shm_mod.os, "kill", return_value=None):
             mgr.add_current_process()
-        with patch(
-            "ms_service_metric.utils.shm_manager.os.kill", return_value=None
-        ) as mock_kill:
+        with patch("ms_service_metric.utils.shm_manager.os.kill", return_value=None) as mock_kill:
             MetricControlWatch.set_control_state(True, shm_prefix=shm_prefix)
             mock_kill.assert_called()
         mgr2 = SharedMemoryManager(shm_prefix=shm_prefix)
@@ -108,7 +108,7 @@ def test_register_unregister_via_signal_handler_chain(shm_prefix):
             w.stop()
 
 
-def test_notify_callbacks_swallows_errors(shm_prefix):
+def test_notify_callbacks_given_error_then_reports_failure(shm_prefix):
     w = MetricControlWatch()
 
     def bad(_a, _b):
@@ -116,8 +116,9 @@ def test_notify_callbacks_swallows_errors(shm_prefix):
 
     with patch("ms_service_metric.core.config.metric_control_watch.logger") as log_mock:
         w.register_callback(bad)
-        w._notify_callbacks(True, 1)
+        succeeded = w._notify_callbacks(True, 1)
 
+    assert succeeded is False
     assert bad in w._callbacks
     log_mock.error.assert_called_once()
     msg = log_mock.error.call_args[0][0]

@@ -17,6 +17,8 @@
 
 """Lightweight Symbol tests with mocked watcher / manager."""
 
+import sys
+from types import ModuleType
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -87,6 +89,29 @@ def test_given_disallowed_symbol_module_when_import_target_then_returns_none(no_
     with patch("importlib.import_module") as mock_import:
         assert sym._import_target() is None
     mock_import.assert_not_called()
+
+
+def test_given_provider_symbol_prefix_when_import_target_then_imports(monkeypatch):
+    provider_package = ModuleType("provider_target")
+    provider_package.__path__ = []
+    provider_module = ModuleType("provider_target.runtime")
+
+    def target():
+        return "hooked"
+
+    setattr(provider_module, "run", target)
+    monkeypatch.setitem(sys.modules, "provider_target", provider_package)
+    monkeypatch.setitem(sys.modules, "provider_target.runtime", provider_module)
+
+    with patch.object(Symbol, "_start_watching", lambda self: None):
+        symbol = Symbol(
+            "provider_target.runtime:run",
+            MagicMock(),
+            MagicMock(),
+            allowed_symbol_module_prefixes=("provider_target.",),
+        )
+
+    assert symbol._import_target() is target
 
 
 def test_given_hook_not_applied_when_unhook_then_noop(no_watch_symbol):

@@ -34,7 +34,7 @@ Symbol: 代表一个需要hook的符号
 """
 
 import importlib
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Sequence
 
 from ms_service_metric.utils.exceptions import SymbolError
 from ms_service_metric.utils.logger import get_logger
@@ -64,7 +64,13 @@ class Symbol:
         pending_hook: 是否有待执行的hook（在批量更新期间）
     """
 
-    def __init__(self, symbol_path: str, watcher: "SymbolWatcher", manager: "SymbolHandlerManager"):
+    def __init__(
+        self,
+        symbol_path: str,
+        watcher: "SymbolWatcher",
+        manager: "SymbolHandlerManager",
+        allowed_symbol_module_prefixes: Sequence[str] = (),
+    ):
         """
         初始化Symbol
 
@@ -103,6 +109,7 @@ class Symbol:
         # 引用watcher和manager
         self._watcher = watcher
         self._manager = manager
+        self._allowed_symbol_module_prefixes = tuple(allowed_symbol_module_prefixes)
 
         # 开始监听模块事件
         self._start_watching()
@@ -724,7 +731,10 @@ class Symbol:
         """
         try:
             # 导入模块
-            if not is_allowed_symbol_module(self._module_path):
+            if not is_allowed_symbol_module(
+                self._module_path,
+                self._allowed_symbol_module_prefixes,
+            ):
                 logger.error("Symbol module is not allowed: %s", self._module_path)
                 return None
             module = importlib.import_module(self._module_path)

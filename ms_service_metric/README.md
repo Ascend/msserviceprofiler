@@ -324,6 +324,144 @@ ms-service-metric status
 | MS_SERVICE_METRIC_MAX_PROCS | 最大进程数 | 1000 |
 | PROMETHEUS_MULTIPROC_DIR | 多进程指标目录 | 无 |
 
+### Framework Metric Provider
+
+与框架实现强相关的 YAML 和 Handler 可以由框架仓通过 Python Entry Point
+提供。Core 只负责发现、校验、合并、Hook 和指标上报，不反向依赖框架实现。
+
+```mermaid
+flowchart LR
+    A["ms_service_metric Core"] --> B["发现 Entry Point"]
+    B --> C["校验 YAML、symbol 归属、Handler"]
+    C --> D{"Provider 可激活?"}
+    D -- "否" --> E["保留 Core/Adapter 兜底配置"]
+    D -- "是，Overlay" --> F["仅覆盖 Provider 已声明的 symbol"]
+    D -- "是，Exclusive" --> I["过滤所属前缀后加载 Provider symbol"]
+    F --> G["合并用户覆盖配置"]
+    I --> G
+    E --> G
+    G --> H["构造 Handler 后应用 Hook"]
+```
+
+#### Provider 声明
+
+框架仓只从稳定接口 `ms_service_metric.provider_api` 导入类型：
+
+```python
+from pathlib import Path
+
+from ms_service_metric.provider_api import MetricProvider
+
+
+def get_metric_provider():
+    config_dir = Path(__file__).with_name("config")
+    return MetricProvider(
+        name="vllm-ascend",
+        config_paths=tuple(
+            str(path) for path in sorted(config_dir.glob("*.yaml"))
+        ),
+        priority=200,
+        framework_package="vllm_ascend",
+        owned_symbol_prefixes=("vllm_ascend.",),
+        handler_module_prefixes=(
+            "vllm_ascend.observability.ms_metrics.",
+        ),
+    )
+```
+
+`config_paths` 支持多个文件。目录扫描由 Provider 自己完成，Core 接收确定、有序的
+文件列表，因此框架仓可以按 `scheduler.yaml`、`worker.yaml`、`eplb.yaml` 拆分配置，
+也不会把临时文件或非 YAML 文件误加载。
+
+`framework_package` 仅在 YAML 使用 `min_version`/`max_version` 时提供当前框架版本，
+不是 Core 与 Provider 的接口版本握手，也不会限制两个仓的发布顺序。
+
+在框架仓注册 Python Entry Point。`setup.py` 示例：
+
+```python
+entry_points={
+    "ms_service_metric.providers": [
+        "vllm-ascend = "
+        "vllm_ascend.observability.ms_metrics:get_metric_provider",
+    ],
+}
+```
+
+`pyproject.toml` 的等价写法：
+
+```toml
+[project.entry-points."ms_service_metric.providers"]
+"vllm-ascend" = "vllm_ascend.observability.ms_metrics:get_metric_provider"
+```
+
+#### 激活与合并规则
+
+Provider 不是“被发现就接管”，而是在以下检查全部通过后才成为 Active Provider：
+
+1. Entry Point 可加载，Provider 声明结构合法，`ownership_mode` 为 `overlay` 或
+   `exclusive`；未声明时默认为 `overlay`。
+2. 所有 `config_paths` 都是可读取的非空 YAML 文件；Provider 配置采用严格解析，
+   任一坏条目都会使整个 Provider 回退。
+3. Provider 必须显式声明非空的 `owned_symbol_prefixes`，且 YAML 中的 symbol 均属于
+   所声明的前缀。
+4. Handler 只能来自 `ms_service_metric.provider_handlers`、
+   `ms_service_metric.handlers` 或 Provider 声明的 `handler_module_prefixes`；
+   稳定 Handler 名称必须存在，Provider 自有 Handler 必须可成功导入。
+5. 多个 Overlay Provider 可以按优先级贡献配置；只要重叠范围内存在 Exclusive
+   Provider，就视为所有权冲突，冲突双方都不接管。
+
+Overlay 是迁移期默认模式：Provider 只覆盖自己已经提供的 symbol，未迁移的 symbol
+继续使用 Core/Adapter 兜底配置。同一个 symbol 是原子迁移单元，Provider YAML 必须写出
+该 symbol 最终需要保留的全部 Handler，避免新旧自定义 Handler 同时执行导致重复上报。
+
+Exclusive 用于迁移完成后的完整接管：只有 Active Exclusive Provider 的
+`owned_symbol_prefixes` 才会过滤 Core/Adapter 中的兜底点位。Provider 任一检查失败时，
+该 Provider 整体跳过，兜底配置继续生效，不影响推理主流程。
+
+最终优先级为：
+
+1. Core 默认配置。
+2. Adapter 内置兼容配置。
+3. Active Provider 配置。
+4. `MS_SERVICE_METRIC_VLLM_CONFIG` 指向的框架用户配置。
+5. `MS_SERVICE_METRIC_CONFIG_PATH` 指向的全局用户配置。
+
+Core 默认配置和 Adapter 内置配置按 symbol 合并；Provider 和用户配置按 symbol
+执行整体覆盖。Provider 的多个 YAML 文件内部仍按 symbol 合并，运行语义相同的 Handler
+配置（包括“省略默认值”和“显式写出默认值”）按内部指纹自动去重，不需要也不建议在
+YAML 增加 `id`。同一 symbol、同一 Handler 但 metrics 或 labels 不同的配置会生成
+不同的内部指纹，可以同时生效；多个 Handler 的应用顺序保持配置文件中的声明顺序。
+
+#### Core 与 Provider 边界
+
+- Core 保留 Hook、配置模型、Prometheus 上报、通用 DP/PD/role 元数据逻辑和通用 Handler。
+- Provider 保留框架 symbol、版本范围、框架私有计算和业务 Handler。
+- Provider YAML 引用 Core 通用 Handler 时使用稳定门面
+  `ms_service_metric.provider_handlers`，不要引用 `adapters.*` 等内部路径。
+- Provider 自定义 Handler 只从 `ms_service_metric.provider_api` 获取稳定的指标写入接口。
+- Provider 声明函数和 Handler 模块导入应无副作用，不得在导入阶段修改推理状态。
+- 公共 Handler 门面采用惰性导入，`metric off` 时发现 Provider 不会提前注册指标。
+
+#### 重载与兼容
+
+执行 `metric on` 或 `metric restart` 时会重新发现 Provider 并重新读取 YAML。重载先
+完整构造候选 Handler，再停止现有 Hook；配置或 Handler 构造失败时保留原有 Hook 状态。
+已导入的 Python 模块不会热重载，因此修改 YAML 后可通过 `metric restart` 生效，修改
+Handler Python 代码仍需重启服务进程。
+
+兼容策略如下：
+
+| 组合 | 行为 |
+|------|------|
+| 新 Core + 无框架 Provider | 无 Provider，全部使用 Core/Adapter 兜底配置 |
+| 新 Core + 部分框架 Provider | Overlay 覆盖已迁移 symbol，未迁移 symbol 继续兜底 |
+| 新 Core + 完整框架 Provider | 先以 Overlay 验证，之后可切换 Exclusive 完整接管 |
+| 新 Core + 旧框架 | 无 Provider，继续使用 Adapter 兜底配置 |
+| 旧 Core + 新框架 | 旧 Core 不发现该 Entry Point，框架原有逻辑不受影响 |
+| Provider 激活失败 | 跳过 Provider，继续使用 Core/Adapter 兜底 |
+
+当前阶段只完成 Provider 架构和 vLLM-Ascend 穿刺，不包含 SGLang Provider 适配。
+
 ## Handler 类型
 
 ### Wrap Handler

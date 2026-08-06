@@ -19,10 +19,13 @@ ms_service_metric.core.config - 配置管理模块
 提供 Symbol 配置和 Metric 控制热更新功能。
 """
 
-from ms_service_metric.core.config.symbol_config import SymbolConfig
 from ms_service_metric.core.config.metric_control_watch import MetricControlWatch
+from ms_service_metric.core.config.provider import MetricProvider, ProviderRegistry
+from ms_service_metric.core.config.symbol_config import SymbolConfig
 
 __all__ = [
     "SymbolConfig",
     "MetricControlWatch",
+    "MetricProvider",
+    "ProviderRegistry",
 ]

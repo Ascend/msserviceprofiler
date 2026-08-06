@@ -22,13 +22,18 @@ dependencies = [
     'posix_ipc; sys_platform == "linux"',
     "bytecode>=0.17.0",
     "packaging",
+    "jsonschema",
 ]
 
 [project.optional-dependencies]
-dev = ['pytest', 'pytest-cov', 'black', 'flake8']
+dev = ['pytest', 'pytest-cov', 'pytest-asyncio', 'black', 'flake8']
 
 [project.scripts]
 ms-service-metric = "ms_service_metric.control.cli:main"
 
 [project.entry-points."vllm.general_plugins"]
 "ms_service_metric" = "ms_service_metric.adapters.vllm.adapter:initialize_vllm_metric"
+
+# Framework packages contribute YAML and handlers through this entry point group.
+# [project.entry-points."ms_service_metric.providers"]
+# "example" = "example.metrics:provider"
