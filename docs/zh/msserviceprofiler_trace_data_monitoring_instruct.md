@@ -37,7 +37,7 @@ msServiceProfiler Trace采集MindIE Motor服务中的请求响应时间、响应
 
 2. 完成[msServiceProfiler工具](msserviceprofiler_install_guide.md)的安装。
 
-3. 完成MindIE的安装和配置并确认MindIE Motor可以正常运行，具体请参见《[MindIE 安装指南](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/install/environment_preparation.md)》。
+3. 完成MindIE的安装和配置并确认MindIE Motor可以正常运行，具体请参见《[MindIE 安装指南](https://gitcode.com/Ascend/MindIE-Motor/blob/v3.0.0/docs/zh/user_guide/environment_preparation.md)》。
 
 4. MindIE Motor服务所在的昇腾环境与OTLP采集器（Jaeger等）需建立稳定网络连接。
 

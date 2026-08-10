@@ -12,6 +12,7 @@ msServiceProfiler Multi Analyze parses the profile data collected by the msServi
 
 |Product Type| Supported (Yes/No)|
 |--|:----:|
+|Atlas 350 accelerator card|No|
 |Atlas A3 Training Products and Atlas A3 Inference Products|  Yes  |
 |Atlas A2 Training Products and Atlas A2 Inference Products|  Yes  |
 |Atlas 200I/500 A2 inference products|  Yes  |
