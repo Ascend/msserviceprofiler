@@ -14,11 +14,14 @@
 # See the Mulan PSL v2 for more details.
 # -------------------------------------------------------------------------
 
+from unittest.mock import MagicMock
+
 import pytest
 import yaml
 
 import ms_service_metric.adapters.vllm.adapter as adapter_module
 from ms_service_metric.adapters.vllm.adapter import VLLMMetricAdapter
+from ms_service_metric.utils.exceptions import SharedMemoryError
 
 
 @pytest.mark.parametrize(
@@ -64,6 +67,46 @@ def test_setup_dp_rank_falls_back_to_process_name(monkeypatch):
     adapter._setup_dp_rank()
 
     assert captured == [1]
+
+
+def test_given_optional_metric_initialization_failure_when_plugin_loads_then_vllm_startup_continues(
+    monkeypatch,
+    caplog,
+):
+    adapter = MagicMock()
+    adapter.initialize.side_effect = SharedMemoryError("posix_ipc unavailable")
+    monkeypatch.setattr(adapter_module, "get_vllm_adapter", lambda: adapter)
+
+    adapter_module.initialize_vllm_metric()
+
+    adapter.shutdown.assert_called_once_with()
+    assert "vLLM startup will continue" in caplog.text
+
+
+def test_given_partial_metric_cleanup_failure_when_plugin_loads_then_exception_is_not_propagated(
+    monkeypatch,
+    caplog,
+):
+    adapter = MagicMock()
+    adapter.initialize.side_effect = RuntimeError("initialization failed")
+    adapter.shutdown.side_effect = RuntimeError("cleanup failed")
+    monkeypatch.setattr(adapter_module, "get_vllm_adapter", lambda: adapter)
+
+    adapter_module.initialize_vllm_metric()
+
+    adapter.shutdown.assert_called_once_with()
+    assert "Failed to clean up partially initialized" in caplog.text
+
+
+def test_given_partial_manager_when_adapter_shutdown_then_manager_is_cleaned():
+    adapter = VLLMMetricAdapter()
+    manager = MagicMock()
+    adapter._manager = manager
+
+    adapter.shutdown()
+
+    manager.shutdown.assert_called_once_with()
+    assert adapter._manager is None
 
 
 def test_v1_metrics_config_contains_exception_status_hooks():

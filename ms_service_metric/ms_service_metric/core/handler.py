@@ -66,6 +66,7 @@ from contextlib import contextmanager
 from enum import Enum
 from typing import Callable, ContextManager, Dict, List, Optional, Sequence, Tuple
 
+from ms_service_metric.core.external_handler_loader import load_external_handler_module
 from ms_service_metric.metrics.metrics_manager import MetricConfig, MetricType
 from ms_service_metric.utils.exceptions import HandlerError
 from ms_service_metric.utils.import_security import is_allowed_handler_module
@@ -403,6 +404,7 @@ class MetricHandler(Handler):
         config: Dict,
         symbol_path: str,
         allowed_handler_module_prefixes: Sequence[str] = (),
+        user_handler_root: Optional[str] = None,
     ) -> 'MetricHandler':
         """
         从配置创建MetricHandler实例
@@ -448,12 +450,20 @@ class MetricHandler(Handler):
             'max_version': config.get('max_version'),
         }
         hook_func = None
+        fingerprint_handler_root = None
         # 解析handler路径
         handler_path = config.get('handler')
         if handler_path:
+            module_path = handler_path.rsplit(':', 1)[0]
+            if not is_allowed_handler_module(
+                module_path,
+                allowed_handler_module_prefixes,
+            ):
+                fingerprint_handler_root = user_handler_root
             hook_func = cls._import_handler(
                 handler_path,
                 allowed_handler_module_prefixes,
+                user_handler_root,
             )
         else:
             hook_func = cls._import_handler("ms_service_metric.handlers:default_handler")
@@ -467,11 +477,18 @@ class MetricHandler(Handler):
             max_version=config.get('max_version'),
             metrics_config=metrics_config,
             lock_patch=config.get('lock_patch', False),
-            config_fingerprint=cls._fingerprint_config(config),
+            config_fingerprint=cls._fingerprint_config(
+                config,
+                fingerprint_handler_root,
+            ),
         )
 
     @classmethod
-    def _fingerprint_config(cls, config: Dict) -> str:
+    def _fingerprint_config(
+        cls,
+        config: Dict,
+        user_handler_root: Optional[str] = None,
+    ) -> str:
         """Derive identity from effective behavior, not YAML spelling."""
         raw_metrics = config.get("metrics", [])
         if not isinstance(raw_metrics, list):
@@ -483,6 +500,7 @@ class MetricHandler(Handler):
             "min_version": config.get("min_version"),
             "max_version": config.get("max_version"),
             "lock_patch": config.get("lock_patch", False),
+            "user_handler_root": user_handler_root,
             "metrics": [
                 {
                     "name": metric.name,
@@ -529,6 +547,7 @@ class MetricHandler(Handler):
     def _import_handler(
         handler_path: str,
         allowed_handler_module_prefixes: Sequence[str] = (),
+        user_handler_root: Optional[str] = None,
     ) -> Callable:
         """
         导入handler函数
@@ -549,14 +568,19 @@ class MetricHandler(Handler):
 
             module_path, func_name = handler_path.rsplit(':', 1)
             logger.debug("Importing handler: %s.%s", module_path, func_name)
-            if not is_allowed_handler_module(
+            is_allowed_module = is_allowed_handler_module(
                 module_path,
                 allowed_handler_module_prefixes,
-            ):
+            )
+            if not is_allowed_module and user_handler_root is None:
                 raise HandlerError(f"Handler module is not allowed: {module_path}")
 
             # 导入模块
-            module = importlib.import_module(module_path)
+            module = (
+                importlib.import_module(module_path)
+                if is_allowed_module
+                else load_external_handler_module(module_path, user_handler_root)
+            )
 
             # 获取函数
             func = getattr(module, func_name, None)

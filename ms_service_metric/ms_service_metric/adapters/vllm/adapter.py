@@ -103,16 +103,17 @@ class VLLMMetricAdapter:
 
     def shutdown(self):
         """关闭适配器"""
-        if not self._initialized:
+        if not self._initialized and self._manager is None:
             return
 
         logger.info("Shutting down VLLMMetricAdapter")
 
-        if self._manager:
-            self._manager.shutdown()
-            self._manager = None
-
+        manager = self._manager
+        self._manager = None
         self._initialized = False
+        if manager:
+            manager.shutdown()
+
         logger.info("VLLMMetricAdapter shutdown complete")
 
     def _setup_dp_rank(self):
@@ -290,5 +291,16 @@ def initialize_vllm_metric():
         >>> from ms_service_metric.adapters.vllm import initialize_vllm_metric
         >>> initialize_vllm_metric()
     """
-    adapter = get_vllm_adapter()
-    adapter.initialize()
+    adapter = None
+    try:
+        adapter = get_vllm_adapter()
+        adapter.initialize()
+    except Exception:
+        logger.exception(
+            "Failed to initialize optional vLLM metrics; metrics are disabled and vLLM startup will continue"
+        )
+        if adapter is not None:
+            try:
+                adapter.shutdown()
+            except Exception:
+                logger.exception("Failed to clean up partially initialized vLLM metrics")

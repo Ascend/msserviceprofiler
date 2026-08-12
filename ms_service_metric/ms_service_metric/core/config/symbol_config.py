@@ -59,6 +59,7 @@ from ms_service_metric.core.config.provider import (
     ProviderRegistry,
 )
 from ms_service_metric.core.handler import MetricHandler
+from ms_service_metric.core.external_handler_loader import resolve_external_handler_root
 from ms_service_metric.utils.exceptions import ConfigError
 from ms_service_metric.utils.import_security import is_allowed_handler_module
 from ms_service_metric.utils.logger import get_logger
@@ -90,6 +91,7 @@ class SymbolConfigState:
     user_config_path: Optional[str]
     default_config_path: Optional[str]
     framework_config_is_user: bool
+    user_handler_root: Optional[str]
     allowed_handler_module_prefixes: Tuple[str, ...]
     allowed_symbol_module_prefixes: Tuple[str, ...]
     active_provider_names: Tuple[str, ...]
@@ -126,6 +128,7 @@ class SymbolConfig:
         self._current_version = current_version
         self._provider_registry = provider_registry
         self._framework_config_is_user = framework_config_is_user
+        self._user_handler_root: Optional[str] = None
         self._allowed_handler_module_prefixes: Tuple[str, ...] = ()
         self._allowed_symbol_module_prefixes: Tuple[str, ...] = ()
         self._active_provider_names: Tuple[str, ...] = ()
@@ -188,7 +191,14 @@ class SymbolConfig:
         # 2. Preserve the existing contract: an environment config replaces
         # the adapter config path instead of being appended to it.
         environment_path = os.environ.get(self.ENV_CONFIG_PATH)
+        if environment_path:
+            environment_path = os.path.expanduser(environment_path)
         framework_path = None if self._path_exists(environment_path) else effective_framework_path
+        user_handler_root = resolve_external_handler_root(
+            environment_path,
+            effective_framework_path,
+            effective_framework_config_is_user,
+        )
         framework_config = self._filter_config_by_version(
             self._load_config_path(framework_path, "framework"),
             effective_version,
@@ -259,6 +269,7 @@ class SymbolConfig:
         self._framework_config_is_user = effective_framework_config_is_user
         self._default_config_path = effective_default_path
         self._user_config_path = effective_framework_path
+        self._user_handler_root = user_handler_root
         self._config = merged_config
         self._allowed_handler_module_prefixes = allowed_handler_module_prefixes
         self._allowed_symbol_module_prefixes = allowed_symbol_module_prefixes
@@ -570,7 +581,37 @@ class SymbolConfig:
         if not os.path.exists(path):
             logger.warning("Metric config from %s does not exist: %s", source, path)
             return {}
-        return self._load_yaml(path)
+        if os.path.isfile(path):
+            return self._load_yaml(path)
+        if not os.path.isdir(path):
+            logger.warning("Metric config from %s is neither a file nor directory: %s", source, path)
+            return {}
+
+        config = {}
+        try:
+            with os.scandir(path) as entries:
+                yaml_paths = sorted(
+                    (
+                        entry.path
+                        for entry in entries
+                        if entry.is_file() and os.path.splitext(entry.name)[1].lower() in {".yaml", ".yml"}
+                    ),
+                    key=lambda item: (
+                        os.path.basename(item).casefold(),
+                        os.path.basename(item),
+                    ),
+                )
+        except OSError as error:
+            raise ConfigError(f"Failed to scan metric config directory {path}: {error}") from error
+        for yaml_path in yaml_paths:
+            config = self._merge_configs(config, self._load_yaml(yaml_path))
+        logger.info(
+            "Loaded %s metric YAML file(s) from %s directory: %s",
+            len(yaml_paths),
+            source,
+            path,
+        )
+        return config
 
     @staticmethod
     def _path_exists(path: Optional[str]) -> bool:
@@ -903,6 +944,10 @@ class SymbolConfig:
         """Return handler module prefixes contributed by active providers."""
         return self._allowed_handler_module_prefixes
 
+    def get_user_handler_root(self) -> Optional[str]:
+        """Return the committed root for user-owned external Handler files."""
+        return self._user_handler_root
+
     def get_allowed_symbol_module_prefixes(self) -> Tuple[str, ...]:
         """Return Symbol module prefixes contributed by active providers."""
         return self._allowed_symbol_module_prefixes
@@ -919,6 +964,7 @@ class SymbolConfig:
             user_config_path=self._user_config_path,
             default_config_path=self._default_config_path,
             framework_config_is_user=self._framework_config_is_user,
+            user_handler_root=self._user_handler_root,
             allowed_handler_module_prefixes=self._allowed_handler_module_prefixes,
             allowed_symbol_module_prefixes=self._allowed_symbol_module_prefixes,
             active_provider_names=self._active_provider_names,
@@ -931,6 +977,7 @@ class SymbolConfig:
         self._user_config_path = state.user_config_path
         self._default_config_path = state.default_config_path
         self._framework_config_is_user = state.framework_config_is_user
+        self._user_handler_root = state.user_handler_root
         self._allowed_handler_module_prefixes = state.allowed_handler_module_prefixes
         self._allowed_symbol_module_prefixes = state.allowed_symbol_module_prefixes
         self._active_provider_names = state.active_provider_names

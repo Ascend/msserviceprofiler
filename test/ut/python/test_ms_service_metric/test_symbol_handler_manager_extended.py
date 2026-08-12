@@ -345,6 +345,33 @@ def test_given_handler_build_failure_when_restarting_then_keeps_existing_hooks(
     assert m._updating is False
 
 
+def test_given_user_yaml_and_external_handler_when_building_then_loads_from_config_root(
+    tmp_path,
+    monkeypatch,
+    mock_symbol_cls,
+):
+    from ms_service_metric.core.symbol_handler_manager import SymbolHandlerManager
+
+    config_dir = tmp_path / "config"
+    config_dir.mkdir()
+    (config_dir / "metrics.yaml").write_text(
+        "- symbol: module:func\n  handler: custom_handler:record\n",
+        encoding="utf-8",
+    )
+    (config_dir / "custom_handler.py").write_text(
+        "def record(ctx):\n    yield\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("MS_SERVICE_METRIC_CONFIG_PATH", str(config_dir))
+
+    manager = SymbolHandlerManager()
+    config = manager._config.load(default_config_path=str(tmp_path / "missing.yaml"))
+    handlers = manager._build_target_handlers(config)
+
+    assert len(handlers) == 1
+    assert next(iter(handlers.values()))._hook_func.__name__ == "record"
+
+
 def test_given_reconcile_failure_when_starting_then_clears_live_state(
     mock_symbol_cls,
 ):

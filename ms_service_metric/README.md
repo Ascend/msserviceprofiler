@@ -319,7 +319,7 @@ ms-service-metric status
 
 | 变量名 | 说明 | 默认值 |
 |--------|------|--------|
-| MS_SERVICE_METRIC_CONFIG_PATH | 配置文件路径 | 无 |
+| MS_SERVICE_METRIC_CONFIG_PATH | 用户配置文件或单层 YAML 配置目录路径 | 无 |
 | MS_SERVICE_METRIC_SHM_PREFIX | 共享内存前缀 | /ms_service_metric |
 | MS_SERVICE_METRIC_MAX_PROCS | 最大进程数 | 1000 |
 | PROMETHEUS_MULTIPROC_DIR | 多进程指标目录 | 无 |
@@ -448,6 +448,65 @@ YAML 增加 `id`。同一 symbol、同一 Handler 但 metrics 或 labels 不同�
 完整构造候选 Handler，再停止现有 Hook；配置或 Handler 构造失败时保留原有 Hook 状态。
 已导入的 Python 模块不会热重载，因此修改 YAML 后可通过 `metric restart` 生效，修改
 Handler Python 代码仍需重启服务进程。
+
+### 用户单目录多 YAML
+
+可以通过现有环境变量加载用户目录中的多个 YAML：
+
+```bash
+export MS_SERVICE_METRIC_CONFIG_PATH=/data/custom_metrics/config
+```
+
+`MS_SERVICE_METRIC_CONFIG_PATH` 兼容原有单 YAML 文件，也可以指向一个目录。目录模式仅按
+文件名顺序读取目录第一层的 `.yaml` 和 `.yml` 文件，不递归读取子目录；多个文件继续使用
+现有语义指纹去重。Handler 继续使用原有 `module.path:function_name` 写法。对于不属于
+Core 或 Provider 允许模块的 Handler，系统会在用户配置目录中按模块名查找对应 `.py`
+文件，不需要安装额外 Python 包，也不会修改全局 `sys.path`。
+
+```text
+/data/custom_metrics/config/
+├── scheduler.yaml
+├── executor.yaml
+├── custom_handler.py
+└── helpers/
+    └── request_handler.py
+```
+
+```yaml
+- symbol: vllm.example.module:target_function
+  handler: custom_handler:record_duration
+
+- symbol: vllm.example.module:another_function
+  handler: helpers.request_handler:record_request
+```
+
+映射关系如下：
+
+| YAML 中的 `handler` | 实际文件 | 文件内函数 |
+|---|---|---|
+| `custom_handler:record_duration` | `<配置根目录>/custom_handler.py` | `record_duration` |
+| `helpers.request_handler:record_request` | `<配置根目录>/helpers/request_handler.py` | `record_request` |
+
+子目录只是模块路径的一部分，不要求创建 `__init__.py`。模块名的每一段必须是合法 Python
+标识符，因此不能使用 `my-handler.py`、绝对路径或 `../handler.py`。外部 Handler 文件可以
+导入已经安装在运行环境中的第三方包，但配置根目录不会加入 `sys.path`，因此不要依赖
+该目录内其他 Python 文件的隐式或相对导入；需要复用的代码应放入同一个 Handler 文件，
+或安装为正式 Python 包。
+
+环境变量指向目录时，该目录就是 Handler 根目录；指向单个 YAML 时，YAML 所在目录是
+Handler 根目录。只加载 YAML 明确引用的 `.py` 文件，不扫描或执行目录中的其他 Python
+文件。模块名必须由合法 Python 标识符组成，且解析后的文件必须位于 Handler 根目录内。
+外部 Handler 是可信代码，部署方需要控制目录写权限。Handler 模块在进程内缓存，因此
+修改 YAML 可使用 `metric restart`，修改 Handler Python 代码需要重启 vLLM 服务进程。
+
+责任边界：
+
+- `ms-service-metric` 负责配置发现、路径校验、模块隔离加载、候选 Handler 预构造和失败回滚。
+- Provider 负责维护随框架版本变化的官方 YAML、symbol 和框架业务 Handler。
+- 用户负责外部 Handler 的代码正确性、依赖安装、目录权限和运行时异常处理；Handler
+  属于推理进程内执行的可信代码，不是安全沙箱。
+- 用户自定义模块应避开 `ms_service_metric.*` 和 Provider 已声明的模块前缀；这些名称优先
+  按 Core/Provider 的标准 Python import 处理，不会映射到用户目录。
 
 兼容策略如下：
 

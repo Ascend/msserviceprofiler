@@ -42,6 +42,69 @@ def test_given_array_yaml_when_load_then_converted_to_symbol_map(tmp_path):
     assert out["a.b:Cls.fn"][0]["handler"] == "ms_service_metric.handlers:default_handler"
 
 
+def test_given_config_directory_when_load_then_reads_sorted_top_level_yaml(tmp_path):
+    config_dir = tmp_path / "configs"
+    config_dir.mkdir()
+    (config_dir / "b.yml").write_text(
+        "- symbol: framework.module:second\n  metrics:\n    - name: second:duration\n",
+        encoding="utf-8",
+    )
+    (config_dir / "a.yaml").write_text(
+        "- symbol: framework.module:first\n  metrics:\n    - name: first:duration\n",
+        encoding="utf-8",
+    )
+    (config_dir / "ignored.txt").write_text("not yaml", encoding="utf-8")
+    nested_dir = config_dir / "nested"
+    nested_dir.mkdir()
+    (nested_dir / "nested.yaml").write_text(
+        "- symbol: framework.module:nested\n  metrics:\n    - name: nested:duration\n",
+        encoding="utf-8",
+    )
+
+    config = SymbolConfig(user_config_path=str(config_dir)).load()
+
+    framework_symbols = [symbol for symbol in config if symbol.startswith("framework.module:")]
+    assert framework_symbols == [
+        "framework.module:first",
+        "framework.module:second",
+    ]
+    assert "framework.module:nested" not in config
+
+
+def test_given_duplicate_handlers_across_yaml_files_when_load_then_keeps_one(tmp_path):
+    config_dir = tmp_path / "configs"
+    config_dir.mkdir()
+    content = "- symbol: framework.module:fn\n  metrics:\n    - name: request:duration\n"
+    (config_dir / "first.yaml").write_text(content, encoding="utf-8")
+    (config_dir / "second.yml").write_text(content, encoding="utf-8")
+
+    config = SymbolConfig(user_config_path=str(config_dir)).load()
+
+    assert len(config["framework.module:fn"]) == 1
+
+
+def test_given_invalid_yaml_in_config_directory_when_reload_then_keeps_committed_config(
+    tmp_path,
+):
+    valid_path = tmp_path / "valid.yaml"
+    valid_path.write_text(
+        "- symbol: framework.module:valid\n  metrics:\n    - name: valid:duration\n",
+        encoding="utf-8",
+    )
+    config_dir = tmp_path / "configs"
+    config_dir.mkdir()
+    (config_dir / "valid.yaml").write_text(valid_path.read_text(encoding="utf-8"), encoding="utf-8")
+    (config_dir / "invalid.yaml").write_text(":\n  - invalid", encoding="utf-8")
+    symbol_config = SymbolConfig(user_config_path=str(valid_path))
+    committed = symbol_config.load()
+
+    with pytest.raises(Exception):
+        symbol_config.load(config_path=str(config_dir))
+
+    assert symbol_config.get_config() == committed
+    assert symbol_config._user_config_path == str(valid_path)
+
+
 def test_given_env_user_config_when_load_then_env_path_takes_precedence(tmp_path, monkeypatch):
     env_cfg = tmp_path / "env.yaml"
     env_cfg.write_text("- symbol: m.n:o\n  handler: ms_service_metric.handlers:default_handler\n", encoding="utf-8")
@@ -56,6 +119,24 @@ def test_given_env_user_config_when_load_then_env_path_takes_precedence(tmp_path
     out = c.load()
     assert "m.n:o" in out
     assert "x.y:z" not in out
+
+
+def test_given_tilde_env_config_directory_when_load_then_expands_user_path(tmp_path, monkeypatch):
+    config_dir = tmp_path / "custom_metrics"
+    config_dir.mkdir()
+    (config_dir / "metrics.yaml").write_text(
+        "- symbol: user.module:fn\n  handler: ms_service_metric.handlers:default_handler\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setenv("USERPROFILE", str(tmp_path))
+    monkeypatch.setenv(SymbolConfig.ENV_CONFIG_PATH, "~/custom_metrics")
+
+    symbol_config = SymbolConfig()
+    config = symbol_config.load()
+
+    assert "user.module:fn" in config
+    assert symbol_config.get_user_handler_root() == str(config_dir.resolve())
 
 
 def test_given_env_handler_for_default_symbol_when_load_then_appends(tmp_path, monkeypatch):

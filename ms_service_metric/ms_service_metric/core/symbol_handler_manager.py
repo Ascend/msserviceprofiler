@@ -255,6 +255,7 @@ class SymbolHandlerManager:
         """Construct every candidate handler before changing live hooks."""
         target_handlers: Dict[str, Handler] = {}
         allowed_handler_module_prefixes = self._config.get_allowed_handler_module_prefixes()
+        user_handler_root = self._config.get_user_handler_root()
 
         for symbol_path, handlers_config in config.items():
             if not isinstance(handlers_config, list):
@@ -269,6 +270,7 @@ class SymbolHandlerManager:
                         handler_config,
                         symbol_path,
                         allowed_handler_module_prefixes,
+                        user_handler_root,
                     )
                 except Exception as error:
                     raise ConfigError(f"Failed to create handler for {symbol_path}: {error}") from error

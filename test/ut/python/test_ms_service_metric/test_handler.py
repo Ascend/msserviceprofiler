@@ -240,6 +240,135 @@ def test_given_disallowed_handler_module_when_import_then_raises_handler_error()
         MetricHandler._import_handler("evil.module:payload")
 
 
+def test_given_external_handler_root_when_from_config_then_loads_handler_without_sys_path_change(
+    tmp_path,
+):
+    handler_file = tmp_path / "custom_handler.py"
+    handler_file.write_text(
+        "def record(ctx):\n    yield\n",
+        encoding="utf-8",
+    )
+    original_sys_path = list(__import__("sys").path)
+
+    handler = MetricHandler.from_config(
+        {"handler": "custom_handler:record"},
+        "module:func",
+        user_handler_root=str(tmp_path),
+    )
+
+    assert handler._hook_func.__name__ == "record"
+    assert __import__("sys").path == original_sys_path
+
+
+def test_given_nested_external_handler_when_from_config_then_maps_dotted_module_to_file(
+    tmp_path,
+):
+    nested = tmp_path / "custom" / "handlers.py"
+    nested.parent.mkdir()
+    nested.write_text("def record(ctx):\n    yield\n", encoding="utf-8")
+
+    handler = MetricHandler.from_config(
+        {"handler": "custom.handlers:record"},
+        "module:func",
+        user_handler_root=str(tmp_path),
+    )
+
+    assert handler._hook_func.__name__ == "record"
+
+
+@pytest.mark.parametrize(
+    "handler_path",
+    [
+        "../outside:record",
+        "custom/handler:record",
+        ".custom:record",
+    ],
+)
+def test_given_unsafe_external_module_path_when_import_then_rejects(
+    tmp_path,
+    handler_path,
+):
+    with pytest.raises(HandlerError, match="Invalid external Handler module path"):
+        MetricHandler._import_handler(
+            handler_path,
+            user_handler_root=str(tmp_path),
+        )
+
+
+def test_given_missing_external_handler_function_when_import_then_raises(tmp_path):
+    (tmp_path / "custom.py").write_text("VALUE = 1\n", encoding="utf-8")
+
+    with pytest.raises(HandlerError, match="function not found"):
+        MetricHandler._import_handler(
+            "custom:record",
+            user_handler_root=str(tmp_path),
+        )
+
+
+def test_given_failed_external_module_load_when_file_fixed_then_retry_succeeds(tmp_path):
+    handler_file = tmp_path / "custom.py"
+    handler_file.write_text("raise RuntimeError('broken')\n", encoding="utf-8")
+
+    with pytest.raises(HandlerError, match="Failed to load external Handler module"):
+        MetricHandler._import_handler(
+            "custom:record",
+            user_handler_root=str(tmp_path),
+        )
+
+    handler_file.write_text("def record(ctx):\n    yield\n", encoding="utf-8")
+    handler = MetricHandler._import_handler(
+        "custom:record",
+        user_handler_root=str(tmp_path),
+    )
+    assert handler.__name__ == "record"
+
+
+def test_given_missing_external_handler_root_when_import_then_raises(tmp_path):
+    with pytest.raises(HandlerError, match="root does not exist"):
+        MetricHandler._import_handler(
+            "custom:record",
+            user_handler_root=str(tmp_path / "missing"),
+        )
+
+
+def test_given_external_handler_symlink_escape_when_import_then_rejects(tmp_path):
+    outside = tmp_path.parent / f"{tmp_path.name}_outside.py"
+    outside.write_text("def record(ctx):\n    yield\n", encoding="utf-8")
+    link = tmp_path / "linked.py"
+    try:
+        link.symlink_to(outside)
+    except OSError:
+        pytest.skip("Creating file symlinks is not permitted on this platform")
+
+    with pytest.raises(HandlerError, match="not found under configured root"):
+        MetricHandler._import_handler(
+            "linked:record",
+            user_handler_root=str(tmp_path),
+        )
+
+
+def test_given_different_external_roots_when_build_handlers_then_ids_are_distinct(tmp_path):
+    first = tmp_path / "first"
+    second = tmp_path / "second"
+    first.mkdir()
+    second.mkdir()
+    for root in (first, second):
+        (root / "custom.py").write_text("def record(ctx):\n    yield\n", encoding="utf-8")
+
+    first_handler = MetricHandler.from_config(
+        {"handler": "custom:record"},
+        "module:func",
+        user_handler_root=str(first),
+    )
+    second_handler = MetricHandler.from_config(
+        {"handler": "custom:record"},
+        "module:func",
+        user_handler_root=str(second),
+    )
+
+    assert first_handler.id != second_handler.id
+
+
 def test_given_empty_config_when_from_config_then_uses_default_handler():
     config = {}
     handler = MetricHandler.from_config(config, "module:func")
