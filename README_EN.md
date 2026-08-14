@@ -1,4 +1,11 @@
-# MindStudio Service Profiler
+<h1 align="center">MindStudio Service Profiler</h1>
+
+<div align="center">
+
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/Cztk5380/msserviceprofiler) [![Python Version](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/downloads/) [![License](https://badgen.net/badge/License/MulanPSL-2.0/blue)](https://raw.gitcode.com/Ascend/msprobe/raw/26.0.0/LICENSE) [![Version](https://badgen.net/badge/Version/26.0.0-alpha.1/orange)](https://gitcode.com/Ascend/msserviceprofiler/releases/tag_MindStudio_26.0.0-alpha.1)
+</div>
+
+ [简体中文](./README.md) | English
 
 ## What's New
 
