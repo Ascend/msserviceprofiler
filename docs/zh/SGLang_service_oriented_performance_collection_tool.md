@@ -14,12 +14,12 @@ SGLang Service Profiler 适用于在NPU部署SGLang推理服务过程中进行�
 
 |产品类型| 是否支持 |
 |--|:----:|
-|Ascend 950 系列产品|×|
-|Atlas A3 训练系列产品/Atlas A3 推理系列产品|√|
-|Atlas A2 训练系列产品/Atlas A2 推理系列产品|√|
-|Atlas 200I/500 A2 推理产品|x|
-|Atlas 推理系列产品|x|
-|Atlas 训练系列产品|x|
+|昇腾950PR&昇腾950DT系列产品|×|
+|昇腾A3系列产品|√|
+|昇腾A2系列产品|√|
+|昇腾310B系列产品|×|
+|昇腾310P系列产品|×|
+|昇腾910系列产品|×|
 
 工具支持型号与SGLang框架服务化推理部署支持的NPU型号保持一致，具体可参考 [SGLang installation with NPUs support](https://docs.sglang.io/docs/hardware-platforms/ascend-npus/ascend_npu)。
 
@@ -158,7 +158,7 @@ python -m ms_service_profiler.parse --input-path=$PWD
 ### 采集配置使用指南
 
 1. 采集配置可以参考[数据采集](./msserviceprofiler_serving_tuning_instruct.md#数据采集)中的配置文件创建的说明以及注意事项的澄清。
-2. 配置 Torch Profiler 采集时，`enable`参数取值初始须为0（表示关闭性能数据采集），之后在启动 SGLang 推理框架服务后再将配置`enable`参数配置为1（开启采集），为了避免采集过多的性能数据，可在完成相应数据采集过后关闭采集。如果`enable`参数取值初始为1，会采集大量框架层数据，很容易生成几个 GB 的跟踪文件。
+2. 配置 Torch Profiler 采集时，`enable`参数取值初始须为0（表示关闭性能数据采集），之后在启动 SGLang 推理框架服务后再将配置中的`enable`参数配置为1（开启采集），为了避免采集过多的性能数据，可在完成相应数据采集过后关闭采集。如果`enable`参数取值初始为1，会采集大量框架层数据，很容易生成几个 GB 的跟踪文件。
 
 ### 点位配置使用指南
 

@@ -22,17 +22,17 @@
 
 |产品类型| 是否支持 |
 |--|:----:|
-|Ascend 950 系列产品|×|
-|Atlas A3 训练系列产品/Atlas A3 推理系列产品|√|
-|Atlas A2 训练系列产品/Atlas A2 推理系列产品|√|
-|Atlas 200I/500 A2 推理产品|x|
-|Atlas 推理系列产品|√|
-|Atlas 训练系列产品|x|
+|昇腾950PR&昇腾950DT系列产品|×|
+|昇腾A3系列产品|√|
+|昇腾A2系列产品|√|
+|昇腾310B系列产品|×|
+|昇腾310P系列产品|√|
+|昇腾910系列产品|×|
 
 > [!NOTE]
 > 
->针对Atlas A2 训练系列产品/Atlas A2 推理系列产品，当前仅支持该系列产品中的Atlas 800I A2 推理服务器。
->针对Atlas 推理系列产品，当前仅支持该系列产品中的Atlas 300I Duo 推理卡+Atlas 800 推理服务器（型号：3000）。
+>针对昇腾A2系列产品，当前仅支持该系列产品中的Atlas 800I A2 推理服务器。
+>针对昇腾310P系列产品，当前仅支持该系列产品中的Atlas 300I Duo 推理卡 + A800-3000推理服务器。
 
 ## 使用前准备
 
@@ -206,7 +206,7 @@ options参数说明请参见[参数说明](#section379581401015)。
 | --input-path  | 指定性能数据所在路径，会遍历读取该路径下所有名为msproftx.db、ascend_service_profiler_*.db和ms_service_*.db的数据库。                                                                                                                                                                                                                                                                                                                                                                          |是|
 | --output-path | 指定解析后文件生成路径，默认为当前路径下的output目录。                                                                                                                                                                                                                                                                                                                                                                                                                                 |否|
 | --log-level   | 设置日志级别，取值为：<br>&#8226; debug：调试级别。该级别的日志记录了调试信息，便于开发人员或维护人员定位问题。<br>&#8226; info：正常级别。记录工具正常运行的信息。默认值。<br>&#8226; warning：警告级别。记录工具和预期的状态不一致，但不影响整个进程运行的信息。<br>&#8226; error：一般错误级别。<br>&#8226; critical：严重错误级别。<br>&#8226; fatal：致命错误级别。                                      |否|
-| --format      | 设置性能数据输出文件的导出格式，取值为：<br/>csv：表示只导出csv格式的结果文件。一般用于原始落盘数据量过大（通常为>10G）场景，仅导出该格式文件可减少数据解析耗时，该格式文件包含每轮请求调度耗时、模型执行耗时、KVCache显存占用情况等。<br/>json：表示只导出json格式的结果文件。一般用于仅需使用trace数据进行分析的场景，仅导出该格式文件可减少数据解析耗时，该格式文件包含服务化框架推理全过程Timeline图。<br/>db：表示只导出db格式的结果文件。一般用于仅通过MindStudio Insight工具分析结果数据场景，该格式文件包含全量数据解析结果，可直接在MindStudio Insight中完全展示。<br/>不使用format则默认全部导出，可以配置一个或多个参数，配置示例：--format db，--format db csv。<br/>若数据采集时，配置acl_task_time参数值为2，则解析结果文件仅支持导出json和db格式。 |否|
+| --format      | 设置性能数据输出文件的导出格式，取值为：<br/>csv：表示只导出csv格式的结果文件。一般用于原始落盘数据量过大（通常为>10GB）场景，仅导出该格式文件可减少数据解析耗时，该格式文件包含每轮请求调度耗时、模型执行耗时、KVCache显存占用情况等。<br/>json：表示只导出json格式的结果文件。一般用于仅需使用trace数据进行分析的场景，仅导出该格式文件可减少数据解析耗时，该格式文件包含服务化框架推理全过程Timeline图。<br/>db：表示只导出db格式的结果文件。一般用于仅通过MindStudio Insight工具分析结果数据场景，该格式文件包含全量数据解析结果，可直接在MindStudio Insight中完全展示。<br/>不使用format则默认全部导出，可以配置一个或多个参数，配置示例：--format db，--format db csv。<br/>若数据采集时，配置acl_task_time参数值为2，则解析结果文件仅支持导出json和db格式。 |否|
 | --span        | 导出指定span数据至output/span_info目录，使用方法： <br/>1、不使用span则默认不导出span数据；<br/>2、使用--span 默认导出forward.csv、BatchSchedule.csv文件；<br/>3、--span 可以配置一个或多个参数，配置示例：--span sample Execute，则除forward.csv、BatchSchedule.csv文件外，额外导出sample.csv、Execute.csv文件。取值可参考MindStudio Insight工具打开性能数据输出文件中Timeline图的span信息。<br/>详细介绍请参考[span_info 目录说明](#span_info目录)                                                                                                                                                   |否|
 
 **使用示例<a name="section246434914919"></a>**
@@ -221,7 +221,7 @@ python3 -m ms_service_profiler.parse --input-path ${PATH}/prof_dir/
 
 **输出说明<a name="section1852614831412"></a>**
 
-解析命令执行完成后将--output-path参数指定的路径下输出[解析结果](#解析结果)。
+解析命令执行完成后在--output-path参数指定的路径下输出[解析结果](#解析结果)。
 
 ## 解析结果
 
@@ -328,7 +328,7 @@ PD分离部署场景及概念详细介绍请参见[PD分离服务部署](https:/
 
 ### **spec_decode.csv**
 
-在投机推理场景下时自动生成，记录每条 request 在每个时间步的投机推理数据。
+在投机推理场景下自动生成，记录每条 request 在每个时间步的投机推理数据。
 
 **表 3-2**  spec_decode.csv
 
@@ -590,7 +590,7 @@ MindStudio Insight工具支持对服务化调优工具采集并解析的性能�
 
 Chrome tracing工具支持对服务化调优工具采集并解析的chrome\_tracing.json文件进行可视化，操作如下：
 
-在Chrome浏览器中输入“chrome://tracing“地址，将.json文件拖到空白处打开，通过键盘上的快捷键（w：放大，s：缩小，a：左移，d：右移）进行查看。
+在Chrome浏览器中输入“chrome://tracing”地址，将.json文件拖到空白处打开，通过键盘上的快捷键（w：放大，s：缩小，a：左移，d：右移）进行查看。
 
 > [!NOTE]
 >
@@ -722,7 +722,7 @@ cd grafana-v11.3.0/bin/
 
     横轴：服务化推理运行时间轴。
 
-    纵轴：所有请求Kvcache使用率的变化情况。单位：百分率%。
+    纵轴：所有请求Kvcache使用率的变化情况。单位：%。
 
     **图 12**  Kvcache_usage_percent_curve<a name="fig248583622618"></a>  
     ![](figures/Kvcache-usage-percent.png "Kvcache-usage-percent")
