@@ -14,8 +14,9 @@
 # See the Mulan PSL v2 for more details.
 # -------------------------------------------------------------------------
 
-import argparse
 from importlib.metadata import entry_points
+
+from ms_service_profiler.cli import create_subcommand_parser, run_parser
 
 
 def _load_entries():
@@ -23,26 +24,27 @@ def _load_entries():
     ep_group = 'ms_service_profiler_plugins'
     plugin_eps = eps.select(group=ep_group)
 
-    yield from (ep.load() for ep in plugin_eps)
+    if plugin_eps:
+        yield from (ep.load() for ep in plugin_eps)
+        return
+
+    from ms_service_profiler import analyze, compare, parse, split
+
+    yield analyze.arg_parse
+    yield compare.arg_parse
+    yield parse.arg_parse
+    yield split.arg_parse
 
 
-def main():  
-    parser = argparse.ArgumentParser(
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-        description="[MindStudio] msserviceprofiler command line tool"
-    )
-    subparsers = parser.add_subparsers(help="sub-command help")
+def main():
+    parser, subparsers = create_subcommand_parser()
+    if subparsers is None:
+        return
 
     for entry_fn in _load_entries():
         entry_fn(subparsers)
 
-    args = parser.parse_args()
-
-    # run
-    if hasattr(args, "func"):
-        args.func(args=args)
-    else:
-        parser.print_help()
+    run_parser(parser)
 
 
 if __name__ == "__main__":

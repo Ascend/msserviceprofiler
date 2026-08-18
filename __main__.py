@@ -14,34 +14,27 @@
 # See the Mulan PSL v2 for more details.
 # -------------------------------------------------------------------------
 
-import argparse
-from msservice_advisor.msservice_advisor import advisor
-from ms_serviceparam_optimizer.ms_serviceparam_optimizer.optimizer import optimizer
-from ms_serviceparam_optimizer.ms_serviceparam_optimizer.train import source_to_train
-from ms_service_profiler import compare, split, analyze
+from ms_service_profiler.cli import create_subcommand_parser, run_parser
 
 
 def main():
-    
-    parser = argparse.ArgumentParser(
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-        description="[MindStudio] msserviceprofiler command line tool"
-    )
-    subparsers = parser.add_subparsers(help="sub-command help")
+    parser, subparsers = create_subcommand_parser()
+    if subparsers is None:
+        return
+
+    from msservice_advisor.msservice_advisor import advisor
+    from ms_serviceparam_optimizer.ms_serviceparam_optimizer.optimizer import optimizer
+    from ms_serviceparam_optimizer.ms_serviceparam_optimizer.train import source_to_train
+    from ms_service_profiler import compare, split, analyze, parse
 
     source_to_train.arg_parse(subparsers)
     optimizer.arg_parse(subparsers)
     advisor.arg_parse(subparsers)
     analyze.arg_parse(subparsers)
+    parse.arg_parse(subparsers)
     split.arg_parse(subparsers)
     compare.arg_parse(subparsers)
-    args = parser.parse_args()
-
-    # run
-    if hasattr(args, "func"):
-        args.func(args=args)
-    else:
-        parser.print_help()
+    run_parser(parser)
 
 
 if __name__ == "__main__":
