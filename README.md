@@ -2,10 +2,10 @@
 
 <div align="center">
 
-[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/Cztk5380/msserviceprofiler) [![Docs](https://badgen.net/badge/Docs/readthedocs/green)](https://msserviceprofiler.readthedocs.io/zh-cn/latest/) [![Python Version](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/downloads/) [![License](https://badgen.net/badge/License/MulanPSL-2.0/blue)](https://raw.gitcode.com/Ascend/msprobe/raw/26.0.0/LICENSE) [![Version](https://badgen.net/badge/Version/26.0.0-alpha.1/orange)](https://gitcode.com/Ascend/msserviceprofiler/releases/tag_MindStudio_26.0.0-alpha.1)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/Cztk5380/msserviceprofiler) [![Docs](https://badgen.net/badge/Docs/readthedocs/green)](https://msserviceprofiler.readthedocs.io/zh-cn/latest/) [![Python Version](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/downloads/) [![License](https://badgen.net/badge/License/MulanPSL-2.0/blue)](https://raw.gitcode.com/Ascend/msserviceprofiler/raw/26.0.0/LICENSE) [![Version](https://badgen.net/badge/Version/26.0.0-alpha.1/orange)](https://gitcode.com/Ascend/msserviceprofiler/releases/tag_MindStudio_26.0.0-alpha.1)
 </div>
 
-[English](./README_EN.md) | 简体中文
+简体中文 | [English](./README_EN.md)
 
 ## 📢 最新消息
 
