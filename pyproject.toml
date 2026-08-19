@@ -12,7 +12,6 @@ requires-python = ">=3.7"
 
 dependencies = [
     "pandas~=2.2",
-    "openpyxl",
     "numpy",
     "pydantic",
     "psutil",
@@ -24,7 +23,6 @@ dependencies = [
     "opentelemetry-exporter-otlp-proto-grpc==1.33.1",
     "opentelemetry-exporter-otlp-proto-http==1.33.1",
     "packaging",
-    "tzdata",
 ]
 
 [project.scripts]
