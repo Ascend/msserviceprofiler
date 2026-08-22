@@ -149,3 +149,4 @@ nav:
       - 26.0.0 特性设计: design/MindStudio Service Profiler 26.0.0 特性设计说明书.md
       - ms-service-metric 监控指标设计: design/ms_service_metric_Monitoring_Metrics_Design.md
       - ms-service-metric 配置重构设计: design/ms_service_metric_Refactor_Design.md
+      - vLLM Hook Tracing 详细设计: design/vLLM_Hook_Tracing_Detailed_Design.md
