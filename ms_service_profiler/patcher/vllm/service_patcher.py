@@ -50,6 +50,12 @@ def _is_registry_subprocess() -> bool:
     return False
 
 
+def _clear_hook_trace_runtime() -> None:
+    from ms_service_profiler.tracer.hook_runtime import get_hook_trace_runtime
+
+    get_hook_trace_runtime().clear()
+
+
 class VLLMProfiler:
     """vLLM 框架适配器。
 
@@ -67,6 +73,9 @@ class VLLMProfiler:
         self._vllm_version = VLLMProfiler._get_vllm_version()
         self._controller: Optional[HookController] = None
         self._initialized = False
+        self._profiling_requested = True
+        self._profiling_active = True
+        self._tracing_requested = False
 
     # -------------------------------------------------------------------------
     # 版本检测
@@ -184,6 +193,12 @@ class VLLMProfiler:
     def _load_profiling_config(self) -> Optional[ProfilingConfig]:
         """加载 profiling 配置文件并返回 ProfilingConfig（concrete + patterns）。"""
 
+        def _load_symbols(path: str) -> ProfilingConfig:
+            return ConfigLoader(path, self._vllm_version).load_profiling(
+                enable_profiling=self._profiling_active,
+                enable_tracing=self._tracing_requested,
+            )
+
         def _write_profiling_symbols(env_path: str, default_cfg: str) -> Optional[ProfilingConfig]:
             try:
                 parent_dir = os.path.dirname(env_path) or '.'
@@ -192,7 +207,7 @@ class VLLMProfiler:
                     dst.write(src.read())
                 logger.debug(f"Wrote profiling symbols to env path: {env_path}")
                 logger.info("Loading vLLM profiling symbols from: %s", env_path)
-                return ConfigLoader(env_path, self._vllm_version).load_profiling()
+                return _load_symbols(env_path)
             except Exception as e:
                 logger.warning(f"Failed to write profiling symbols to env path {env_path}: {e}")
                 return None
@@ -202,7 +217,7 @@ class VLLMProfiler:
         if env_path and str(env_path).lower().endswith(('.yaml', '.yml')):
             if os.path.isfile(env_path):
                 logger.info("Loading vLLM profiling symbols from: %s", env_path)
-                return ConfigLoader(env_path, self._vllm_version).load_profiling()
+                return _load_symbols(env_path)
             if default_cfg:
                 return _write_profiling_symbols(env_path, default_cfg)
             logger.warning("No default config file found to populate PROFILING_SYMBOLS_PATH")
@@ -211,7 +226,7 @@ class VLLMProfiler:
 
         if default_cfg:
             logger.info("Loading vLLM profiling symbols from: %s", default_cfg)
-            return ConfigLoader(default_cfg, self._vllm_version).load_profiling()
+            return _load_symbols(default_cfg)
         logger.warning("No config file found")
         return None
 
@@ -258,15 +273,21 @@ class VLLMProfiler:
             bool: 初始化是否成功
         """
         try:
-            if not check_profiling_enabled():
+            self._profiling_requested = check_profiling_enabled()
+            self._profiling_active = self._profiling_requested
+            self._tracing_requested = os.environ.get("MS_TRACE_ENABLE") == "1"
+            if not self._profiling_requested and not self._tracing_requested:
                 return False
             logger.debug("Initializing VLLM Service Profiler")
 
             # 初始化metrics模块逻辑，后续有metrics独立开关后从此处移出
-            setup_vllm_metrics()
+            if self._profiling_requested:
+                setup_vllm_metrics()
 
-            # 导入 handlers
-            self._import_handlers()
+            # Trace-only startup consumes only YAML metadata and must not import
+            # or execute the existing business profiling handlers.
+            if self._profiling_requested:
+                self._import_handlers()
             # 创建 SymbolWatchFinder（未加载配置）并安装；registry 子进程内不安装，避免破坏 import 顺序
             watcher = SymbolWatchFinder()
             if not _is_registry_subprocess():
@@ -315,8 +336,12 @@ class VLLMProfiler:
         """禁用所有 hooks。"""
         if self._controller is None:
             logger.warning("Profiler not initialized, cannot disable hooks")
+            if self._tracing_requested:
+                _clear_hook_trace_runtime()
             return
         self._controller.disable()
+        if self._tracing_requested:
+            _clear_hook_trace_runtime()
 
     # -------------------------------------------------------------------------
     # C++ 回调（委托给 HookController）
@@ -334,7 +359,26 @@ class VLLMProfiler:
                 logger.warning("Profiler not initialized, callback ignored")
 
             return noop, noop
-        return self._controller.get_callbacks(self._load_config)
+        if not self._tracing_requested:
+            return self._controller.get_callbacks(self._load_config)
+
+        def on_start():
+            try:
+                self._profiling_active = self._profiling_requested
+                profiling, metrics = self._load_config()
+                self._controller.enable(profiling_handlers=profiling, metrics_handlers=metrics)
+            except Exception as exc:
+                logger.exception("Failed to handle profiler start with tracing enabled: %s", exc)
+
+        def on_stop():
+            try:
+                self._profiling_active = False
+                tracing, metrics = self._load_config()
+                self._controller.enable(profiling_handlers=tracing, metrics_handlers=metrics)
+            except Exception as exc:
+                logger.exception("Failed to keep tracing hooks after profiler stop: %s", exc)
+
+        return on_start, on_stop
 
     def get_metric_callbacks(self) -> Tuple[Callable[[], None], Callable[[], None]]:
         """返回可注册到 C++ 的 metric 回调函数对（on_start_metric, on_stop_metric）。

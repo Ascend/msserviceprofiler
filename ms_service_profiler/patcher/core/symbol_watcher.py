@@ -51,10 +51,7 @@ def discover_classes_with_method(module: Any, method_name: str, module_fullname:
         meth = getattr(cls, method_name, None)
         if not callable(meth):
             continue
-        try:
-            if getattr(meth, "__module__", None) != module_fullname:
-                continue
-        except Exception:
+        if getattr(meth, "__module__", None) != module_fullname:
             continue
         out.append((cls.__name__, method_name))
     return out
@@ -164,6 +161,7 @@ class SymbolWatchFinder(importlib.abc.MetaPathFinder):
             max_version=entry.max_version,
             caller_filter=entry.caller_filter,
             need_locals=entry.need_locals,
+            around_hook_factory=entry.around_hook_factory,
         )
         handler.register()
         self._prepared_hookers.add(handler)
@@ -305,6 +303,9 @@ class SymbolWatchFinder(importlib.abc.MetaPathFinder):
         class LoaderWrapper(importlib.abc.Loader):
             _vllm_profiler_wrapped = True
 
+            def __init__(self, finder):
+                self._finder = finder
+
             def create_module(self, spec):
                 if hasattr(orig_loader, "create_module"):
                     return orig_loader.create_module(spec)
@@ -314,8 +315,7 @@ class SymbolWatchFinder(importlib.abc.MetaPathFinder):
                 orig_loader.exec_module(module)
                 self._finder.on_symbol_module_loaded(fullname)
 
-        wrapper = LoaderWrapper()
-        wrapper._finder = self
+        wrapper = LoaderWrapper(self)
         spec.loader = wrapper
         return spec
 
@@ -335,7 +335,12 @@ class SymbolWatchFinder(importlib.abc.MetaPathFinder):
         matching = [e for e in all_pattern_entries if _pattern_matches_module(e.module_pattern, fullname)]
         if concrete_match or matching:
             self._module_matching_pattern_cache[fullname] = [
-                (e, self._pattern_to_concrete_profiling if e in self._pattern_handlers_profiling else self._pattern_to_concrete_metrics)
+                (
+                    e,
+                    self._pattern_to_concrete_profiling
+                    if e in self._pattern_handlers_profiling
+                    else self._pattern_to_concrete_metrics,
+                )
                 for e in matching
             ]
             return True
@@ -343,7 +348,7 @@ class SymbolWatchFinder(importlib.abc.MetaPathFinder):
 
     def on_symbol_module_loaded(self, fullname: str):
         """当 symbol 模块加载完成时的回调。"""
-        logger.debug(f"SymbolWatchFinder: Module loaded callback for {fullname}")
+        logger.debug("SymbolWatchFinder: Module loaded callback for %s", fullname)
         self._prepare_hooks_for_module(fullname)
 
     def _prepare_hooks_for_module(self, fullname: str):
@@ -363,12 +368,12 @@ class SymbolWatchFinder(importlib.abc.MetaPathFinder):
                 continue
             discovered = discover_classes_with_method(module_obj, entry.method_name, fullname)
             for class_name, method_name in discovered:
-                self._apply_one_pattern_hook(
-                    fullname, class_name, method_name, entry, pattern_to_concrete
-                )
+                self._apply_one_pattern_hook(fullname, class_name, method_name, entry, pattern_to_concrete)
 
         if module_handlers:
-            logger.debug(f"Detected symbol module loaded: {fullname}, preparing {len(module_handlers)} handler groups")
+            logger.debug(
+                "Detected symbol module loaded: %s, preparing %d handler groups", fullname, len(module_handlers)
+            )
             self._prepare_handlers_for_module(fullname, module_handlers)
 
     def _prepare_handlers_for_module(self, module_name: str, module_handlers: List[Tuple[str, List]]):
@@ -386,19 +391,19 @@ class SymbolWatchFinder(importlib.abc.MetaPathFinder):
                             with self._lock:
                                 if handler not in self._applied_hookers:
                                     self._applied_hookers.append(handler)
-                            logger.debug(f"Auto-applied handler for symbol {symbol_path}")
+                            logger.debug("Auto-applied handler for symbol %s", symbol_path)
                         except Exception as e:
-                            logger.error(f"Failed to auto-apply handler for {symbol_path}: {e}")
+                            logger.error("Failed to auto-apply handler for %s: %s", symbol_path, e)
                 self._symbol_to_hooker[symbol_path] = hookers_for_symbol
                 self._applied_hooks.add(symbol_path)
-                logger.debug(f"Prepared {len(handler_list)} handler(s) for symbol {symbol_path}")
+                logger.debug("Prepared %d handler(s) for symbol %s", len(handler_list), symbol_path)
         except Exception as e:
-            logger.error(f"Failed to prepare handlers for module {module_name}: {e}")
+            logger.error("Failed to prepare handlers for module %s: %s", module_name, e)
 
     def apply_all_hooks(self):
         """应用所有准备好的 hooks。"""
         self.set_auto_apply(True)
-        logger.info(f"Applying {len(self._prepared_hookers)} prepared hooks...")
+        logger.info("Applying %d prepared hooks...", len(self._prepared_hookers))
         applied_now = 0
         for hooker in list(self._prepared_hookers):
             try:
@@ -407,10 +412,10 @@ class SymbolWatchFinder(importlib.abc.MetaPathFinder):
                     if hooker not in self._applied_hookers:
                         self._applied_hookers.append(hooker)
                 applied_now += 1
-                logger.debug(f"Applied hooker: {hooker.applied_hook_func_name}")
+                logger.debug("Applied hooker: %s", hooker.applied_hook_func_name)
             except Exception as e:
-                logger.error(f"Failed to apply hooker {hooker.applied_hook_func_name}: {e}")
-        logger.info(f"Successfully applied {applied_now} hooks")
+                logger.error("Failed to apply hooker %s: %s", hooker.applied_hook_func_name, e)
+        logger.info("Successfully applied %d hooks", applied_now)
         return self.get_applied_hookers()
 
     def check_and_apply_existing_modules(self) -> bool:
@@ -422,7 +427,7 @@ class SymbolWatchFinder(importlib.abc.MetaPathFinder):
             module_path = symbol_path.split(":")[0]
             if module_path in sys.modules and module_path not in seen:
                 seen.add(module_path)
-                logger.debug(f"Module {module_path} already loaded, preparing handlers")
+                logger.debug("Module %s already loaded, preparing handlers", module_path)
                 self.on_symbol_module_loaded(module_path)
         # pattern symbol处理逻辑
         for fullname in list(sys.modules.keys()):
@@ -430,6 +435,6 @@ class SymbolWatchFinder(importlib.abc.MetaPathFinder):
                 continue
             if self._is_target_symbol(fullname):
                 seen.add(fullname)
-                logger.debug(f"Module {fullname} matches pattern, preparing handlers")
+                logger.debug("Module %s matches pattern, preparing handlers", fullname)
                 self.on_symbol_module_loaded(fullname)
         return True

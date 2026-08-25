@@ -88,6 +88,7 @@ class ConfigHooker:
         caller_filter: Optional[str],
         need_locals: bool = False,
         framework_version: Optional[str] = None,
+        around_hook_factory: Optional[Callable] = None,
     ):
         """初始化 ConfigHooker。
 
@@ -108,6 +109,7 @@ class ConfigHooker:
         self.caller_filter = caller_filter
         self.need_locals = need_locals
         self.framework_version = framework_version
+        self.around_hook_factory = around_hook_factory
 
         # hook_func 改为支持多个，一个hook点位支持多个hook函数
         hook_funcs = hook_func if isinstance(hook_func, list) else [hook_func]
@@ -295,6 +297,18 @@ class MultiHandlerDynamicHooker(DynamicHooker):
         super().__init__(hook_list, hook_func, min_version, max_version, caller_filter, need_locals)
         self.handlers = set()
 
+    def select_around_hook_factory(self, handlers):
+        factories = [
+            factory
+            for factory in (getattr(handler, "around_hook_factory", None) for handler in handlers)
+            if factory is not None
+        ]
+        if len(factories) > 1:
+            logger.warning("Multiple tracing definitions resolved for one symbol; only one will be applied")
+        if self.around_hook_factory in factories:
+            return self.around_hook_factory
+        return factories[0] if factories else None
+
     def build_wrap_hook_func(self, handler_wrap_hook_funcs):
         handler_wrap_hook_funcs = [
             x for x in handler_wrap_hook_funcs if x is not None and x != VLLMHookerBase.default_hook_func
@@ -338,6 +352,7 @@ class MultiHandlerDynamicHooker(DynamicHooker):
         self.handlers.add(handler)
         self.wrap_hook_func = self.build_wrap_hook_func(x.wrap_hook_func for x in self.handlers)
         self.context_hook_funcs = sum((x.context_hook_funcs for x in self.handlers), [])
+        self.around_hook_factory = self.select_around_hook_factory(self.handlers)
         self.need_locals = any((x.need_locals for x in self.handlers))
         self.init()
 
@@ -352,6 +367,7 @@ class MultiHandlerDynamicHooker(DynamicHooker):
 
         self.wrap_hook_func = self.build_wrap_hook_func(x.wrap_hook_func for x in self.handlers)
         self.context_hook_funcs = sum((x.context_hook_funcs for x in self.handlers), [])
+        self.around_hook_factory = self.select_around_hook_factory(self.handlers)
         self.need_locals = any((x.need_locals for x in self.handlers))
         self.init()
 

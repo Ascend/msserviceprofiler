@@ -234,6 +234,63 @@ def test_vllmhookerbase_do_hook_given_hook_points_when_applying_then_functions_r
     hooker.hooks[0].recover()
 
 
+def test_vllmhookerbase_do_hook_given_around_hook_when_calling_then_wraps_target(cleanup_hook_registry):
+    """The optional tracing layer surrounds the existing callable."""
+    events = []
+
+    def around_factory(next_func, original_func):
+        def wrapper(*args, **kwargs):
+            events.append(("enter", args))
+            result = next_func(*args, **kwargs)
+            events.append(("exit", result))
+            return result
+
+        return wrapper
+
+    class AroundHooker(VLLMHookerBase):
+        def init(self):
+            self.around_hook_factory = around_factory
+            self.do_hook([sample_function], lambda ori_func: ori_func)
+
+    hooker = AroundHooker()
+    hooker.init()
+    try:
+        assert sample_function() == "original function"
+        assert events == [("enter", ()), ("exit", "original function")]
+    finally:
+        hooker.hooks[0].recover()
+
+
+def test_vllmhookerbase_around_hook_does_not_retry_business_exception(cleanup_hook_registry):
+    calls = []
+    expected = RuntimeError("business failed")
+
+    def business_function():
+        calls.append("called")
+        raise expected
+
+    def around_factory(next_func, original_func):
+        def wrapper(*args, **kwargs):
+            return next_func(*args, **kwargs)
+
+        return wrapper
+
+    class ExceptionHooker(VLLMHookerBase):
+        def init(self):
+            return None
+
+    hooker = ExceptionHooker()
+    hooker.around_hook_factory = around_factory
+    hooker.do_hook([business_function], lambda ori_func: ori_func)
+    try:
+        with pytest.raises(RuntimeError) as error:
+            hooker.hooks[0].new_function()
+        assert error.value is expected
+        assert calls == ["called"]
+    finally:
+        hooker.hooks[0].recover()
+
+
 # Test cases for vllm_hook decorator
 @patcher(
     hook_points=[("patcher.core.module_hook", "sample_function")],

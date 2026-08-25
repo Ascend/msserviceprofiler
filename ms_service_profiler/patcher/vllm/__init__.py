@@ -36,13 +36,19 @@ def register_service_profiler():
     if not ok:
         return
 
+    # Trace-only mode is a Python Hook feature and does not register profiling
+    # callbacks or initialize any C++/torch profiling facility.
+    if not _vllm_profiler._profiling_requested:
+        logger.info("VLLM Hook tracing initialized (trace-only mode)")
+        return
+
     # 2. 获取回调函数
     on_start, on_stop = _vllm_profiler.get_callbacks()
 
     # 3. 注册回调到 mstx
     start_result = mstx_profiler.register_profiler_start_callback(on_start)
     stop_result = mstx_profiler.register_profiler_stop_callback(on_stop)
-    
+
     # 4. 根据结果处理
     if start_result.is_dynamic and stop_result.is_dynamic:
         logger.info("Successfully registered VLLM profiler callbacks (dynamic mode)")
@@ -53,6 +59,4 @@ def register_service_profiler():
     try:
         register_torch_profiler()
     except Exception as e:
-        logger.warning(f"[Torch Profiler] Unexpected error in patch_model_runner_with_torch_profiler_register: {e}")
-
-
+        logger.warning("[Torch Profiler] Unexpected error in patch_model_runner_with_torch_profiler_register: %s", e)

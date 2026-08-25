@@ -9,6 +9,7 @@
 
 import os
 import threading
+import time
 from dataclasses import dataclass
 from typing import Any, Iterable, Optional, Tuple
 
@@ -19,6 +20,7 @@ from ms_service_profiler.utils.log import logger
 MAX_ATTRIBUTE_COUNT = 32
 MAX_ATTRIBUTE_KEY_LENGTH = 128
 MAX_ATTRIBUTE_VALUE_LENGTH = 1024
+PERFETTO_REGISTRATION_RETRY_INTERVAL_SECONDS = 5.0
 
 
 try:
@@ -150,6 +152,7 @@ class OpenTelemetryHookBackend:
     def __init__(self):
         self._lock = threading.RLock()
         self._perfetto_providers = set()
+        self._perfetto_retry_after = {}
         self._warned_unavailable = False
         self._warned_provider_missing = False
 
@@ -193,18 +196,25 @@ class OpenTelemetryHookBackend:
             logger.debug("Failed to probe Perfetto forwarder: %s", exc)
             perfetto_available = False
         if not perfetto_registered and perfetto_available:
+            now = time.monotonic()
             with self._lock:
-                if identity not in self._perfetto_providers:
-                    processor = PerfettoSpanProcessor()
+                retry_after = self._perfetto_retry_after.get(identity, 0.0)
+                if identity not in self._perfetto_providers and now >= retry_after:
+                    processor = None
                     try:
+                        processor = PerfettoSpanProcessor()
                         provider.add_span_processor(processor)
                     except Exception as exc:
-                        try:
-                            processor.shutdown()
-                        except Exception as shutdown_exc:
-                            logger.debug("Failed to shut down Perfetto span processor: %s", shutdown_exc)
+                        self._perfetto_retry_after[identity] = now + PERFETTO_REGISTRATION_RETRY_INTERVAL_SECONDS
+                        if processor is not None:
+                            try:
+                                processor.shutdown()
+                            except Exception as shutdown_exc:
+                                logger.debug("Failed to shut down Perfetto span processor: %s", shutdown_exc)
                         logger.debug("Failed to register Perfetto span processor: %s", exc)
-                    self._perfetto_providers.add(identity)
+                    else:
+                        self._perfetto_providers.add(identity)
+                        self._perfetto_retry_after.pop(identity, None)
         return provider
 
     @staticmethod

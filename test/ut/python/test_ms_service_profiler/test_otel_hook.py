@@ -100,6 +100,34 @@ def test_perfetto_processor_registration_failure_does_not_disable_jaeger_provide
         assert backend._get_provider() is provider
 
     processor.shutdown.assert_called_once()
+    assert id(provider) not in backend._perfetto_providers
+
+
+def test_perfetto_processor_registration_retries_after_backoff():
+    backend = OpenTelemetryHookBackend()
+    provider = MagicMock()
+    provider.add_span_processor.side_effect = [RuntimeError("registration failed"), None]
+    first_processor = MagicMock()
+    second_processor = MagicMock()
+
+    with (
+        patch.dict("os.environ", {"MS_TRACE_ENABLE": "1"}, clear=True),
+        patch.object(backend, "_active_global_provider", return_value=provider),
+        patch("ms_service_profiler.tracer.otel_hook.PerfettoSocketSender.is_available", return_value=True),
+        patch(
+            "ms_service_profiler.tracer.otel_hook.PerfettoSpanProcessor",
+            side_effect=[first_processor, second_processor],
+        ),
+        patch("ms_service_profiler.tracer.otel_hook.time.monotonic", side_effect=[100.0, 101.0, 106.0]),
+    ):
+        assert backend._get_provider() is provider
+        assert backend._get_provider() is provider
+        assert backend._get_provider() is provider
+
+    assert provider.add_span_processor.call_count == 2
+    first_processor.shutdown.assert_called_once()
+    second_processor.shutdown.assert_not_called()
+    assert id(provider) in backend._perfetto_providers
 
 
 def test_backend_missing_otel_dependency_is_fail_open():

@@ -41,9 +41,8 @@ def _get_metric_hook_chain_getter():
         return _GET_CHAIN_FUNC
 
     try:
-        from ms_service_metric.core.hook.hook_chain import get_chain as imported_get_chain
-
-        _GET_CHAIN_FUNC = imported_get_chain
+        hook_chain_module = importlib.import_module("ms_service_metric.core.hook.hook_chain")
+        _GET_CHAIN_FUNC = hook_chain_module.get_chain
         return _GET_CHAIN_FUNC
     except Exception:
         return None
@@ -461,6 +460,10 @@ class VLLMHookerBase(ABC):
         # 对应的 hook 处理函数，用于配置化时复用
         self.wrap_hook_func: Optional[Callable] = None
         self.context_hook_funcs: List[Callable] = []
+        # Optional outer wrapper used by independent instrumentation such as
+        # Hook tracing.  It is applied after the existing profiling callable
+        # is built, so the profiling/context-hook execution model is unchanged.
+        self.around_hook_factory: Optional[Callable] = None
         self.need_locals = False
 
     @abstractmethod
@@ -600,10 +603,15 @@ class VLLMHookerBase(ABC):
 
             if self.wrap_hook_func == VLLMHookerBase.default_hook_func:
                 # 如果都没有原始的 wrap_hook_func, 就直接使用原函数，拜托一层一层的封装
-                profiler_func = ori_func
+                # An around hook must call the trackable wrapper so a business
+                # exception is never retried as an instrumentation failure.
+                profiler_func = trackable_ori_func if self.around_hook_factory else ori_func
             else:
                 # 如果有原始的 wrap_hook_func, 就使用修改前的方式
                 profiler_func = profiler_func_maker(trackable_ori_func)
+
+            if self.around_hook_factory is not None:
+                profiler_func = self.around_hook_factory(profiler_func, ori_func)
 
             if hook_node is not None:
 
@@ -772,6 +780,8 @@ class VLLMHookerBase(ABC):
                 logger.debug(f"calling profiler_func={self.applied_hook_func_name} for {ori_func}")
                 return await profiler_func(*args, **kwargs)
             except Exception as e:
+                if trackable_ori_func.executed and trackable_ori_func.cached_exception is e:
+                    raise
                 failures += 1
                 self._log_hook_exception(trackable_ori_func, e, failures)
 
@@ -835,6 +845,8 @@ class VLLMHookerBase(ABC):
                 logger.debug(f"calling profiler_func={self.applied_hook_func_name} for {ori_func}")
                 return profiler_func(*args, **kwargs)
             except Exception as e:
+                if trackable_ori_func.executed and trackable_ori_func.cached_exception is e:
+                    raise
                 failures += 1
                 self._log_hook_exception(trackable_ori_func, e, failures)
 

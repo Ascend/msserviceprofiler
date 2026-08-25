@@ -11,6 +11,7 @@ import os
 import threading
 from collections import OrderedDict
 from dataclasses import dataclass
+from itertools import islice
 from typing import Iterable, Optional
 
 from .otel_hook import HookSpanContext, HookTraceSpan, get_hook_tracer_backend, new_noop_hook_span
@@ -46,7 +47,7 @@ class HookTraceRuntime:
     ) -> HookTraceSpan:
         if not self.enabled:
             return new_noop_hook_span()
-        normalized_request_ids = [str(item) for item in list(request_ids or [])[:MAX_LINKS_PER_SPAN]]
+        normalized_request_ids = [str(item) for item in islice(request_ids or (), MAX_LINKS_PER_SPAN)]
         links = self.request_links(normalized_request_ids)
         span = self._backend.start_span(name, domain, kind, links=links, start_time_ns=start_time_ns)
         if span.is_recording:
@@ -97,7 +98,7 @@ class HookTraceRuntime:
         with self._lock:
             request_traces = [
                 (str(request_id), self._requests.get(str(request_id)))
-                for request_id in list(request_ids)[:MAX_LINKS_PER_SPAN]
+                for request_id in islice(request_ids, MAX_LINKS_PER_SPAN)
             ]
         return [
             (request_trace.context, request_id)

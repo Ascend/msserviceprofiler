@@ -120,6 +120,11 @@ def _metrics_noop_handler(original_func, *args, **kwargs):
     return original_func(*args, **kwargs)
 
 
+def _profiling_noop_handler(original_func, *args, **kwargs):
+    """Trace-only passthrough; it keeps profiling handlers out of the process."""
+    return original_func(*args, **kwargs)
+
+
 def _resolve_metrics_handler_func(symbol_info: dict, method_name: str) -> Callable:
     """解析 metrics 配置的 handler：无 handler_path 时用 wrap_handler_with_metrics 封装透传函数；
     有 handler_path 且为 "module:func" 时导入并直接返回该函数（不再包装）。
@@ -158,6 +163,30 @@ class PatternEntry:
     caller_filter: Optional[str] = None
     need_locals: bool = False
     pattern_id: str = ""
+    around_hook_factory: Optional[Callable] = None
+
+
+def _make_trace_factory(item, method_name, symbol_path, traced_symbols, enable_tracing):
+    """Build one tracing wrapper while keeping profiling parsing shallow."""
+    if not enable_tracing:
+        return None
+
+    from .trace_hook import make_trace_around_factory, parse_hook_trace_spec
+
+    try:
+        trace_spec = parse_hook_trace_spec(item, method_name)
+    except ValueError as exc:
+        logger.warning("Skip invalid tracing metadata for %s: %s", symbol_path, exc)
+        return None
+
+    if trace_spec is None:
+        return None
+    if symbol_path in traced_symbols:
+        logger.warning("Ignore duplicate tracing definition for %s", symbol_path)
+        return None
+
+    traced_symbols.add(symbol_path)
+    return make_trace_around_factory(trace_spec)
 
 
 def _merge_config_impl(
@@ -228,7 +257,7 @@ class ConfigLoader:
         self._config_path = config_path
         self._framework_version = framework_version
 
-    def load_profiling(self) -> ProfilingConfig:
+    def load_profiling(self, enable_profiling: bool = True, enable_tracing: bool = False) -> ProfilingConfig:
         """加载 profiling yml 配置并解析为 Handler 列表与模式列表。
 
         Returns:
@@ -244,21 +273,28 @@ class ConfigLoader:
 
         result: Dict[str, List[ConfigHooker]] = {}
         pattern_entries: List[PatternEntry] = []
-
+        traced_symbols = set()
         for item in raw_config:
             if not isinstance(item, dict) or 'symbol' not in item:
                 logger.warning("Skip invalid config item: missing 'symbol'")
                 continue
 
             symbol_path = item['symbol']
-            need_locals = "expr" in json.dumps(item) or "handler" in json.dumps(item)
+            # Trace adapters use their independent around-call wrapper. Keep the
+            # bytecode/local-variable path exclusive to existing profiling handlers.
+            need_locals = enable_profiling and ("expr" in json.dumps(item) or "handler" in json.dumps(item))
 
             if _is_pattern_symbol(symbol_path):
                 parsed = _parse_symbol_pattern(symbol_path)
                 if not parsed:
                     continue
                 module_pattern, class_pattern, method_name = parsed
-                handler_func = _resolve_handler_func(item, method_name)
+                handler_func = _resolve_handler_func(item, method_name) if enable_profiling else _profiling_noop_handler
+                around_hook_factory = _make_trace_factory(
+                    item, method_name, symbol_path, traced_symbols, enable_tracing
+                )
+                if not enable_profiling and around_hook_factory is None:
+                    continue
                 name = item.get('name', method_name)
                 domain = item.get('domain', 'Default')
                 pattern_entries.append(
@@ -274,6 +310,7 @@ class ConfigLoader:
                         caller_filter=item.get('caller_filter'),
                         need_locals=need_locals,
                         pattern_id=symbol_path,
+                        around_hook_factory=around_hook_factory,
                     )
                 )
                 continue
@@ -283,7 +320,10 @@ class ConfigLoader:
                 continue
 
             hook_points = _build_hook_points(module_path, method_name, class_name)
-            handler_func = _resolve_handler_func(item, method_name)
+            handler_func = _resolve_handler_func(item, method_name) if enable_profiling else _profiling_noop_handler
+            around_hook_factory = _make_trace_factory(item, method_name, symbol_path, traced_symbols, enable_tracing)
+            if not enable_profiling and around_hook_factory is None:
+                continue
 
             handler_instance = ConfigHooker(
                 hook_list=hook_points,
@@ -294,6 +334,7 @@ class ConfigLoader:
                 caller_filter=item.get('caller_filter'),
                 need_locals=need_locals,
                 framework_version=self._framework_version,
+                around_hook_factory=around_hook_factory,
             )
 
             if symbol_path not in result:
