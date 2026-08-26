@@ -8,6 +8,7 @@
 
 |Product Type|Supported (Yes/No)|
 |--|:-:|
+|Ascend 950 products|No|
 |Atlas A3 training products and Atlas A3 inference products|No|
 |Atlas A2 training products and Atlas A2 inference products|Yes|
 |Atlas 200I/500 A2 inference products|No|
@@ -25,7 +26,7 @@ Adds an array attribute that accepts only numeric values.
 
 ## Function Prototype<a name="section1121883194711"></a>
 
-```CPP
+```cpp
 template <Level levelAttr = level, typename T>
 inline Profiler &NumArrayAttr(const char *attrName, const T &startIter, const T &endIter)
 ```

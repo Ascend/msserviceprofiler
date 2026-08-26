@@ -17,7 +17,8 @@ msServiceProfiler Compare Tool is designed for comparative analysis of performan
 
 |Product Type| Supported (Yes/No)|
 |--|:----:|
-|Atlas A3 training products and Atlas A3 inference products|  Yes  |
+|Ascend 950 products|No|
+|Atlas A3 Training Products and Atlas A3 Inference Products|  Yes  |
 |Atlas A2 training products and Atlas A2 inference products|  Yes  |
 |Atlas 200I/500 A2 inference products|  Yes  |
 |Atlas inference products|  Yes  |
@@ -34,8 +35,8 @@ msServiceProfiler Compare Tool is designed for comparative analysis of performan
 
 **Data Preparation**
 
-- Collect service profile data to obtain two sets of data for comparison. For detailed collection methods, see [msServiceProfiler](https://gitcode.com/Ascend/msserviceprofiler/blob/master/docs/en/msserviceprofiler_serving_tuning_instruct.md). 
-- In operator comparison scenarios, use [msServiceProfiler](https://gitcode.com/Ascend/msserviceprofiler/blob/master/docs/en/msserviceprofiler_serving_tuning_instruct.md) to collect profile data. Set `acl_task_time` to `3` to ensure that the directory of the collected profile data contains the operator data file suffixed with `_ascend_pt`.
+- Collect service profile data to obtain two sets of data for comparison. For detailed collection methods, see [msServiceProfiler](https://gitcode.com/Ascend/msserviceprofiler/blob/26.1.0/docs/en/msserviceprofiler_serving_tuning_instruct.md). 
+- In operator comparison scenarios, use [msServiceProfiler](https://gitcode.com/Ascend/msserviceprofiler/blob/26.1.0/docs/en/msserviceprofiler_serving_tuning_instruct.md) to collect profile data. Set `acl_task_time` to `3` to ensure that the directory of the collected profile data contains the operator data file suffixed with `_ascend_pt`.
 
 **Constraints**
 

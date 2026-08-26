@@ -5,13 +5,14 @@
 msServiceProfiler Multi Analyze parses the profile data collected by the msServiceProfiler from multiple dimensions, including request-level, batch-level, and overall service-level dimensions.
 
 ### Supported Products<a name="ZH-CN_TOPIC_0000002479925980"></a>
->
+
 >[!NOTE]
 >
 >For details about Ascend product models, see [Ascend Product Models](https://www.hiascend.com/document/detail/en/AscendFAQ/ProduTech/productform/hardwaredesc_0001.html).
 
 |Product Type| Supported (Yes/No)|
 |--|:----:|
+|Ascend 950 products|No|
 |Atlas A3 Training Products and Atlas A3 Inference Products|  Yes  |
 |Atlas A2 Training Products and Atlas A2 Inference Products|  Yes  |
 |Atlas 200I/500 A2 inference products|  Yes  |
@@ -31,7 +32,7 @@ Install [msServiceProfiler](msserviceprofiler_install_guide.md).
 
 **Version Compatibility**
 
-msServiceProfiler Multi Analyze depends on the `ms_service_profiler` tool provided in `Ascend-cann-toolkit`.
+msServiceProfiler Multi Analyze depends on the `ms_service_profiler` tool provided in `Ascend-CANN-Toolkit`.
 
 | msServiceProfiler Multi Analyze|     CANN     |     MindIE     |
 |:-------------:|:------------:|:--------------:|

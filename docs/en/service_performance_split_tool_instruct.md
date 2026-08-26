@@ -17,11 +17,12 @@ Based on performance data collected by msServiceProfiler, Service Performance Sp
 
 |Product Type| Supported (Yes/No)|
 |--|:----:|
-|Atlas A3 training products and Atlas A3 inference products|  Yes  |
+|Ascend 950 products|No|
+|Atlas A3 Training Products and Atlas A3 Inference Products|  Yes  |
 |Atlas A2 training products and Atlas A2 inference products|  Yes  |
 |Atlas 200I/500 A2 inference products|  Yes  |
 |Atlas inference products|  Yes  |
-|Atlas training products|  x   |
+|Atlas training products|  No   |
 
 >[!NOTE]
 >
