@@ -21,12 +21,10 @@ from ms_service_profiler.constant import US_PER_MS
 from ms_service_profiler.utils.log import logger
 from ms_service_profiler.utils.timer import timer
 from ms_service_profiler.utils.error import key_except
-from ms_service_profiler.exporters.utils import (
-    TableConfig, write_result_to_csv,
-    write_result_to_db, check_domain_valid
-)
+from ms_service_profiler.exporters.utils import TableConfig, write_result_to_csv, write_result_to_db, check_domain_valid
 
-def is_invaild_rid(rid):
+
+def is_invalid_rid(rid):
     return ',' in rid or '{' in rid or ':' in rid
 
 
@@ -36,7 +34,7 @@ def get_req_base_info(df):
     req_base_info = []
     for rid, pre_req_data in req_group_df:
         rid = str(rid)
-        if rid == "" or is_invaild_rid(rid):
+        if rid == "" or is_invalid_rid(rid):
             continue
 
         # 构造请求信息
@@ -48,7 +46,7 @@ def get_req_base_info(df):
             'recvTokenSize=': '',
             'replyTokenSize=': '',
             'execution_time': '',
-            'cache_hit_rate': ''
+            'cache_hit_rate': '',
         }
 
         # 获取httpReq
@@ -91,7 +89,7 @@ def get_req_base_info(df):
         if new_req['start_time'] != '' and new_req['end_time'] != '':
             new_req['end_time'] = new_req['end_time'] // US_PER_MS
             new_req['start_time'] = new_req['start_time'] // US_PER_MS
-            new_req['execution_time'] = (new_req['end_time'] - new_req['start_time'])
+            new_req['execution_time'] = new_req['end_time'] - new_req['start_time']
 
             new_req['start_datetime'] = new_req['start_datetime']
 
@@ -99,9 +97,7 @@ def get_req_base_info(df):
     return pd.DataFrame(req_base_info)
 
 
-def safe_merge_ttft_que(req_base_info: pd.DataFrame,
-                        ttft_df: pd.DataFrame,
-                        que_df: pd.DataFrame) -> pd.DataFrame:
+def safe_merge_ttft_que(req_base_info: pd.DataFrame, ttft_df: pd.DataFrame, que_df: pd.DataFrame) -> pd.DataFrame:
     """
     无 copy 合并 rid、ttft、que_wait_time
     """
@@ -109,32 +105,32 @@ def safe_merge_ttft_que(req_base_info: pd.DataFrame,
     if 'rid' not in req_base_info.columns:
         req_base_info['rid'] = 'unknown'
 
-    ttft_part = (ttft_df[['rid', 'ttft']]
-                 .drop_duplicates('rid') if not ttft_df.empty and 'ttft' in ttft_df.columns
-                 else pd.DataFrame(columns=['rid', 'ttft']))
+    ttft_part = (
+        ttft_df[['rid', 'ttft']].drop_duplicates('rid')
+        if not ttft_df.empty and 'ttft' in ttft_df.columns
+        else pd.DataFrame(columns=['rid', 'ttft'])
+    )
 
     # 2.que_wait_time
-    que_part = (que_df[['rid', 'que_wait_time']]
-                .drop_duplicates('rid') if not que_df.empty and 'que_wait_time' in que_df.columns
-                else pd.DataFrame(columns=['rid', 'que_wait_time']))
+    que_part = (
+        que_df[['rid', 'que_wait_time']].drop_duplicates('rid')
+        if not que_df.empty and 'que_wait_time' in que_df.columns
+        else pd.DataFrame(columns=['rid', 'que_wait_time'])
+    )
 
     # 3.合并ttft+que
     metrics = ttft_part.merge(que_part, on='rid', how='outer')
 
     # 4.与req_base_info合并
     return (
-        req_base_info
-        .assign(rid=lambda d: d['rid'].astype(str))
+        req_base_info.assign(rid=lambda d: d['rid'].astype(str))
         .merge(metrics, on='rid', how='left')
-        .assign(
-            ttft=lambda d: d['ttft'].fillna(0),
-            que_wait_time=lambda d: d['que_wait_time'].fillna(0)
-        )
+        .assign(ttft=lambda d: d['ttft'].fillna(0), que_wait_time=lambda d: d['que_wait_time'].fillna(0))
         .infer_objects()
     )
 
- 
-class ExporterReqData(ExporterBase):
+
+class ExporterReqData(ExporterBase):  # pylint: disable=abstract-method
     name = "req_data"
 
     @classmethod
@@ -164,10 +160,10 @@ class ExporterReqData(ExporterBase):
         df = df[~df['domain'].isin(['KVCache', 'PullKVCache'])]
         df = df[~df['name'].isin(['forward'])]
         ttft_df = data.get("req_ttft_df", pd.DataFrame())  # ttft的单位是微秒，需要转换为毫秒
-        ttft_df.loc[:, 'ttft'] = ttft_df['ttft'].div(US_PER_MS)
+        ttft_df['ttft'] = ttft_df['ttft'].div(US_PER_MS)
 
-        que_wait_df = data.get("req_que_wait_df", pd.DataFrame())   # que_wait_df的单位是微秒，需要转换为毫秒
-        que_wait_df.loc[:, 'que_wait_time'] = que_wait_df['que_wait_time'].div(US_PER_MS)
+        que_wait_df = data.get("req_que_wait_df", pd.DataFrame())  # que_wait_df的单位是微秒，需要转换为毫秒
+        que_wait_df['que_wait_time'] = que_wait_df['que_wait_time'].div(US_PER_MS)
 
         req_base = get_req_base_info(df)
         req_base_info = safe_merge_ttft_que(req_base, ttft_df, que_wait_df)
@@ -177,8 +173,15 @@ class ExporterReqData(ExporterBase):
             req_base_info['cache_hit_rate'] = req_base_info['cache_hit_rate'].replace('', 'N/A').fillna('N/A')
 
         required_colunms = [
-            'rid', 'start_datetime', 'recvTokenSize=', 'replyTokenSize=',
-            'execution_time', 'que_wait_time', 'ttft', 'cache_hit_rate', 'start_time'
+            'rid',
+            'start_datetime',
+            'recvTokenSize=',
+            'replyTokenSize=',
+            'execution_time',
+            'que_wait_time',
+            'ttft',
+            'cache_hit_rate',
+            'start_time',
         ]
         filtered_df = req_base_info.reindex(columns=required_colunms)
 
@@ -190,8 +193,7 @@ class ExporterReqData(ExporterBase):
 
         check_columns = ['recvTokenSize=', 'replyTokenSize=', 'execution_time']
 
-        if filtered_df[check_columns].eq(0).all().all() or \
-            filtered_df[check_columns].isna().all().all():
+        if filtered_df[check_columns].eq(0).all().all() or filtered_df[check_columns].isna().all().all():
             logger.warning(
                 "The data is not complete for request.csv, "
                 "prof data recv request or reply request was not captured. please check."
@@ -203,25 +205,27 @@ class ExporterReqData(ExporterBase):
         invalid_start_time_count = start_time_sort_key.isna().sum()
         if invalid_start_time_count > 0:
             logger.debug(
-                f"ExporterReqData: {invalid_start_time_count} rows have invalid start_time values and will be sorted last."
+                "ExporterReqData: %s rows have invalid start_time values and will be sorted last.",
+                invalid_start_time_count,
             )
 
         filtered_df = (
-            filtered_df
-            .assign(_start_time_sort_key=start_time_sort_key)
+            filtered_df.assign(_start_time_sort_key=start_time_sort_key)
             .sort_values(by='_start_time_sort_key', na_position='last', kind='stable')
             .drop(columns=['_start_time_sort_key'])
             .reset_index(drop=True)
         )
 
-        filtered_df = filtered_df.rename(columns={
+        filtered_df = filtered_df.rename(
+            columns={
                 'rid': 'http_rid',
                 'start_time': 'start_time(ms)',
                 'recvTokenSize=': 'recv_token_size',
                 'replyTokenSize=': 'reply_token_size',
                 'ttft': 'first_token_latency',
-                'que_wait_time': 'queue_wait_time'
-            })
+                'que_wait_time': 'queue_wait_time',
+            }
+        )
 
         if 'db' in cls.args.format:
             db_cache_hit = filtered_df['cache_hit_rate'].replace('N/A', None)
@@ -232,9 +236,11 @@ class ExporterReqData(ExporterBase):
 
 
 REQUEST_DATA_RENAME_COLS = {
-    'start_datetime': 'start_datetime', 'execution_time': 'execution_time(ms)',
-    'queue_wait_time': 'queue_wait_time(ms)', 'first_token_latency': 'first_token_latency(ms)',
-    'cache_hit_rate': 'cache_hit_rate'
+    'start_datetime': 'start_datetime',
+    'execution_time': 'execution_time(ms)',
+    'queue_wait_time': 'queue_wait_time(ms)',
+    'first_token_latency': 'first_token_latency(ms)',  # nosec B105
+    'cache_hit_rate': 'cache_hit_rate',
 }
 
 CREATE_REQUEST_TABLE_CONFIG = TableConfig(
@@ -244,6 +250,6 @@ CREATE_REQUEST_TABLE_CONFIG = TableConfig(
     view_rename_cols=REQUEST_DATA_RENAME_COLS,
     description={
         "en": "Servitized Inference Request-Level Metrics: Time to First Token (TTFT), Input/Output Length, etc",
-        "zh": "以服务化推理请求为粒度的详细数据指标，包括TTFT，请求的输入输出长度等信息"
-    }
+        "zh": "以服务化推理请求为粒度的详细数据指标，包括TTFT，请求的输入输出长度等信息",
+    },
 )

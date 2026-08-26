@@ -16,10 +16,7 @@
 
 import pandas as pd
 from ms_service_profiler.exporters.base import ExporterBase
-from ms_service_profiler.exporters.utils import (
-    write_result_to_csv, write_result_to_db,
-    check_domain_valid, TableConfig
-)
+from ms_service_profiler.exporters.utils import write_result_to_csv, write_result_to_db, check_domain_valid, TableConfig
 from ms_service_profiler.constant import US_PER_MS
 from ms_service_profiler.utils.log import logger
 from ms_service_profiler.utils.timer import timer
@@ -31,24 +28,24 @@ FORWARD_REMAME_COLUMNS = {
     "end_time": "end_time(ms)",
     "during_time": "during_time(ms)",
     "relative_start_time": "relative_start_time(ms)",
-    "bubble_time": "bubble_time(ms)"
+    "bubble_time": "bubble_time(ms)",
 }
 DELETE_COLUMNS = ["rid", "rid_list", "pid", "tid"]
 
 
-class ExporterForwardData(ExporterBase):
+class ExporterForwardData(ExporterBase):  # pylint: disable=abstract-method
     name = "forward_data"
 
     @classmethod
     def initialize(cls, args):
         cls.args = args
-    
+
     @classmethod
     @timer(logger.debug)
     def export(cls, data) -> None:
         if "csv" not in cls.args.format and "db" not in cls.args.format:
             return
-        
+
         df = data.get("tx_data_df")
         if df is None:
             logger.warning("There is no service prof data, froward data will not be generated. please check")
@@ -62,15 +59,18 @@ class ExporterForwardData(ExporterBase):
         REQUIED_NAME.add(batch_name)
         check_all = all(element in df["name"].unique() for element in REQUIED_NAME)
         if not check_all:
-            logger.warning(f"The data is not complete, froward data will not be generated. please check. \
-                            The required data for forward.csv is {REQUIED_NAME}")
+            warning_msg = (
+                f"The data is not complete, froward data will not be generated. please check. "
+                f"The required data for forward.csv is {REQUIED_NAME}"
+            )
+            logger.warning(warning_msg)
             return
 
         forward_df = get_filter_forward_df(REQUIED_NAME, df)
-        
+
         # 获取batch_type 和 batch_size
         forward_df = get_batch_info(forward_df, batch_name)
-        
+
         # 计算 relative_time, bubble_time
         if forward_df.empty:
             logger.warning(
@@ -79,7 +79,7 @@ class ExporterForwardData(ExporterBase):
             )
             return
         forward_df = get_relative_and_bubble(forward_df)
-        
+
         forward_df = forward_df.drop(columns=DELETE_COLUMNS)
         forward_df["forward_iter"] = forward_df.groupby("prof_id").cumcount() + 1
         forward_df = forward_df.sort_values(by=["start_time"]).reset_index(drop=True)
@@ -88,11 +88,7 @@ class ExporterForwardData(ExporterBase):
             forward_df['start_time'] = forward_df['start_time']
             forward_df['end_time'] = forward_df['end_time']
 
-        data_link_df = pd.DataFrame({
-            'source_name': ['rid'],
-            'target_table': ['request'],
-            'target_name': ['http_rid']
-        })
+        data_link_df = pd.DataFrame({'source_name': ['rid'], 'target_table': ['request'], 'target_name': ['http_rid']})
 
         if 'db' in cls.args.format:
             write_result_to_db(CREATE_FORWARD_TABLE_CONFIG, forward_df)
@@ -123,10 +119,26 @@ def get_batch_name(dataframe):
 def get_filter_forward_df(required_name, forward_df):
     mask = forward_df["name"].isin(required_name)
 
-    ori_columns = ["name", "relative_start_time", "start_datetime", "end_datetime",
-                   "during_time", "bubble_time", "batch_size", "batch_type",
-                   "forward_iter", "rid", "rid_list", "dp_rank", "prof_id", "hostname",
-                   "pid", "tid", "start_time", "end_time"]
+    ori_columns = [
+        "name",
+        "relative_start_time",
+        "start_datetime",
+        "end_datetime",
+        "during_time",
+        "bubble_time",
+        "batch_size",
+        "batch_type",
+        "forward_iter",
+        "rid",
+        "rid_list",
+        "dp_rank",
+        "prof_id",
+        "hostname",
+        "pid",
+        "tid",
+        "start_time",
+        "end_time",
+    ]
 
     missing_columns = set(ori_columns) - set(forward_df.columns)
     for col in missing_columns:
@@ -157,21 +169,26 @@ def get_batch_info(forward_df, batch_name):
 
         for idx in batch_name_indices:
             temp_result.loc[(temp_result.index > idx), "batch_type"] = group.loc[idx, "batch_type"]
-        
+
         # 将处理后的组添加到最终结果中
         result.append(temp_result)
 
     merged = pd.concat(result, ignore_index=True)
-    mask = (merged["name"] != batch_name)
+    mask = merged["name"] != batch_name
     merged = merged[mask].sort_values(by=["start_time"]).reset_index(drop=True)
 
     return merged
 
 
 def get_relative_and_bubble(forward_df):
-    forward_df = forward_df.groupby("hostname").apply(calculate_relative_times).reset_index(drop=True)
+    forward_df = forward_df.copy()
+    forward_df["relative_start_time"] = (
+        forward_df["start_time"] - forward_df.groupby("hostname")["start_time"].transform("min")
+    ).round(2)
     # 计算 bubble_time
-    forward_df = forward_df.groupby("prof_id").apply(calculate_bubble_time).reset_index(drop=True)
+    forward_df["bubble_time"] = (forward_df.groupby("prof_id")["start_time"].shift(-1) - forward_df["end_time"]).round(
+        2
+    )
     mask = forward_df.groupby("prof_id").cumcount(ascending=False) == 0
     forward_df.loc[mask, "bubble_time"] = pd.NA
 
@@ -185,6 +202,6 @@ CREATE_FORWARD_TABLE_CONFIG = TableConfig(
     view_rename_cols=FORWARD_REMAME_COLUMNS,
     description={
         "en": "Detailed data for the forward execution during servitized inference",
-        "zh": "服务化推理模型前向执行过程的详细数据"
-    }
+        "zh": "服务化推理模型前向执行过程的详细数据",
+    },
 )
