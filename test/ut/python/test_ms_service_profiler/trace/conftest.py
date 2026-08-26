@@ -18,17 +18,6 @@ import pytest
 from unittest.mock import MagicMock, patch
 
 
-mock_modules = {
-    'opentelemetry': MagicMock(),
-    'opentelemetry.proto.collector.trace.v1.trace_service_pb2': MagicMock(),
-    'opentelemetry.exporter.otlp.proto.http.trace_exporter': MagicMock(),
-    'opentelemetry.exporter.otlp.proto.grpc.trace_exporter': MagicMock(),
-    'opentelemetry.sdk.trace.export': MagicMock()
-}
-patch_obj = patch.dict('sys.modules', mock_modules)
-patch_obj.start()
-
-
 @pytest.fixture(autouse=True)
 def mock_span_export_result():
     """Fixture: Mock SpanExportResult enum"""

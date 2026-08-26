@@ -49,6 +49,7 @@ nav:
       - SGLang 服务化性能采集工具: zh/SGLang_service_oriented_performance_collection_tool.md
     - 3. Trace 数据链路监测:
       - 服务化Trace数据监测工具: zh/msserviceprofiler_trace_data_monitoring_instruct.md
+      - vLLM Hook Tracing 使用指南: zh/vLLM_hook_tracing_instruct.md
     - 4. 采集数据的比对与多维分析:
       - 服务化性能数据比对工具: zh/ms_service_profiler_compare_tool_instruct.md
       - 服务化多维度解析工具: zh/msserviceprofiler_multi_analyze_instruct.md

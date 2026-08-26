@@ -27,9 +27,9 @@ msServiceProfiler Trace采集MindIE Motor服务中的请求响应时间、响应
 |昇腾910系列产品|×|
 
 > [!NOTE]
-> 
->针对昇腾A2系列产品，当前仅支持该系列产品中的Atlas 800I A2 推理服务器。
->针对昇腾310P系列产品，当前仅支持该系列产品中的Atlas 300I Duo 推理卡 + A800-3000推理服务器。
+>
+>针对Atlas A2 训练系列产品/Atlas A2 推理系列产品，当前仅支持该系列产品中的Atlas 800I A2 推理服务器。
+>针对Atlas 推理系列产品，当前仅支持该系列产品中的Atlas 300I Duo 推理卡+Atlas 800 推理服务器（型号：3000）。
 
 ## 使用前准备<a name="ZH-CN_TOPIC_0000002486482024"></a>
 
@@ -71,11 +71,11 @@ msServiceProfiler Trace转发数据最大支持400并发，超过400并发可能
 
 2. 通过配置环境变量支持更灵活的采样控制。
 
-    | 环境变量名 | 说明 | 
+    | 环境变量名 | 说明 |
     |------------|------|
-    | `MS_PROFILER_AUTO_TRACE` | 当请求头中没有传递 trace_id 时，是否自动生成 trace_id。设置为 `1` 时开启自动生成；未设置或设置为其他值时不生成。 | 
-    | `MS_PROFILER_SAMPLE_RATE` | 设置采样频率，仅对自动生成 `trace_id` 的请求生效。该值为正整数 N，表示每 N 次请求采样 1 次。若未设置或设置为非正整数，则不采样。 | 
-    | `MS_PROFILER_SAMPLE_ERROR` | 是否仅上报错误的请求（适用于所有请求）。设置为 `1` 时仅上报错误 Span；未设置或设置为其他值时上报所有请求。 | 
+    | `MS_PROFILER_AUTO_TRACE` | 当请求头中没有传递 trace_id 时，是否自动生成 trace_id。设置为 `1` 时开启自动生成；未设置或设置为其他值时不生成。 |
+    | `MS_PROFILER_SAMPLE_RATE` | 设置采样频率，仅对自动生成 `trace_id` 的请求生效。该值为正整数 N，表示每 N 次请求采样 1 次。若未设置或设置为非正整数，则不采样。 |
+    | `MS_PROFILER_SAMPLE_ERROR` | 是否仅上报错误的请求（适用于所有请求）。设置为 `1` 时仅上报错误 Span；未设置或设置为其他值时上报所有请求。 |
 
 ```bash
 # 设置环境变量示例
@@ -156,8 +156,10 @@ export MS_PROFILER_SAMPLE_ERROR=1
 **命令格式<a name="section10872103414491"></a>**
 
 ```bash
-python -m ms_service_profiler.trace [--log-level]
+python -m ms_service_profiler.trace [--log-level] [--perfetto-output]
 ```
+
+> 对于 vLLM Hook Tracing，必须由 vLLM 原生 OpenTelemetry Provider 直接导出到 Jaeger。`--perfetto-output` 仅启动 Hook Span 的附加文件出口，不能脱离 vLLM 原生 Tracing 单独使用。MindIE Motor 仍保持本章原有 Forwarder 用法。详见《vLLM Hook Tracing 使用指南》。
 
 options参数说明请参见[参数说明](#section379581401015)。
 
@@ -166,6 +168,7 @@ options参数说明请参见[参数说明](#section379581401015)。
 |**参数**|说明|**是否必选**|
 |--|--|--|
 |--log-level|设置日志级别，取值为：<br>&#8226; debug：调试级别。该级别的日志记录了调试信息，便于开发人员或维护人员定位问题。<br>&#8226; info：正常级别。记录工具正常运行的信息。默认值。<br>&#8226; warning：警告级别。记录工具和预期的状态不一致，但不影响整个进程运行的信息。<br>&#8226; error：一般错误级别。<br>&#8226; critical：严重错误级别。<br>&#8226; fatal：致命错误级别。|否|
+|--perfetto-output|vLLM Hook Tracing 的可选 Perfetto/Chrome Trace JSON 输出路径。使用时 vLLM 必须同时通过 `--otlp-traces-endpoint` 开启原生 Tracing；该参数不改变 MindIE Motor 原 OTLP Forwarder。|否|
 
 **使用示例<a name="section246434914919"></a>**
 
@@ -173,6 +176,12 @@ options参数说明请参见[参数说明](#section379581401015)。
 
 ```bash
 python -m ms_service_profiler.trace
+```
+
+vLLM 已通过 `--otlp-traces-endpoint` 开启原生 Tracing 后，如需附加生成 Perfetto 可直接打开的 Chrome Trace JSON，命令如下：
+
+```bash
+python -m ms_service_profiler.trace --perfetto-output /path/to/hook_tracing.json
 ```
 
 启动Trace转发进程使用的用户需要和启动MindIE Motor服务的用户一致，且在同网络命名空间中（同docker或同host）。
@@ -274,7 +283,7 @@ curl http://127.0.0.1:1025/v1/chat/completions \
 
 完成[发送请求](#发送请求)后，可以在支持OTLP协议的开源监测平台（例如Jaeger，须先开启Jaeger平台服务）查看可视化结果，示例如下。
 
-**图 1**  可视化结果<a name="fig485163113451"></a>  
+**图 1**  可视化结果<a name="fig485163113451"></a>
 ![](figures/可视化结果.png "可视化结果")
 
 字段说明如下：

@@ -27,21 +27,34 @@ def main():
         type=str,
         default='info',
         choices=['debug', 'info', 'warning', 'error', 'fatal', 'critical'],
-        help='Log level to print')
+        help='Log level to print',
+    )
+    parser.add_argument(
+        '--perfetto-output',
+        type=str,
+        default=None,
+        help='Optional Chrome Trace JSON file for Hook spans. vLLM OTLP tracing must also be enabled.',
+    )
     args = parser.parse_args()
     set_log_level(args.log_level)
 
-    if os.name != "nt" and os.getuid() == 0:
+    get_uid = getattr(os, "getuid", lambda: -1)
+    if os.name != "nt" and get_uid() == 0:
         logger.warning(
             "Security Warning: Running with root privileges may compromise system security. "
             "Run the program as the user who runs MindIE."
         )
 
     try:
-        service = OTLPForwarderService()
+        if args.perfetto_output:
+            from ms_service_profiler.tracer.perfetto_forward_service import PerfettoForwarderService
+
+            service = PerfettoForwarderService(args.perfetto_output)
+        else:
+            service = OTLPForwarderService()
         service.start()
     except Exception as e:
-        logger.error(f"Start OTLPForwarderService failed: {e}")
+        logger.error("Start trace service failed: %s", e)
 
 
 if __name__ == '__main__':

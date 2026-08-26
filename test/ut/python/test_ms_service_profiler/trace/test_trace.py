@@ -22,13 +22,30 @@ class TestMain:
     @patch('ms_service_profiler.trace.argparse.ArgumentParser')
     @patch('ms_service_profiler.trace.set_log_level')
     @patch('ms_service_profiler.trace.OTLPForwarderService')
-    def test_main_success(self, mock_otlp_service, mock_set_log_level, mock_arg_parser):
-        """Test the behavior of the main function in a successful scenario"""
-        mock_args = MagicMock()
-        mock_args.log_level = 'info'
+    def test_main_without_perfetto_keeps_legacy_otlp_service(
+        self, mock_otlp_service, mock_set_log_level, mock_arg_parser
+    ):
+        mock_args = MagicMock(log_level='info', perfetto_output=None)
         mock_arg_parser.return_value.parse_args.return_value = mock_args
         mock_service_instance = MagicMock()
         mock_otlp_service.return_value = mock_service_instance
         main()
         mock_set_log_level.assert_called_once_with('info')
+        mock_otlp_service.assert_called_once_with()
         mock_service_instance.start.assert_called_once()
+
+    @patch('ms_service_profiler.trace.argparse.ArgumentParser')
+    @patch('ms_service_profiler.trace.set_log_level')
+    @patch('ms_service_profiler.trace.OTLPForwarderService')
+    @patch('ms_service_profiler.tracer.perfetto_forward_service.PerfettoForwarderService')
+    def test_main_with_perfetto_uses_independent_hook_service(
+        self, mock_perfetto_service, mock_otlp_service, mock_set_log_level, mock_arg_parser
+    ):
+        mock_args = MagicMock(log_level='debug', perfetto_output='/tmp/hook_trace.json')
+        mock_arg_parser.return_value.parse_args.return_value = mock_args
+        main()
+
+        mock_set_log_level.assert_called_once_with('debug')
+        mock_perfetto_service.assert_called_once_with('/tmp/hook_trace.json')
+        mock_perfetto_service.return_value.start.assert_called_once()
+        mock_otlp_service.assert_not_called()

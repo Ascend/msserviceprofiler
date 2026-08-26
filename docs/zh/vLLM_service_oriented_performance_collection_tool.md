@@ -64,6 +64,8 @@ vllm serve Qwen/Qwen2.5-0.5B-Instruct &
 
 `service_profiling_symbols.yaml` 为需要导入的埋点配置文件。你也可以选择不设置环境变量 `PROFILING_SYMBOLS_PATH` ，此时将使用默认的配置文件；若你指定的路径下不存在该文件，系统同样会在你指定的路径生成一份配置文件以便后续修改。可参考[点位配置使用指南](#点位配置使用指南)一节进行自定义。
 
+如需通过 Hook 创建自定义链路 Span，并将数据接入 Jaeger 或 Perfetto，请参见 [vLLM Hook Tracing 使用指南](./vLLM_hook_tracing_instruct.md)。
+
 **2. 开启采集**
 
 将配置文件`ms_service_profiler_config.json`中的 `enable` 字段由 `0` 修改为 `1`，即可开启性能数据采集的开关，可以通过执行下面sed指令完成采集服务的开启：
