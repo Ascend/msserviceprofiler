@@ -33,7 +33,7 @@ vLLM 服务化 Prometheus 数据监测工具用于增强 vLLM-Ascend 推理服�
 ### 约束
 
 - **版本配套**：请确保 vLLM-Ascend、CANN 和采集工具的版本配套关系符合附录中的要求。
-- **资源占用**：数据监测必须开启 **Prometheus 多进程模式**（`PROMETHEUS_MULTIPROC_DIR`），可能对推理性能有一定影响。
+- **资源占用**：数据监测必须开启 **Prometheus 多进程模式**（`PROMETHEUS_MULTIPROC_DIR`）。指标采集会增加运行开销，正式使用前应在固定负载下测量采集开启前后的性能差异。
 - **功能限制**：部分高级功能需要特定版本的 vLLM-Ascend 框架支持。
 
 ### 第三方可视化工具说明
@@ -301,7 +301,128 @@ vllm_profiling_server:create_chat_completion:duration_count{dp="-1"} 9.0
 | eplb:log2phy_map_update:duration | Histogram | - | EPLB 逻辑到物理映射更新耗时 |
 | eplb:expert_weight_replace:duration | Histogram | - | EPLB 专家权重替换耗时 |
 
+## 指标分析方法
+
+### 分析顺序
+
+性能分析按“业务 SLO、调度与容量、模型执行、异常状态”的顺序展开：
+
+1. 使用 `fine_grained_ttft`、`fine_grained_tpot` 和 `engine:generate:duration` 确认异常影响首 Token、后续 Token 还是引擎生成过程；压测客户端端到端时延单独记录，不能与服务端引擎耗时混用。
+2. 使用 `waiting_batch_size`、`batch_size` 和 `scheduler:duration` 判断请求是否堵塞在调度阶段。
+3. 使用 `free_kvcache_blocks`、`allocated_kvcache_blocks`、`block_allocate_failures`、`running_to_waiting_count` 判断 KVCache 是否限制请求进入执行阶段。
+4. 使用 `executor:execute_model:duration`、`executor:model_runner_execute_model:duration` 和 `npu:forward_duration` 判断模型执行是否变慢。
+5. 使用 `output_processor_duration`、`rpc_errors` 和 `health_check_failed` 排查输出处理和异常路径。
+6. 按 `instance`、`dp`、`phase`、`rank` 拆分结果，区分全局问题与局部热点。
+
+所有对比必须使用相同模型、版本、输入/输出 Token 分布、并发和服务参数。异常判断以同负载正常窗口为基线，连续采集点形成的趋势才作为诊断证据。
+
+### 按指标类型查询
+
+| 类型 | 正确用法 | 说明 |
+|---|---|---|
+| Gauge | 直接查看当前值、范围和实例差异 | 适用于 KVCache Block、显存等状态量 |
+| Counter | 使用 `rate()` 查看速率，使用 `increase()` 查看窗口增量 | 进程重启会使 Counter 归零 |
+| Histogram | 使用 `_bucket` 计算分位数，使用 `_sum/_count` 计算平均值 | 计算分位数时必须保留 `le` 标签 |
+
+以下 PromQL 使用实际导出的 `vllm_profiling_` 前缀。查询窗口可按抓取间隔和压测时长调整。
+
+调度耗时 P99：
+
+```promql
+histogram_quantile(
+  0.99,
+  sum by (le, instance, dp) (
+    rate(vllm_profiling_scheduler:duration_bucket[5m])
+  )
+)
+```
+
+模型执行平均耗时：
+
+```promql
+sum by (instance, dp, phase) (
+  rate(vllm_profiling_executor:execute_model:duration_sum[5m])
+)
+/
+sum by (instance, dp, phase) (
+  rate(vllm_profiling_executor:execute_model:duration_count[5m])
+)
+```
+
+KVCache 使用率：
+
+```promql
+100 * (
+  1 -
+  vllm_profiling_free_kvcache_blocks
+  /
+  vllm_profiling_total_kvcache_blocks
+)
+```
+
+KVCache 分配失败增量：
+
+```promql
+sum by (instance, dp) (
+  increase(vllm_profiling_block_allocate_failures_total[5m])
+)
+```
+
+调度重计算增量：
+
+```promql
+sum by (instance, dp) (
+  increase(vllm_profiling_scheduler:recompute_events_total[5m])
+)
+```
+
+投机推理接受率：
+
+```promql
+sum by (instance, role) (
+  rate(vllm:spec_decode_num_accepted_tokens_total[5m])
+)
+/
+clamp_min(
+  sum by (instance, role) (
+    rate(vllm:spec_decode_num_draft_tokens_total[5m])
+  ),
+  1e-9
+)
+```
+
+投机推理接受率使用 vLLM 原生 Counter，含义为窗口内被接受的草稿 Token 数除以草稿 Token 总数。保留实例维度，分母没有增量的窗口不参与比较。
+
+### 指标组合与定界结论
+
+| 指标组合 | 定界结论 | Tracing 检查项 |
+|---|---|---|
+| TTFT 升高；waiting 升高；模型执行耗时稳定 | 耗时增加在模型执行之前 | 调度 Span、调度到模型执行之间的空白 |
+| waiting 升高；scheduler P99 升高；NPU 利用率低；model 耗时稳定 | 调度或 Host 路径形成瓶颈 | `vllm.scheduler.schedule` 与 model Span 的差值 |
+| free blocks 持续低位；分配失败增加；waiting 与 TTFT 同步升高 | KVCache 容量限制请求调度 | 请求关联、调度后等待区间、相同 Token 规模的对照 Trace |
+| 投机推理接受率下降；TPOT 或输出 Token 吞吐劣化；草稿 Token 规模稳定 | 草稿 Token 有效产出下降 | Tracing 仅用于排除调度、执行和输出阶段，接受率由 Counter 或 Profiler 确认 |
+| TPOT 升高；execute model 与 forward 同步升高；scheduler 稳定 | 模型执行阶段变慢 | `vllm.model.execute`、`vllm_ascend.model_runner.execute` |
+| execute model 升高；model runner 稳定 | Executor 外围开销增加 | IPC、同步、数据准备和 Span 间空白 |
+| output processor 升高；model 稳定 | 输出处理阶段变慢 | `vllm.output.process` |
+| 只有部分 dp/rank 异常 | 局部负载或资源不均 | 对比异常与正常 dp/rank 的请求和 Token 规模 |
+
+单个指标不直接作为根因。结论至少包含一个 SLO 指标、一个阶段指标和一个容量或执行指标，并要求这些指标在同一时间窗口形成一致变化。
+
+### 可选：从 Metrics 下钻到 Tracing
+
+Metrics 已经能够形成阶段或容量结论时，可以直接进入处理和复测；需要查看具体请求路径时，再按以下步骤关联 Tracing：
+
+1. 在 Grafana 中记录异常开始时间、结束时间、实例、DP 域和请求阶段。
+2. 在 Jaeger 中选择覆盖该时间窗口的 Lookback，限定相同服务。
+3. 选择相同 Token 规模和请求阶段的正常、异常观测组。
+4. 使用 `request.id`、`request.ids`、Trace ID 和 Span Links 确认请求与 Batch 的关联。
+5. 对比 scheduler、model、model runner 和 output Span；只有同一 Trace ID 或统一 Perfetto Timeline 才计算 Span 间空白。
+
+完整流程参见[《vLLM-Ascend 可观测性性能诊断指南》](./vllm_ascend_observability_analysis_guide.md)。
+
 ## 相关文档
 
 - [vLLM 服务化性能采集工具](./vLLM_service_oriented_performance_collection_tool.md)：性能剖析与 Trace 分析
+- [vLLM Hook Tracing 使用指南](./vLLM_hook_tracing_instruct.md)：请求链路分析
+- [vLLM-Ascend 可观测性性能诊断指南](./vllm_ascend_observability_analysis_guide.md)：Metrics 与 Tracing 联合分析
 - [数据采集配置说明](./msserviceprofiler_serving_tuning_instruct.md#数据采集)：`ms_service_profiler_config.json` 配置详解

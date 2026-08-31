@@ -40,6 +40,7 @@ nav:
   - 开始使用:
     - 安装指南: zh/msserviceprofiler_install_guide.md
     - 快速入门: zh/quick_start.md
+    - vLLM-Ascend 可观测性性能诊断: zh/vllm_ascend_observability_analysis_guide.md
     - 项目目录: zh/dir_structure.md
   - 功能介绍:
     - 1. 服务化性能调优:
@@ -125,7 +126,7 @@ nav:
       - DP负载不均: zh/best_practices/dp_load_imbalance.md
       - EP负载不均: zh/best_practices/ep_load_imbalance.md
       - 框架调度下发不同步: zh/best_practices/framework_dispatch_desync.md
-      - KV Block数量不足: zh/best_practices/kv_block_shortage.md
+      - 新测评数据集触发 KVCache 容量瓶颈: zh/best_practices/kv_block_shortage.md
       - KVCache传输影响模型性能: zh/best_practices/kvcache_transfer_performance.md
       - 模型性能劣化导致SLO劣化: zh/best_practices/model_performance_slo_degradation.md
       - 模型前后处理耗时过长: zh/best_practices/model_pre_post_processing_latency.md
@@ -134,6 +135,7 @@ nav:
       - 模型推理请求等待时间过长: zh/best_practices/request_wait_latency.md
       - sampler执行耗时过长: zh/best_practices/sampler_high_latency.md
       - scheduler耗时过长: zh/best_practices/scheduler_high_latency.md
+      - 动态 EPLB 开启后投机推理接受率下降: zh/best_practices/speculative_acceptance_rate_with_dynamic_eplb.md
       - 服务化与纯模型性能差异过大: zh/best_practices/service_vs_model_performance_gap.md
     - 开发者指南: zh/developer_guide/development_guide.md
     - 社区扩展:

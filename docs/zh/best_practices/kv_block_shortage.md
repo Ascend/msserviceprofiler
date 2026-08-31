@@ -1,93 +1,160 @@
-# KV Block数量不足
+# 新测评数据集触发 KVCache 容量瓶颈
 
-## 问题背景
+## 案例背景
 
-KV Block用于承载请求的KVCache。请求进入prefill和decode阶段后，调度器需要持续申请KV Block；如果可用Block不足，请求即使算力还有空闲，也可能因为拿不到KVCache资源而排队、抢占或重算。
-
-## 问题来源
-
-推理
+更换测评数据集后，推理速度明显下降。首轮排查需要回答两个问题：性能下降发生在请求生命周期的哪个阶段，以及新数据集为什么会触发该阶段的瓶颈。
 
 ## 问题现象
 
-用户通常先看到的是性能劣化，而不是直接看到“KV Block不足”：
+更换数据集后，Grafana 中出现以下同窗口变化：
 
-- 压测并发继续增加时，吞吐不再提升，首Token时延和端到端时延明显升高。
-- 服务端存在较多waiting/pending请求，部分请求长时间不进入decode。
-- NPU利用率不一定持续打满，但请求排队时间持续升高。
-- 监控中KVCache使用率长期高位，`free_kvcache_blocks`长期接近0，或出现抢占/分配失败增长。
+- `fine_grained_ttft` 和 `fine_grained_tpot` 同时劣化。
+- waiting 队列持续积压。
+- `free_kvcache_blocks` 降至接近 0，KVCache 长时间处于容量下限。
+- `scheduler:recompute_events` 持续增加，说明调度器频繁触发请求重计算。
 
-![](./figures/kv_block_shortage.png)
+这组信号表明问题不在单次模型计算本身，而在新数据集的请求特征与当前并发共同造成的 KVCache 容量压力。
 
 ## 定位过程
 
-### 步骤 1：先确认问题是不是“排队变长”
+### 步骤 1：用 TTFT 和 TPOT 确认影响范围
 
-在Grafana服务总览或请求时延面板中查看时延拆分，先确认时延增长主要发生在哪个阶段：
+先对比旧数据集基线和新数据集异常窗口：
 
-- 首Token时延是否升高。
-- 请求queue/waiting时间是否升高。
-- running请求没有明显增加，但waiting/pending请求持续堆积。
+- TTFT 反映请求进入后到首个 Token 返回前的等待、调度和 Prefill 开销。
+- TPOT 反映进入生成阶段后的单 Token 平均耗时。
 
-如果时延主要涨在模型执行阶段，并且NPU长期满载，应优先排查计算瓶颈；如果时延主要涨在等待阶段，才继续往调度和KVCache方向定位。
+TTFT 与 TPOT 同时劣化时，不能只检查模型执行。waiting、KVCache、重计算和模型执行指标必须放在同一时间轴上比较。
 
-### 步骤 2：确认等待是否由KV Block不足导致
+### 步骤 2：确认 waiting 与 KVCache 水位同步变化
 
-在Grafana的KVCache、请求状态和调度状态面板中，重点观察同一个时间窗口内是否同时出现以下现象：
+使用以下查询固定容量证据。查询窗口与压测窗口保持一致，并按部署中的 `instance`、`dp` 等标签拆分。
 
-- `free_kvcache_blocks`长期低位，KVCache使用率接近上限。
-- waiting/pending请求、队列等待时间或首Token时延同步升高。
-- 抢占、重算或分配失败类指标在同一时间段增长。
+KVCache 使用率：
 
-如果这三类信号对齐，可初步判断请求被KVCache容量卡住，而不是单纯计算慢。
+```promql
+100 * (
+  1 -
+  vllm_profiling_free_kvcache_blocks
+  /
+  vllm_profiling_total_kvcache_blocks
+)
+```
 
-### 步骤 3：确认容量压力来源
+waiting 队列规模使用 `vllm_profiling_waiting_batch_size` 面板查看。若该指标为 Histogram，使用 `_sum / _count` 计算窗口平均值，或使用 `_bucket` 计算分位数，不能直接对累计值下结论。
 
-KVCache水位只能表明实例已经接近容量上限；具体是并发、请求长度、流量分配还是KVCache配置导致，需要结合压测配置、服务启动参数、请求日志和Grafana监控一起判断：
+当 `free_kvcache_blocks` 持续接近 0，并且 waiting 与 TTFT 同步升高时，可以把问题定界到“请求进入执行阶段前受到 KVCache 容量限制”。
 
-- 从压测配置、服务启动参数或变更记录确认是否提高了并发、`max_num_seqs`、`max_model_len`、最大输出长度或batch相关配置。
-- 从请求日志、压测数据集或请求长度统计确认是否存在长上下文、长输出请求集中进入实例。
-- 从Grafana实例维度监控确认是否只有部分实例承接了更多请求或token，其他实例仍有空闲。
-- 从服务启动参数、显存配置和Grafana中的total/free KV Block水位确认KVCache可用Block总量是否偏小。
+### 步骤 3：用重计算计数确认容量压力已经影响调度
 
-如果压测流量固定，但长输入/长输出比例升高，通常是请求长度占用Block过多；如果请求长度稳定但并发升高，通常是单实例并发超过当前KVCache容量；如果只有部分实例耗尽Block，则还需要排查多实例负载不均。
+`scheduler:recompute_events` 是 Counter，使用窗口增量查看：
 
-### 步骤 4：用离线Profiler验证具体卡在哪些请求和batch
+```promql
+sum by (instance, dp) (
+  increase(vllm_profiling_scheduler:recompute_events_total[5m])
+)
+```
 
-当在线监控已经指向KV Block不足后，再使用msServiceProfiler采集`Schedule`、`KVCache`、`Request`相关数据，重点看三个文件：
+同时查看两个旁证：
 
-- `request.csv`：看`queue_wait_time(ms)`、`first_token_latency(ms)`是否主要变长，并找到等待时间最长的请求。
-- `batch.csv`：看`used_blocks`、`free_blocks`、`kvcache_usage_rate`是否在连续batch中长期高位，以及`decode_batch_size`是否因为Block不足无法稳定扩大。
-- `kvcache.csv`：看`blocks_allocated`和`blocks_freed`。如果多个时间窗口内申请持续大于释放，最后`free_blocks`被打空，就能把根因收敛到KVCache容量不足。
+```promql
+sum by (instance, dp) (
+  increase(vllm_profiling_running_to_waiting_count_total[5m])
+)
+```
 
-通过Profiler需要回答两个问题：哪些请求占用了最多Block，以及Block耗尽后调度器在哪些batch开始排队或抢占。
+```promql
+sum by (instance, dp) (
+  increase(vllm_profiling_block_allocate_failures_total[5m])
+)
+```
 
-## 问题根因
+以下三项在同一时间窗口成立时，KVCache 容量瓶颈的一级定界完成：
 
-KVCache可用Block数量不足，导致请求无法及时获得KVCache资源。常见根因是单实例并发过高、输入输出长度过长、KVCache预留显存不足、长请求集中到少数实例，或调度参数允许过多请求同时进入。
+1. `free_kvcache_blocks` 持续触及容量下限。
+2. waiting 与 TTFT 同步升高。
+3. `scheduler:recompute_events`、`running_to_waiting_count` 或 `block_allocate_failures` 出现异常增量。
 
-## 解决方法
+### 步骤 4：把容量压力追溯到新数据集和并发
 
-根据定位结果选择处理方式：
+复用本案例时，先确认模型、版本、服务参数和部署资源没有同时变化，再按以下字段统计新旧数据集，而不是只比较请求条数：
 
-- 并发过高：降低单实例并发、`max_num_seqs`或入口限流阈值，避免一次放入过多请求。
-- 请求太长：限制最大输入长度、最大输出长度，或将长上下文请求单独路由到更大KVCache容量的实例。
-- 单实例Block总量不足：调整KVCache相关显存配置或提高可用于KVCache的显存比例；如果单卡显存已无余量，需要增加实例、增加卡数或换更大显存规格。
-- 流量分配不均：先处理多实例负载不均，让请求按实例容量和队列状态分配，避免少数实例先耗尽KV Block。
-- 抢占/重算明显：降低进入调度器的请求数量，或调整调度策略，避免频繁把已进入decode的请求换出。
+- 输入 Token 的 P50、P90、P99 和最大值。
+- 输出 Token 的 P50、P90、P99 和最大值。
+- 单请求总 Token 数以及长上下文请求占比。
+- 请求到达方式、单实例并发和稳态 Batch 大小。
 
-处理后需要回看同一组信号：`free_kvcache_blocks`是否恢复到稳定水位，waiting/pending是否下降，首Token时延是否回落，吞吐是否随并发恢复增长。
+KV Block 的消耗由同时驻留的请求数量和请求 Token 数共同决定。数据已经确认新数据集在当前并发下使 KVCache 长时间耗尽，调度器只能让请求等待或将已运行请求回退并重算。因而本案例的根因不是“数据集本身慢”，而是当前并发不再匹配新数据集的 KVCache 需求。历史数据没有保留 Token 分布，不能继续断言是输入长度、输出长度还是长请求占比发生了变化。
 
-## 定位方法论总结
+### 步骤 5：排除模型执行本身变慢
 
-针对KV Block数量不足场景，需要优先使用ms-service-metric确认时延是否主要增加在排队和首Token阶段，并观察KVCache水位、`free_kvcache_blocks`和waiting/pending请求是否在同一时间窗口异常；确认在线指标指向KVCache容量压力后，再使用msServiceProfiler采集`request.csv`、`batch.csv`和`kvcache.csv`，定位具体是请求长度、并发、batch调度还是Block分配释放不平衡导致。
+在相同的 Prefill/Decode 阶段、Batch 和 Token 规模下，对比：
 
-## 对工具的改进建议
+- `executor:execute_model:duration`
+- `executor:model_runner_execute_model:duration`
+- `npu:forward_duration`
 
-### ms-service-metric
+这些指标保持旧数据集基线，而 waiting、KVCache 水位和重计算计数发生异常时，模型执行阶段被排除。若模型执行耗时也升高，需要先按 Token 和 Batch 规模归一化，再判断是否同时存在计算瓶颈。
 
-当前在线监控已能查看KVCache水位、`free_kvcache_blocks`、waiting/pending请求数和首Token时延。建议在现有面板中增加KV Block不足关联诊断提示，把这些指标在同一时间窗口内自动关联展示，辅助判断是否已经由KVCache容量压力导致排队。
+### 步骤 6：使用 Tracing 与 Profiler 增强请求级证据
 
-### msServiceProfiler
+Metrics 已经满足步骤 2～5 的组合判断时，可以直接形成 KVCache 容量结论；需要继续定位具体请求、Batch 或模型执行前等待位置时，再执行以下增强分析。
 
-当前Profiler已能通过`request.csv`、`batch.csv`、`kvcache.csv`分析请求等待、batch调度和KVCache分配释放情况。建议在离线报告中增加KV Block不足摘要，自动标记`free_blocks`持续低位、`decode_batch_size`无法扩大、`blocks_allocated`持续大于`blocks_freed`的时间窗口。
+Tracing 验证：
+
+1. 使用 `request.id`、`request.ids` 或 Span Links 确认 scheduler、model 与目标请求的关联。
+2. 对比 Token 和 Batch 规模一致的正常、异常观测组。
+3. 检查 `vllm.scheduler.schedule`、`vllm.model.execute` 和 `vllm_ascend.model_runner.execute`。
+4. 只有 Span 属于同一 Trace ID，或已经进入统一 Perfetto Timeline 时，才计算模型执行前的空白区间。
+
+Profiler 验证：
+
+- `request.csv`：确认 `queue_wait_time(ms)` 和 `first_token_latency(ms)` 的增长集中在哪些请求。
+- `batch.csv`：确认 `free_blocks`、`kvcache_usage_rate` 和 `decode_batch_size` 的变化。
+- `kvcache.csv`：确认 Block 申请、释放和耗尽发生的 Batch。
+
+Tracing 用于排除模型执行自身变慢，Profiler 用于下钻具体请求和 Batch；KVCache 根因仍由同窗口的水位、waiting 和重计算/回退证据确认。
+
+## 根因结论
+
+新测评数据集在原有并发下产生的 KVCache 需求超过单实例稳定容量。可用 KV Block 长时间接近 0，调度器频繁回退并重计算请求，最终同时推高 waiting、TTFT 和 TPOT。
+
+## 处理方法
+
+本次处理动作是降低单实例并发，使同时驻留请求的 KVCache 总需求回到实例容量以内。
+
+该处理只改变并发，不同时修改模型版本、数据集、KVCache 配置或调度策略。这样才能通过单变量复测验证并发是否为直接触发条件。
+
+其他场景只有在证据对应时才采用以下处理：
+
+- 长上下文请求占比过高：限制最大输入/输出长度，或将长请求路由到 KVCache 容量更大的实例。
+- 单实例 Block 总量不足：调整可用于 KVCache 的显存比例，或增加实例和设备资源。
+- 实例负载不均：按实例队列和 KVCache 水位分配请求，避免少数实例先耗尽 Block。
+
+## 复测标准
+
+使用同一份新数据集、相同请求顺序、模型版本、服务参数和设备资源，只降低并发。以下条件全部满足，处理结果才通过：
+
+- `free_kvcache_blocks` 在稳态窗口保留稳定余量，不再持续接近 0。
+- `scheduler:recompute_events` 不再持续出现异常增量。
+- waiting 队列不再持续增长。
+- TTFT 和 TPOT 相比问题窗口回落，吞吐没有出现不可接受的损失。
+- 模型输出正确性、错误率和显存占用没有回退。
+
+如果降低并发后 KVCache 水位恢复，但 TTFT 或 TPOT 没有恢复，说明系统还存在第二个瓶颈，需要继续检查模型执行、通信和输出处理阶段，不能把全部性能问题归到 KVCache。
+
+## 可复用判断链
+
+本案例的判断链可以直接复用：
+
+```text
+新负载变慢
+  → TTFT/TPOT 确认受影响 SLO
+  → waiting 增长且 free_kvcache_blocks 接近 0
+  → recompute/回退/分配失败计数增加
+  → 按 Token 分布和并发解释容量需求变化
+  → 单变量降低并发
+  → 同负载复测水位、重计算、时延和吞吐
+```
+
+缺少 KVCache 水位、waiting 和重计算/回退三类证据中的任意一类，只能输出排查方向，不能输出本案例的根因结论。

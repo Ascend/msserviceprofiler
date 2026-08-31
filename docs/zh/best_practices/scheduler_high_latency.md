@@ -2,7 +2,7 @@
 
 ## 问题背景
 
-在服务化推理场景中，调度器（Scheduler）负责将到达的推理请求按一定策略组Batch并下发到NPU执行。当调度器自身耗时占比过高时，会导致NPU设备空闲等待，整体吞吐下降、请求排队时间增加。尤其在Host Bound场景下（如小模型推理、Decode阶段），单个算子的Host下发时间可能超过Device执行时间，调度开销成为系统瓶颈。昇腾CANN通过图模式调度和模型下沉调度技术可优化此问题，但在实际部署中，调度策略配置不当、动态调度优先级切换、组Batch逻辑复杂等因素仍可能导致scheduler耗时过长。
+在服务化推理场景中，调度器（Scheduler）负责将到达的推理请求按一定策略组Batch并下发到NPU执行。当调度器自身耗时占比过高时，会导致NPU设备空闲等待，整体吞吐下降、请求排队时间增加。在Host Bound场景下（如小模型推理、Decode阶段），单个算子的Host下发时间超过Device执行时间后，调度开销成为系统瓶颈。调度策略配置不当、动态调度优先级切换、组Batch逻辑复杂以及未启用匹配的图模式调度或模型下沉，都会增加scheduler耗时。
 
 ## 问题来源
 
@@ -22,7 +22,32 @@
 
 ### 步骤 1：先确认调度瓶颈是否存在
 
-在Grafana中查看`batch_size`、`waiting_batch_size`、`num_running_reqs`、`num_waiting_reqs`等调度相关指标。如果`waiting_batch_size`持续增长而`batch_size`未达到上限，说明调度器未能及时将等待请求组Batch下发。同时观察NPU利用率指标，若NPU利用率低但等待队列长，可初步判断存在调度瓶颈。
+在 Grafana 中查看 `batch_size`、`waiting_batch_size`、`scheduler:duration`、KVCache 水位和 NPU 利用率。调度瓶颈的在线判定条件为：`waiting_batch_size` 持续增长，`scheduler:duration` 分位数同步升高，模型执行耗时保持同负载基线，同时 KVCache 未触及容量下限。`batch_size` 未达到上限和 NPU 利用率低作为旁证。KVCache 水位耗尽时，先按 KV Block 不足案例分析，不能直接归因到调度器。
+
+调度耗时 P99 使用以下查询：
+
+```promql
+histogram_quantile(
+  0.99,
+  sum by (le, instance, dp) (
+    rate(vllm_profiling_scheduler:duration_bucket[5m])
+  )
+)
+```
+
+模型执行平均耗时使用以下查询：
+
+```promql
+sum by (instance, dp, phase) (
+  rate(vllm_profiling_executor:execute_model:duration_sum[5m])
+)
+/
+sum by (instance, dp, phase) (
+  rate(vllm_profiling_executor:execute_model:duration_count[5m])
+)
+```
+
+两个查询使用相同的异常窗口、实例、DP 域和阶段。scheduler P99 上升而模型执行平均耗时稳定，一级定界结论为调度阶段变慢。
 
 ### 步骤 2：用Profiler采集调度阶段数据
 
@@ -54,7 +79,18 @@ msserviceprofiler split --input-path /path/to/input --decode-batch-size 1 --deco
 
 结合`forward.csv`中的`bubble_time(ms)`字段，统计forward之间的空泡时间。如果空泡时间占比较高，说明调度下发不及时导致NPU等待。
 
-### 步骤 6：用多维度解析工具获取整体统计
+### 步骤 6：可选使用 Tracing 定位调度 Span
+
+需要把阶段结论下钻到具体请求时，在 Jaeger 中使用 Trace ID、request ID 或 Metrics 异常窗口找到目标 Trace。存在正常基线时，选择输入、输出 Token 规模和请求阶段一致的正常 Trace 与异常 Trace，按以下顺序对比：
+
+1. 使用 `request.id`、`request.ids` 或 Span Links 确认 scheduler、model 与目标请求的关联。
+2. 对比 `vllm.scheduler.schedule` 的时长和 `batch.request_count`、`batch.scheduled_tokens` 属性。
+3. 对比 `vllm.model.execute` 和 `vllm_ascend.model_runner.execute` 的时长。
+4. 同一 Trace ID 场景直接对比 scheduler 与 model 之间的空白区间；Span Links 场景沿 Link 分别打开关联 Span，不使用两个独立 Trace 的时间差计算空白。
+
+异常观测组的 scheduler Span 稳定高于同负载正常观测组，且 model 与 model runner Span 保持基线时，Tracing 将瓶颈定位在 Scheduler 执行阶段。scheduler Span 本身稳定、但同一 Trace ID 或统一 Perfetto Timeline 中 scheduler 与 model 之间空白增长时，瓶颈位于排队、同步或资源等待，不能输出“Scheduler 自身耗时过长”的结论。
+
+### 步骤 7：用多维度解析工具获取整体统计
 
 ```bash
 msserviceprofiler analyze --input-path=/path/to/input
@@ -84,11 +120,17 @@ msserviceprofiler analyze --input-path=/path/to/input
 - 框架适配：确认已启用图模式调度或模型下沉，避免单算子模式。
 - 资源竞争：确保调度线程有足够CPU资源，避免与其它服务线程竞争。
 
-处理后需要回看`waiting_batch_size`是否下降、`batch_size`是否接近上限、组Batch耗时占比是否降低、NPU利用率是否提升。
+处理后使用与问题复现时相同的模型、版本、并发、输入/输出 Token 分布和服务参数复测。以下条件全部满足，处理结果才通过验证：
+
+- `scheduler:duration` P99 和 `batchFrameworkProcessing` P99 回到同负载基线范围。
+- `waiting_batch_size` 不再持续增长。
+- `vllm.scheduler.schedule` Span 与同一时间线中的调度空白区间恢复到基线。
+- 模型执行耗时没有增加，NPU 利用率和吞吐恢复。
+- TTFT、TPOT、错误率和显存没有回退。
 
 ## 定位方法论总结
 
-该场景的完整判断链是：先用ms-service-metric确认`waiting_batch_size`高、`batch_size`未达上限、NPU利用率低的现象；再用msServiceProfiler采集Schedule和ModelExecute domain数据，通过`batch.csv`对比组Batch耗时与模型执行耗时；然后用服务化拆解工具细粒度拆解Batch各子阶段耗时；最后通过Timeline视图确认bubble位置和持续时间。
+本案例展示的是联合分析路径：先用 ms-service-metric 确认 waiting 增长、`scheduler:duration` 升高、模型执行稳定且 KVCache 容量正常；再用 Tracing 将目标请求定位到 `vllm.scheduler.schedule`，并排除 model 和 model runner 执行变慢；然后用 msServiceProfiler 的 `batch.csv` 对比组 Batch 耗时与模型执行耗时，使用统一 Timeline 确认调度空白区间。只使用 Metrics 时可以输出总体调度阶段结论，只使用 Tracing 时可以输出目标请求的调度路径结论；三类数据一致时可以同时确认影响范围、请求路径和设备时间线。
 
 核心判断逻辑：如果组Batch耗时占比高且Timeline上存在大量调度间隙，则瓶颈在调度器；如果模型执行耗时占比高，则瓶颈在模型侧。
 
