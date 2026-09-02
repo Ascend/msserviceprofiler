@@ -58,18 +58,13 @@ ms_service_profiler/                                         # Directory of core
     ├──── ${name}_source.py                                  # ${name} data source import module, where *name* indicates the data source name.
     └── exporters/                                           # Directory for the data exporter module
     ├──── exporter_${name}.py                                # ${name} data exporter, where *name* indicates the data name.
-    └── ms_service_profiler_ext/                             # Profiling extension package for serving performance
-        ├── analyze.py                                       # Analysis extension main module
-        ├── compare.py                                       # Main module for data comparison
-        ├── split.py                                         # Main module for data breakdown
-        ├── common/                                          # Common tool modules
-        ├── compare_tools/                                   # Data comparison module
-        ├── exporters/                                       # Extension module for the data exporter
-        └── split_processor/                                 # Processor module for data breakdown
     ├── mstx.py                                              # Python profiling module
     ├── parse.py                                             # Main module for data parsing
     ├── profiler.py                                          # Python profiling API
     ├── trace.py                                             # Main trace module
+    ├── analyze.py                                       # Analysis extension main module
+    ├── compare.py                                       # Main module for data comparison
+    ├── split.py                                         # Main module for data breakdown
     ├── parse_helper/                                        # Auxiliary parsing module
     ├── pipeline/                                            # Data processing pipeline modules
     ├── pipeline_${name}.py                                  # ${name} data processing pipeline, where *name* indicates the data name.
@@ -144,3 +139,4 @@ ms_serviceparam_optimizer/                                   # Directory for Ser
             ├── test_msguard/                                # Test the security module.
             ├── test_vllm_profiler/                          # vLLM profiling tests
             └── test_${name}.py                              # ${name} module test. ${name} indicates the module name.
+```

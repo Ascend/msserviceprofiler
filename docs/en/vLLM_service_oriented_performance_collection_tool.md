@@ -21,7 +21,7 @@ vLLM Service Profiler is used for performance profiling analysis when deploying 
 
 |Product Type| Supported (Yes/No)|
 |--|:----:|
-|Ascend 950 products|No|
+|Ascend 950 products|Yes|
 |Atlas A3 Training Products and Atlas A3 Inference Products|  Yes  |
 |Atlas A2 training products and Atlas A2 inference products|  Yes  |
 |Atlas 200I/500 A2 inference products|  Yes  |
@@ -285,7 +285,7 @@ After parsing is complete, the deliverables listed in the following table are ge
 
 >[!NOTE]
 >
-> The output file is closely related to the collection of the domain field. For details, see [Mapping between domain fields and the parsing results](./msserviceprofiler_serving_tuning_instruct.md# parsing result).
+> The output file is closely related to the collection of the domain field. For details, see [Mapping between domain fields and the parsing results](./msserviceprofiler_serving_tuning_instruct.md#parsed-results).
 
 ## Appendix
 
@@ -308,7 +308,7 @@ After parsing is complete, the deliverables listed in the following table are ge
 
 ### Profiling Configuration Usage Guide
 
-For details about the profiling configuration, see the instructions for creating configuration files and the clarifications [Data Collection](./msserviceprofiler_serving_tuning_instruct.md# Data Collection).
+For details about the profiling configuration, see the instructions for creating configuration files and the clarifications [Data Collection](./msserviceprofiler_serving_tuning_instruct.md#data-collection).
 
 >[!NOTE]
 >

@@ -51,7 +51,7 @@ The tool has been validated on LLaMA3-8B and Qwen3-8B. In principle, it does not
 ## Preparations
 
 **Environment Setup**
-Set up an environment where serving tools (such as [MindIE Service](https://gitcode.com/Ascend/MindIE-Motor/blob/v3.1.0/docs/en/user_guide/quick_start_motor.md)/[vLLM Server](https://docs.vllm.ai/projects/ascend/en/latest/quick_start.html)) and benchmark tools (such as `vllm_benchmark`/`ais_bench`, see [Benchmark Tool Deployment](https://github.com/AISBench/benchmark/blob/master/docs/source_en/get_started/install.md) can run properly.
+Set up an environment where serving tools (such as [MindIE Service](https://gitcode.com/Ascend/MindIE-Motor/blob/v3.1.0/docs/en/user_guide/quick_start.md)/[vLLM Server](https://docs.vllm.ai/projects/ascend/en/latest/quick_start.html)) and benchmark tools (such as `vllm_benchmark`/`ais_bench`, see [Benchmark Tool Deployment](https://github.com/AISBench/benchmark/blob/master/docs/source_en/get_started/install.md)) can run properly.
 
 ## Tool Installation
 
@@ -335,13 +335,13 @@ If `vllm_benchmark` is used for the test, modify the following parameters:
 |num_prompts|Yes| Specifies the number of prompts to run from the dataset.<br>The value is an integer ranging from 1 to 10000.|
 |others|No| Additional parameters. Use spaces to separate them, and no space is allowed within the parameters, for example, `--ignore-eos --custom-output-len 1500`. This parameter is left empty by default.|
 
-**Serving parameters**: Modify these parameters as described in [MindIE Server Configuration Parameter Description](https://gitcode.com/Ascend/MindIE-LLM/blob/master/docs/zh/user_guide/user_manual/service_parameter_configuration.md).
+**Serving parameters**: Modify these parameters as described in [MindIE Server Configuration Parameter Description](https://gitcode.com/Ascend/MindIE-LLM/blob/v3.1.0/docs/en/user_guide/user_manual/service_parameter_configuration.md).
 You can define search ranges directly using these parameters. For example, to set the optimization search space for `max_batch_size` to 10 to 400:
 
 ```shell
 [[mindie.target_field]]
-name = "max_batch_size,"     # Serving parameter name
-config_position = "BackendConfig.ScheduleConfig.maxBatchSize",    # Path to the serving parameters in MindIE Server config
+name = "max_batch_size"     # Serving parameter name
+config_position = "BackendConfig.ScheduleConfig.maxBatchSize"   # Path to the serving parameters in MindIE Server config
 min = 10     # Minimum value
 max = 400    # Maximum value
 dtype = "int"    # Data type
@@ -351,11 +351,11 @@ You can also define parameters relative to others. For example, to set `max_pref
 
 ```shell
 [[mindie.target_field]]
-name = "max_prefill_batch_size",
-config_position = "BackendConfig.ScheduleConfig.maxPrefillBatchSize",
-min = 0,
-max = 1,
-dtype = "ratio", 
+name = "max_prefill_batch_size"
+config_position = "BackendConfig.ScheduleConfig.maxPrefillBatchSize"
+min = 0
+max = 1
+dtype = "ratio"
 dtype_param = "max_batch_size" # Indicates that max_prefill_batch_size is proportional to max_batch_size.
 ```
 

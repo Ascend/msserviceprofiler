@@ -74,7 +74,6 @@ Collects serving profile data.
      | Parameter                    | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | **Mandatory (Yes/No)**|
      | ------------------------ |-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------| -------- |
      | enable                  | Whether to enable profiling. The options are as follows:<br>`0`: disabled.<br>`1`: enabled.| Yes      |
-     | metric_enable           | Whether to enable metric (Prometheus/metric) collection. The value is independent of `enable`. The options are as follows:<br>`0`: disabled.<br>`1`: enabled.<br>The default value (without this key) is 0 (disabled).| No      |
      | prof_dir                 | Path for storing the collected profile data. The value is of string type and can be customized. The default value is `${HOME}/.ms_server_profiler`.   | No      |
      | profiler_level           | Profiling level, which defaults to **INFO**.  | No      |
      | host_system_usage_freq   | Frequency of profiling CPU and memory system metrics. Profiling of these metrics is disabled by default. The value is an integer between 1 Hz and 50 Hz, showing the number of profiling samples per second. If this parameter is set to **-1**, profiling of these metrics is disabled.<br>Enabling this function may occupy a large amount of memory. You are advised not to modify this setting.| No      |
@@ -581,7 +580,7 @@ This is an expert load imbalance line chart. [Figure 6](#fig3559155015275) shows
 
 **Figure 6** Expert load imbalance line chart<a name="fig3559155015275"></a>
 
-![](figures/expert load imbalance line chart.png "expert load imbalance line chart")
+![](figures/average-of-expert-balance-ratio.png "expert load imbalance line chart")
 
 The horizontal coordinate tokens num indicates the number of model inference rounds, and the vertical coordinate balance ratio indicates the model load imbalance degree, which is calculated based on the standard deviation of expert heat.
 
@@ -691,7 +690,7 @@ When configuring the Windows proxy, you need to add the Linux device IP prefix (
 
     **Figure 9** Setting parameters<a name="fig82151013079"></a>
 
-    ![](figures/Setting parameters.png "Setting_parameters")
+    ![](figures/setting-parameters.png "Setting_parameters")
 
 **Visualization Results<a name="section16851525949"></a>**
 

@@ -131,6 +131,8 @@ Similarly, the tool generates the original profile data of the inference service
 
 ### 4. Parse Data and Perform Optimization Analysis
 
+#### 4.1 Data Parsing
+
 1. Install environment dependencies.
 
    ```bash

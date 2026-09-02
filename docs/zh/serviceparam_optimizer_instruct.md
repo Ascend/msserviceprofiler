@@ -341,7 +341,7 @@ msserviceprofiler optimizer -e vllm -b vllm_benchmark -c ../configs/vllm_config.
 ```shell
 [[mindie.target_field]]
 name = "max_batch_size"     # 服务化参数名称
-config_position = "BackendConfig.ScheduleConfig.maxBatchSize",    # 服务化参数在MindIE Server中的位置
+config_position = "BackendConfig.ScheduleConfig.maxBatchSize"    # 服务化参数在MindIE Server中的位置
 min = 10     # 最小值
 max = 400    # 最大值
 dtype = "int"    # 数据类型

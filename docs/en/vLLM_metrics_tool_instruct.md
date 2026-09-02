@@ -16,7 +16,7 @@ This metric monitoring tool enhances the native monitoring capability of the vLL
 
 |Product Type| Supported (Yes/No)|
 |--|:----:|
-|Ascend 950 products|No|
+|Ascend 950 products|Yes|
 |Atlas A3 Training Products and Atlas A3 Inference Products|  Yes  |
 |Atlas A2 training products and Atlas A2 inference products|  Yes  |
 |Atlas 200I/500 A2 inference products|  Yes  |
@@ -88,7 +88,7 @@ mkdir -p $PROMETHEUS_MULTIPROC_DIR
 vllm serve Qwen/Qwen2.5-0.5B-Instruct &
 ```
 
-- `service_metrics_symbols.yaml` configures symbols. For details about how to customize symbols, see [Symbol Configuration User Guide](#Symbol Configuration User Guide).
+- `service_metrics_symbols.yaml` configures symbols. For details about how to customize symbols, see [Symbol Configuration User Guide](#symbol-configuration-user-guide).
 - 8000 is the default port for vLLM serving inference startup. This document uses port 8000 as an example. To change the serving startup port, you can use the `--port` command line parameter to specify a port when starting the vLLM service. For details, see [vllm serve Command Parameter Description](https://docs.vllm.com.cn/en/latest/cli/serve/#arguments).
 
 ### Step 2 Profiler Collection Enabling
