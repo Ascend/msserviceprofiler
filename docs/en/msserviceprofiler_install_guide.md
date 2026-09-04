@@ -14,11 +14,11 @@ If you need to upgrade this tool separately or use the latest version, you can i
 
 ### 2.1 Online Installation
 
-If your device has internet access, you can automatically download and install the tool with a single command. Visit the Ascend Community MindStudio [download](https://www.hiascend.com/en/developer/software/mindstudio/download?versionId=143&ids=45%2C42671e3507254c1fb6f56b379948506f%2C124%2C49%2C) page, select the corresponding CANN version, and choose "Online Installation" as the installation method. The system will guide you through the subsequent steps.
+If your device has internet access, you can automatically download and install the tool with a single command. Visit the Ascend Community MindStudio [download](https://www.hiascend.com/en/developer/software/mindstudio/download?versionId=152&ids=45%2Cb1e62037594d4e5c9a0fd797ff490006%2C124%2C49%2C) page, select the corresponding CANN version, and choose "Online Installation" as the installation method. The system will guide you through the subsequent steps.
 
 ### 2.2 Offline Installation
 
-For devices in environments without external network access, such as enterprise intranets, first download the complete offline installation package on a machine with internet access, then transfer it to the target device for installation. Visit the Ascend Community MindStudio [download](https://www.hiascend.com/en/developer/software/mindstudio/download?versionId=143&ids=45%2C42671e3507254c1fb6f56b379948506f%2C124%2C50%2C) page, select the corresponding CANN version, and choose "Offline Installation" as the installation method to obtain the corresponding installation package and operation guide.
+For devices in environments without external network access, such as enterprise intranets, first download the complete offline installation package on a machine with internet access, then transfer it to the target device for installation. Visit the Ascend Community MindStudio [download](https://www.hiascend.com/en/developer/software/mindstudio/download?versionId=152&ids=45%2Cb1e62037594d4e5c9a0fd797ff490006%2C124%2C50%2C) page, select the corresponding CANN version, and choose "Offline Installation" as the installation method to obtain the corresponding installation package and operation guide.
 
 ### 2.3 Source Installation
 

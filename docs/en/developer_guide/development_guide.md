@@ -79,7 +79,7 @@ pytest-asyncio
 
 #### 2.2.4 CANN Environment
 
-You need to install the matching CANN Toolkit development package and configure the CANN environment variables. For details, see [CANN Quick Installation](https://www.hiascend.com/cann/download).
+You need to install the matching CANN Toolkit development package and configure the CANN environment variables. For details, see [CANN Quick Installation](https://www.hiascend.com/en/cann/download).
 
 ## 3. Code Download and Project Structure
 
