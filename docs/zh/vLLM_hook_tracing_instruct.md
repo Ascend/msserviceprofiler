@@ -16,25 +16,28 @@ Tracing 和 profiling 是两套独立交付流程：Tracing 不需要 `enable.js
 
 ### 1.1 版本要求
 
-本功能依赖 vLLM V1 引擎提供原生 OpenTelemetry Tracing，并复用 vLLM 创建的全局 `TracerProvider` 和 OTLP exporter。最低支持版本组合如下：
+本功能依赖 vLLM V1 引擎提供原生 OpenTelemetry Tracing，并复用 vLLM 创建的全局 `TracerProvider` 和 OTLP exporter。为减少旧版符号和链路行为的维护成本，Hook Tracing 的支持范围从 vLLM-Ascend `v0.20.0` 开始。低于该版本的组合不再作为问题定位、兼容适配和回归验证范围；profiling、metrics 等其他功能的版本范围以各自资料为准。
 
 | 组件 | 最低支持版本 | 要求 |
 |---|---|---|
-| vLLM | `0.10.2` | V1 引擎支持 `--otlp-traces-endpoint`，能够创建原生请求 Span 并导出 OTLP 数据 |
-| vLLM-Ascend | `0.10.2rc1` | 与 vLLM `0.10.2` 配套使用，并提供本文默认配置使用的 V1 Scheduler 和 NPU ModelRunner 符号 |
+| vLLM-Ascend | `0.20.0` | 本功能的支持策略下限；实际安装版本必须存在于官方兼容矩阵 |
+| vLLM | 与 vLLM-Ascend 配套 | 使用官方兼容矩阵同一行指定的版本，并支持 V1 `--otlp-traces-endpoint` |
 
-版本下限按“V1 引擎、原生 Tracing、Hook 符号同时可用”确定，不能只根据命令行中是否出现 `--otlp-traces-endpoint` 判断。vLLM `0.10.1.1` 虽然包含该参数，但启用后会回退到 V0，无法运行本文基于 V1 符号的 Hook Tracing。vLLM `0.10.2` 已在 V1 `AsyncLLM` 中初始化原生 tracer；vLLM-Ascend `0.10.2rc1` 的官方兼容矩阵指定其配套 vLLM 版本为 `0.10.2`。对应上游依据见 [vLLM 0.10.1.1 V1 限制](https://github.com/vllm-project/vllm/blob/v0.10.1.1/vllm/engine/arg_utils.py#L1442-L1446)、[vLLM 0.10.2 V1 Tracing 实现](https://github.com/vllm-project/vllm/blob/v0.10.2/vllm/v1/engine/async_llm.py#L126-L133)和[vLLM-Ascend 版本兼容矩阵](https://github.com/vllm-project/vllm-ascend/blob/v0.10.2rc1/docs/source/community/versioning_policy.md#release-compatibility-matrix)。
+`0.20.0` 是支持策略边界，不表示官方一定发布了同名安装包。以官方兼容矩阵为准，首个满足该边界的公开组合是 vLLM-Ascend `v0.20.2rc1` 与 vLLM `v0.20.2`。不得把 `vllm-ascend==0.20.0` 当成固定安装命令，也不得只升级其中一个组件。后续版本同样从[官方版本兼容矩阵](https://docs.vllm.ai/projects/ascend/zh-cn/latest/community/versioning_policy.html#版本兼容性矩阵)选择完整的一行。
 
-安装更高版本时，vLLM 和 vLLM-Ascend 必须采用 vLLM-Ascend 官方兼容矩阵中的配套组合，不能只升级其中一个组件。启动前执行：
+安装任何支持版本时，vLLM 和 vLLM-Ascend 必须采用 vLLM-Ascend 官方兼容矩阵中的配套组合，不能只升级其中一个组件。启动前执行：
 
 ```bash
 python3 - <<'PY'
 from importlib.metadata import version
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 from opentelemetry.sdk.trace import TracerProvider
+from packaging.version import Version
 
 print("vLLM:", version("vllm"))
-print("vLLM-Ascend:", version("vllm-ascend"))
+ascend_version = Version(version("vllm-ascend"))
+assert ascend_version >= Version("0.20.0"), ascend_version
+print("vLLM-Ascend:", ascend_version)
 print("OpenTelemetry: ready")
 PY
 
@@ -43,7 +46,147 @@ vllm serve --help | grep -- '--otlp-traces-endpoint'
 
 版本号和参数检查通过后，仍需以运行结果完成最终确认：启动日志显示使用 V1 引擎，日志中没有 `Falling back to V0`，发送真实推理请求后 Jaeger 同时收到 vLLM 原生请求 Span 和 msServiceProfiler Hook Span。三项全部满足才表示 Tracing 链路可用于本文的请求级分析。
 
-## 2. 数据流和地址选择
+## 2. 快速入门
+
+本章给出开发和验证环境的最短闭环。假设 vLLM-Ascend 已经能正常推理，Jaeger 和 vLLM 分别运行在两个 Docker 容器中。Jaeger all-in-one 使用内存存储，容器重启后数据会丢失，只适合学习和功能验证，不作为生产部署方案。
+
+### 2.1 准备变量和容器网络
+
+在宿主机执行。将 `VLLM_CONTAINER` 改成实际的 vLLM 容器名；变量为空时不可继续执行后续命令。
+
+```bash
+export VLLM_CONTAINER=<vLLM容器名>
+export TRACE_NETWORK=ms-tracing-net
+export JAEGER_CONTAINER=ms-trace-jaeger
+
+test -n "$VLLM_CONTAINER"
+docker inspect "$VLLM_CONTAINER" >/dev/null
+docker network inspect "$TRACE_NETWORK" >/dev/null 2>&1 || \
+  docker network create "$TRACE_NETWORK"
+```
+
+### 2.2 启动 Jaeger
+
+以下命令按 [Jaeger 2.20 Getting Started](https://www.jaegertracing.io/docs/2.20/getting-started/) 固定使用 Jaeger `2.20.0`，开放 Web UI 端口 `16686`、OTLP gRPC 端口 `4317` 和本文使用的 OTLP HTTP 端口 `4318`：
+
+```bash
+docker run -d \
+  --name "$JAEGER_CONTAINER" \
+  --network "$TRACE_NETWORK" \
+  --restart unless-stopped \
+  -p 16686:16686 \
+  -p 4317:4317 \
+  -p 4318:4318 \
+  cr.jaegertracing.io/jaegertracing/jaeger:2.20.0
+
+docker logs "$JAEGER_CONTAINER"
+curl -fsS http://127.0.0.1:16686/ >/dev/null && echo "Jaeger UI: ready"
+```
+
+若容器名已存在，先使用 `docker start "$JAEGER_CONTAINER"`，不要重复执行 `docker run`。浏览器访问 `http://<宿主机IP>:16686`；宿主机启用了防火墙时，只向可信管理网开放 `16686`，不可将 `4317/4318` 向公网开放。
+
+### 2.3 将 vLLM 容器接入同一网络
+
+```bash
+docker network connect "$TRACE_NETWORK" "$VLLM_CONTAINER" 2>/dev/null || true
+docker network inspect "$TRACE_NETWORK"
+```
+
+`docker network inspect` 的 `Containers` 中必须同时出现 `ms-trace-jaeger` 和 vLLM 容器。然后在 vLLM 容器内检查 DNS 和端口：
+
+```bash
+docker exec "$VLLM_CONTAINER" getent hosts ms-trace-jaeger
+docker exec "$VLLM_CONTAINER" sh -c \
+  'curl -sS -o /dev/null -w "OTLP HTTP status: %{http_code}\n" http://ms-trace-jaeger:4318/v1/traces'
+```
+
+第二条命令返回任意 HTTP 状态码都表示 DNS、路由和 TCP 端口已经连通；只有解析失败、`Connection refused` 或超时才表示网络未通。OTLP `/v1/traces` 需要 POST protobuf，使用普通 GET 得到 `404` 或 `405` 不是导出失败。
+
+### 2.4 检查运行环境
+
+进入启动 vLLM 的同一个容器和 Python 环境后执行：
+
+```bash
+python3 - <<'PY'
+from importlib.metadata import version
+from packaging.version import Version
+
+ascend_version = Version(version("vllm-ascend"))
+assert ascend_version >= Version("0.20.0"), ascend_version
+print("vLLM:", version("vllm"))
+print("vLLM-Ascend:", ascend_version)
+print("msServiceProfiler:", version("msserviceprofiler"))
+
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+from opentelemetry.sdk.trace import TracerProvider
+print("OpenTelemetry HTTP exporter: ready")
+PY
+
+vllm serve --help | grep -- '--otlp-traces-endpoint'
+```
+
+vLLM 和 vLLM-Ascend 的版本必须采用官方兼容矩阵中的配套组合。如果 `msserviceprofiler` 或 OpenTelemetry 导入失败，请先在该 Python 环境中安装 msServiceProfiler，安装方式请参见《[msServiceProfiler 安装指南](./msserviceprofiler_install_guide.md)》；安装时不可使用 `--no-deps` 跳过 Python 依赖。
+
+### 2.5 启动 vLLM 和 Hook Tracing
+
+以下命令必须在最终承载 vLLM 进程的容器内执行。
+
+其中，`MODEL` 变量值 `<container_model_path>` 应配置为容器内模型路径；`MODEL_NAME` 变量值 `<external_service_name>` 应配置为对外服务名称。
+
+```bash
+export MODEL=<container_model_path>
+export MODEL_NAME=<external_service_name>
+export PORT=8000
+
+export MS_TRACE_ENABLE=1
+export OTEL_SERVICE_NAME=vllm-server
+export OTEL_EXPORTER_OTLP_TRACES_PROTOCOL=http/protobuf
+export OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://ms-trace-jaeger:4318/v1/traces
+unset VLLM_PLUGINS
+
+vllm serve "$MODEL" \
+  --host 0.0.0.0 \
+  --port "$PORT" \
+  --served-model-name "$MODEL_NAME" \
+  --otlp-traces-endpoint http://ms-trace-jaeger:4318/v1/traces
+```
+
+`MS_TRACE_ENABLE` 和 OTLP 变量必须在启动 vLLM **之前**设置。`OTEL_SERVICE_NAME` 决定 Jaeger Service 下拉框中的名称。启动日志必须显示 V1 引擎，且没有回退到 V0。
+
+### 2.6 发送真实推理请求
+
+在能够访问 vLLM API 的终端执行。先用 `/health` 等待就绪，再发送一次真实推理；只有真实推理才会生成要验证的请求 Trace。
+
+```bash
+export VLLM_HOST=127.0.0.1
+export PORT=8000
+export MODEL_NAME=<对外服务名>
+
+curl -fsS "http://${VLLM_HOST}:${PORT}/health"
+curl -sS "http://${VLLM_HOST}:${PORT}/v1/completions" \
+  -H 'Content-Type: application/json' \
+  -d "{\"model\":\"${MODEL_NAME}\",\"prompt\":\"Hello\",\"max_tokens\":8,\"temperature\":0}"
+```
+
+### 2.7 在 Jaeger 验证
+
+完成真实推理请求后，vLLM 的批量 exporter 需要数秒将 Span 数据刷新至 Jaeger。等待数据刷新后，执行以下命令验证 Trace：
+
+```bash
+curl -fsS 'http://127.0.0.1:16686/api/services'
+curl -fsS 'http://127.0.0.1:16686/api/traces?service=vllm-server&limit=20'
+```
+
+Jaeger Trace 链路的验证通过标准如下：
+
+1. `/api/services` 中存在 `vllm-server`。
+2. `/api/traces` 的 `data` 数组非空。
+3. 在 Jaeger UI 中选择 `vllm-server` 后，界面上同时呈现 vLLM 原生请求 Span，以及 `vllm.scheduler.schedule`、`vllm.model.execute`、`vllm_ascend.model_runner.execute` 或 `vllm.output.process` 中至少一个 Hook Span。
+4. 若需将调度、模型执行和输出处理 Span 归属于具体推理请求，还须满足[验收层级](#sectionAcceptanceLevels)中的“请求关联通过”条件；Jaeger 页面存在 Trace 数据仅表示数据出口可用，不足以证明请求关联有效。
+
+如果 `/api/services` 中不存在 `vllm-server`，请按照[网络和数据链路排障](#sectionNetworkDataLinkTroubleshooting)中的顺序，依次检查容器状态、DNS、端口、vLLM 参数、exporter 日志和 Hook 命中情况。排查过程中每次只调整一个变量，以便确认故障原因。
+
+## 3. 数据流和地址选择
 
 ```mermaid
 flowchart LR
@@ -58,17 +201,18 @@ flowchart LR
     F --> C[hook_tracing.json]
 ```
 
-Jaeger 和 vLLM 位于不同容器时，地址必须按执行位置选择：
+Jaeger 和 vLLM 位于不同容器时，地址必须按发起访问的进程位置选择：
 
-| 执行位置 | Jaeger查询地址 | OTLP 地址 |
+| 发起访问的位置 | 使用场景 | 地址 |
 |---|---|---|
-| 宿主机 | `http://127.0.0.1:16686` | `http://127.0.0.1:4318/v1/traces` |
-| 与 Jaeger 同一 Docker 自定义网络的 vLLM 容器 | `http://ms-trace-jaeger:16686` | `http://ms-trace-jaeger:4318/v1/traces` |
-| Jaeger 与 vLLM 同一容器 | `http://127.0.0.1:16686` | `http://127.0.0.1:4318/v1/traces` |
+| 用户浏览器或宿主机命令 | Jaeger UI/API | `http://<宿主机IP>:16686`；本机可用 `127.0.0.1` |
+| 与 Jaeger 同一 Docker 自定义网络的 vLLM 容器 | OTLP HTTP 上报 | `http://ms-trace-jaeger:4318/v1/traces` |
+| 与 Jaeger 同一主机但不在同一容器网络的进程 | OTLP HTTP 上报 | `http://<宿主机可达IP>:4318/v1/traces` |
+| Jaeger 与 vLLM 同一容器 | UI/API 或 OTLP | 分别使用 `http://127.0.0.1:16686` 和 `http://127.0.0.1:4318/v1/traces` |
 
 `127.0.0.1` 始终指向当前进程所在容器或主机，不能跨容器访问另一个服务。
 
-## 3. 埋点配置
+## 4. 埋点配置
 
 Tracing 复用 profiling 的同一份符号 YAML，不存在第二份 Tracing YAML。未设置 `PROFILING_SYMBOLS_PATH` 时使用 msServiceProfiler 包内 default 配置。
 
@@ -92,9 +236,9 @@ Tracing 复用 profiling 的同一份符号 YAML，不存在第二份 Tracing YA
 | `model` | 记录模型执行并关联批次 request IDs |
 | `output` | 记录输出处理并清理已完成请求上下文 |
 
-## 4. 启动原则
+## 5. 启动原则
 
-### 4.1 Jaeger-only
+### 5.1 Jaeger-only
 
 仅验证 Jaeger 时，不需要运行 `python3 -m ms_service_profiler.trace`。在 vLLM 进程环境中开启 Hook tracing，并为 vLLM 配置原生 OTLP endpoint：
 
@@ -111,9 +255,9 @@ vllm serve "$MODEL" \
   --otlp-traces-endpoint http://ms-trace-jaeger:4318/v1/traces
 ```
 
-### 4.2 Jaeger + Perfetto 双写
+### 5.2 同时输出 Jaeger 和 Perfetto 数据
 
-Perfetto Forwarder 必须先于 vLLM 启动，确保 Hook backend 初始化时能够注册附加 Processor：
+建议先启动 Perfetto Forwarder，便于第一条 Hook Span 就写入文件；这不是硬性顺序要求。当前 Hook backend 会在创建后续 Span 时重新探测 Forwarder，并在探测成功后注册附加 Processor，因此 Forwarder 晚于 vLLM 启动时无需重启 vLLM，但启动前已经结束的 Span 不会补写。
 
 ```bash
 export TRACE_VERIFY_DIR=/tmp/ms_trace_verify
@@ -133,7 +277,7 @@ echo $! >"$TRACE_VERIFY_DIR/perfetto_forwarder.pid"
 
 验证时应先确认 Jaeger 与 vLLM 的网络连通性，再按后续章节发送真实推理负载并检查两个数据出口。
 
-## 5. 真实推理负载
+## 6. 真实推理负载
 
 `/health` 只用于等待服务就绪，不能用于验证推理 Trace。必须发送 `/v1/completions` 等真实推理请求，例如：
 
@@ -156,7 +300,7 @@ vllm bench serve \
 
 不要把 `VLLM_PLUGINS` 只设置为 `msserviceprofiler`，否则会过滤掉 `ascend` 平台插件并导致 vLLM 无法识别 NPU。验证时执行 `unset VLLM_PLUGINS`，让 vLLM 自动发现全部插件。
 
-### 5.1 分析前检查
+### 6.1 分析前检查
 
 以下检查全部通过后，再使用 Trace 做请求级性能归因：
 
@@ -175,9 +319,9 @@ vllm bench serve \
 
 请求关联未通过时，Hook Span 仍能用于操作级耗时统计，但不能证明某个 scheduler、model 或 output Span 属于目标请求。
 
-## 6. Jaeger 怎么看
+## 7. Jaeger 怎么看
 
-### 6.1 搜索页
+### 7.1 搜索页
 
 1. 打开 `http://<宿主机IP>:16686`。
 2. Service 选择实际服务名，例如 `vllm-server`。
@@ -187,7 +331,7 @@ vllm bench serve \
 
 散点图横轴是开始时间，纵轴是 Trace 总时长。明显高于正常分布的点通常是性能异常候选。列表中的 Spans 表示该 Trace 包含的 Span 数量，Duration 表示端到端或当前 Trace 的总时长。
 
-### 6.2 Trace 详情页
+### 7.2 Trace 详情页
 
 点击一条 Trace 后重点观察：
 
@@ -209,7 +353,7 @@ vllm bench serve \
 | `vllm_ascend.model_runner.execute` | Ascend ModelRunner 实际执行耗时 |
 | `vllm.output.process` | 输出处理、请求完成和后处理耗时 |
 
-### 6.3 常见性能判断
+### 7.3 常见性能判断
 
 - scheduler Span 持续升高、model Span 稳定：重点检查排队、KV Cache 压力、batch 组织和调度策略。
 - model Span 占绝大多数且随 batch 增大明显升高：重点检查模型计算、通信、算子和 NPU 利用率，并与 profiling 结果结合。
@@ -220,7 +364,7 @@ vllm bench serve \
 
 Tracing 用于缩小问题所在阶段；若需要分析算子、kernel、HCCL、显存或 NPU 时间线，继续使用原 profiling 采集和解析能力。
 
-### 6.4 标准分析步骤
+### 7.4 标准分析步骤
 
 Tracing 不依赖 Metrics 才能开始分析。根据已有信息选择入口：
 
@@ -253,7 +397,7 @@ Tracing 不依赖 Metrics 才能开始分析。根据已有信息选择入口：
 
 同一 Trace ID 场景中，异常阶段的差值需要解释 Trace 总时长的主要变化。Span Links 场景分别比较关联 Span 的时间戳和耗时，不把不同 Trace 的界面空白解释为等待。无法解释时，检查未插桩区间；问题已经进入模型执行内部时，继续使用 Profiling 下钻。
 
-### 6.5 Metrics 与 Span 联合对照
+### 7.5 Metrics 与 Span 联合对照
 
 本节用于 Metrics 和 Tracing 数据同时可用的场景，不是 Tracing 独立分析的前置步骤。
 
@@ -267,7 +411,7 @@ Tracing 不依赖 Metrics 才能开始分析。根据已有信息选择入口：
 
 Tracing 独立分析可以定位目标请求的关键路径和异常阶段，但结论范围仅覆盖已分析的请求或观测组。Metrics 独立分析可以确认异常趋势、容量和影响范围，但不描述单请求调用链。两类数据联合使用时，要求 SLO 现象、Metrics 定界和 Trace 定位相互对应。完整流程参见[《vLLM-Ascend 可观测性性能诊断指南》](./vllm_ascend_observability_analysis_guide.md)。
 
-### 6.6 请求关联方式与数量边界
+### 7.6 请求关联方式与数量边界
 
 | 关联方式 | 识别方法 | 能够执行的分析 |
 |---|---|---|
@@ -277,7 +421,7 @@ Tracing 独立分析可以定位目标请求的关键路径和异常阶段，但
 
 单个 Hook Span 最多记录 128 个 `request.ids` 和 Span Links。Batch 请求数超过 128 时，后续请求不会进入该 Span 的请求关联集合。此时使用 `batch.request_count`、`batch.scheduled_tokens`、Metrics 的实例/DP/phase 聚合以及 Perfetto 或 Profiling 数据完成 Batch 级分析，不能宣称该 Span 覆盖了 Batch 内全部请求。
 
-## 7. 验收层级
+## 8. 验收层级<a name="sectionAcceptanceLevels"></a>
 
 | 层级 | 判定依据 |
 |---|---|
@@ -288,7 +432,7 @@ Tracing 独立分析可以定位目标请求的关键路径和异常阶段，但
 
 不能用“Jaeger 页面有数据”替代“完整请求链路关联通过”的结论。
 
-## 8. Profiling 共存验证
+## 9. Profiling 共存验证
 
 Profiling 仍必须按原流程配置 `enable.json`、指定采集目录并执行 `parse`。Tracing 不替代该流程。
 
@@ -298,22 +442,56 @@ Profiling 仍必须按原流程配置 `enable.json`、指定采集目录并执�
 2. 只开 tracing：Jaeger 中出现原生 Span 和 Hook Span；若启动 Perfetto Forwarder，JSON 非空。
 3. profiling + tracing：推理成功，两类交付件均生成；Tracing Span 会包含少量 profiling handler 开销。
 
-## 9. 常见问题
+## 10. 网络和数据链路排障<a name="sectionNetworkDataLinkTroubleshooting"></a>
+
+请按照下表顺序逐层排查，上层检查通过后才可继续下一层检查，请勿在 Jaeger UI 中反复刷新：
+
+| 层级 | 检查命令 | 通过标准 | 失败说明 |
+|---|---|---|---|
+| Jaeger 进程 | `docker ps --filter name=ms-trace-jaeger`；`docker logs ms-trace-jaeger` | 容器为 `Up`，日志无持续启动失败 | 镜像、配置或容器本身未就绪 |
+| 宿主机 UI | `curl -fsS http://127.0.0.1:16686/ >/dev/null` | 返回码为 0 | 端口未映射、进程未监听或本机防火墙拦截 |
+| 容器网络 | `docker network inspect ms-tracing-net` | Jaeger 和 vLLM 容器均在 `Containers` 中 | 两个容器没有共同的 Docker 网络 |
+| 容器 DNS | `getent hosts ms-trace-jaeger` | 返回容器 IP | endpoint 名称错误或容器未加入同一网络 |
+| OTLP TCP | `curl -sS -o /dev/null -w '%{http_code}\n' http://ms-trace-jaeger:4318/v1/traces` | 返回一个 HTTP 状态码 | `refused` 表示未监听；超时通常是路由或防火墙；普通 GET 的 `404/405` 可忽略 |
+| vLLM 配置 | 查看实际启动命令和进程环境 | 含 `--otlp-traces-endpoint`，进程环境中有 `MS_TRACE_ENABLE=1` | 修改 shell 变量但未重启进程不会生效 |
+| 推理负载 | 调用 `/v1/completions` | 返回有效推理结果 | `/health` 成功不能证明产生了请求 Trace |
+| 原生数据 | `curl -fsS 'http://127.0.0.1:16686/api/services'` | 出现 `OTEL_SERVICE_NAME` 的值 | 先查 endpoint、协议和 vLLM exporter 日志，不要先查 Hook |
+| Hook 数据 | 在目标服务中搜索 `vllm.scheduler.schedule` 等操作 | 至少一个预期 Hook Span | 查 msServiceProfiler 是否加载、版本是否受支持、YAML 符号是否命中 |
+| 请求关联 | 查 Trace ID、父子关系、Links、`request.ids` | 至少一种关联成立 | 只能做阶段统计，不能做单请求关键路径归因 |
+
+容器里没有 `curl` 时，可用 Python 只检查 DNS 和 TCP，不会发送 Trace 数据：
+
+```bash
+python3 - <<'PY'
+import socket
+
+host, port = "ms-trace-jaeger", 4318
+print("resolved:", socket.gethostbyname(host))
+with socket.create_connection((host, port), timeout=3):
+    print("OTLP TCP: reachable")
+PY
+```
+
+常见现象与处理如下：
 
 | 现象 | 原因与处理 |
 |---|---|
 | `ms-trace-jaeger` 无法解析 | 命令在宿主机执行，或两个容器不在同一 Docker 自定义网络；宿主机改用 `127.0.0.1` |
+| `Connection refused` | 名称已解析但目标端口没有监听；检查 Jaeger 容器状态、日志和 `4318` 端口，而不是修改 DNS |
+| 连接超时 | 检查 Docker 网络、跨主机路由、安全组和防火墙；不要把超时当作 OTLP 数据格式错误 |
+| 浏览器打不开 `16686`，容器内 OTLP 正常 | Jaeger 收集链路可用，但宿主机端口映射、防火墙或浏览器到宿主机的路由有问题 |
+| `/api/services` 没有 `vllm-server` | 尚未收到任何该服务的 Span；确认发送了真实推理、`OTEL_SERVICE_NAME` 与查询名称一致，并检查 exporter 日志 |
 | `docker exec ... python3 - <<'PY'` 无输出 | heredoc 需要 `docker exec -i` 才会把标准输入传入容器 |
 | 路径展开成 `/vllm_tracing.log` | 当前 shell 没有设置 `TRACE_VERIFY_DIR`；先检查变量非空 |
 | 容器内看不到另一个容器的 `/tmp` 文件 | 进入了错误容器；始终使用唯一的 `VLLM_CONTAINER` 变量 |
 | Python 加载 `/usr/local/Ascend/.../site-packages` | 验证的是已安装包；验证工作区代码时显式设置 `PYTHONPATH=<仓库根目录>` |
 | `pkill -9 386` 无法停止 PID 386 | `pkill` 参数是名称模式；按 PID 使用 `kill -TERM 386` |
-| Perfetto JSON 是空数组 | Forwarder 启动过晚、未运行，或 vLLM 未开启原生 OTLP tracing |
+| Perfetto JSON 是空数组 | Forwarder 未运行、尚未在其启动后产生新 Hook Span，或 vLLM 未开启原生 OTLP tracing；启动 Forwarder 后再发一次真实推理 |
 | Jaeger 可用但 Perfetto 文件不存在 | 两个出口独立；检查 vLLM 容器内 Forwarder 进程和日志 |
 | vLLM 无法识别 NPU | 不要将 `VLLM_PLUGINS` 限制为单个 msserviceprofiler 插件；同时检查 `ASCEND_RT_VISIBLE_DEVICES` |
 | Jaeger Trace 只有 1～2 个 Span | 检查上下文传播、Span Links 和 `request.ids`；不要直接宣称完整请求链通过 |
 
-## 10. 异常行为
+## 11. 异常行为
 
 | 场景 | 行为 |
 |---|---|

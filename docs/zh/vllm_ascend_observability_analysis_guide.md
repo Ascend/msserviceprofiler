@@ -85,7 +85,7 @@ Metrics 和 Tracing 是两条可以独立执行的分析路径，也可以在数
 
 ### 3.3 检查观测链路
 
-Tracing 依赖 vLLM V1 引擎的原生 OpenTelemetry 能力。本资料支持的最低版本组合为 vLLM `0.10.2` 和 vLLM-Ascend `0.10.2rc1`；使用更高版本时必须采用 vLLM-Ascend 官方兼容矩阵中的配套组合。版本依据、启动参数和验证方法参见[《vLLM Hook Tracing 使用指南》的版本要求](./vLLM_hook_tracing_instruct.md#11)。Metrics 独立分析不以该 Tracing 版本条件为前置要求。
+Tracing 依赖 vLLM V1 引擎的原生 OpenTelemetry 能力。为减少旧版本维护成本，本资料中 Hook Tracing 的支持策略下限为 vLLM-Ascend `v0.20.0`；实际安装时必须从官方兼容矩阵选择完整组合，首个满足该边界的公开组合为 vLLM-Ascend `v0.20.2rc1` 与 vLLM `v0.20.2`。版本依据、Jaeger 部署、启动参数、网络调试和验证方法参见[《vLLM Hook Tracing 使用指南》](./vLLM_hook_tracing_instruct.md)。Metrics 独立分析不以该 Tracing 版本条件为前置要求。
 
 | 检查项 | 通过标准 | 失败后的处理 |
 |---|---|---|
@@ -110,7 +110,7 @@ Metrics 数据出口未通过时，停止 Metrics 路径，Tracing 仍可独立�
 | TTFT 升高，TPOT 稳定 | 输入处理、waiting、Scheduler、Prefill、KVCache |
 | TTFT 稳定，TPOT 升高 | Decode、模型执行、采样、通信 |
 | TTFT 和 TPOT 同时升高 | 全局负载、模型执行、资源竞争、实例偏斜 |
-| P99 升高，P50 稳定 | 少量长请求、热点实例、抢占、重算、异常依赖 |
+| P99 升高，P50 稳定 | 少量长请求、热点实例、抢占、重计算、异常依赖 |
 | 吞吐下降且 NPU 利用率低 | Scheduler、Host 下发、IPC、同步等待 |
 | 吞吐下降且 NPU 持续满载 | 模型计算、通信、Batch 或 Token 规模 |
 
@@ -136,7 +136,7 @@ Metrics 数据出口未通过时，停止 Metrics 路径，Tracing 仍可独立�
 
 1. 查看 `fine_grained_ttft`、`fine_grained_tpot`、`engine:generate:duration` 和压测客户端端到端时延，确认受影响的 SLO，并区分服务端引擎耗时与客户端总时延。
 2. 查看 `waiting_batch_size`、`batch_size` 和 `scheduler:duration`，判断排队和调度是否异常。
-3. 查看 `free_kvcache_blocks`、`allocated_kvcache_blocks`、`block_allocate_failures` 和重算/回退计数，判断 KVCache 是否限制调度。
+3. 查看 `free_kvcache_blocks`、`allocated_kvcache_blocks`、`block_allocate_failures` 和重计算/回退计数，判断 KVCache 是否限制调度。
 4. 查看 `executor:execute_model:duration`、`executor:model_runner_execute_model:duration` 和 `npu:forward_duration`，判断模型执行是否变慢。
 5. 按 `instance`、`dp`、`phase`、`rank` 等标签拆分，确认问题是全局问题还是局部热点。
 

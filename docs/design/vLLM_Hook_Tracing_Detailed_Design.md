@@ -36,6 +36,7 @@ vLLM 已提供基于 OpenTelemetry 的原生 Tracing。本方案不再实现第�
 ### 3.2 非目标
 
 - 不支持没有原生 Tracing 能力的旧版 vLLM。
+- 为降低版本适配和回归维护成本，Hook Tracing 的支持策略下限为 vLLM-Ascend `v0.20.0`；低于该版本的组合不进入问题定位、兼容适配和回归范围。
 - 不在 msServiceProfiler 内创建私有 `TracerProvider`。
 - 不将 vLLM 原生 Span 或旧 C++ OTLP 数据转换为 Perfetto。
 - 不修改、扩展或要求上游适配 vLLM 的进程间通信协议；该约束适用于当前及后续所有版本。
@@ -189,13 +190,14 @@ vllm serve MODEL \
 | vLLM 不支持或未开启原生 tracing | Hook tracing no-op，不属于支持场景 |
 | vLLM tracing 私有 API 变化 | 不受影响；实现只使用 OTel 公共 API |
 | YAML 部分符号不存在 | SymbolWatcher 跳过，其他 Hook 继续 |
-| 新 msServiceProfiler + 旧 vLLM-Ascend | 使用包内 default YAML，存在的符号正常 Hook |
+| 新 msServiceProfiler + vLLM-Ascend `>=0.20.0` | 使用包内 default YAML，存在的符号正常 Hook |
+| vLLM-Ascend `<0.20.0` | 不在 Hook Tracing 支持和回归范围；profiling、metrics 按各自资料执行 |
 | 旧 `libms_service_profiler.so` | 可用；本特性无新增 C/C++ ABI |
 | profiling 与 tracing 同时开启 | tracing 包裹 profiling；业务函数执行一次 |
 | Jaeger 不可用 | vLLM exporter 按自身策略处理；Hook fail-open |
 | Perfetto Forwarder 不可用 | 不注册旁路 Processor；Jaeger不受影响 |
 
-“兼容旧 vLLM-Ascend”只表示 YAML/符号按现有机制兼容，不表示支持没有 vLLM 原生 Tracing 的 vLLM 核心版本。
+版本号只定义支持策略边界。实际安装仍须选择 vLLM-Ascend 官方兼容矩阵中的完整组合，并以真实推理后同时出现原生 Span 和 Hook Span 作为链路可用的最终标准。
 
 ## 11. 性能、安全与可靠性
 
