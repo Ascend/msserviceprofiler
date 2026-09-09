@@ -12,7 +12,7 @@ msServiceProfiler provides end-to-end performance profiling. It clearly displays
 
 - Before using msServiceProfiler, read about the restrictions in "[Constraints](msserviceprofiler_install_guide.md#constraints)" in the [msServiceProfiler Installation Guide](msserviceprofiler_install_guide.md).
 - Ensure that the corresponding service framework has been installed and its availability has been verified (the service starts successfully, and can process an inference request using official example scripts or APIs).
-  - **MindIE Motor**: Install and configure MindIE as described in [MindIE Installation Guide](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/README.md) and ensure that the MindIE Motor service can start successfully and complete a sample inference request.
+  - **MindIE Motor**: Install and configure MindIE as described in [MindIE Installation Guide](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/deployment/README.md) and ensure that the MindIE Motor service can start successfully and complete a sample inference request.
   - **vLLM-ascend**: Set up the environment and verify that the vLLM service can provide inference APIs for external systems. For details, see [vLLM Service Profiler User Guide] (vLLM_service_oriented_performance_collection_tool.md) and official  vLLM-ascend installation document.
   - **SGLang**: Set up the environment and verify that the SGLang service can provide inference APIs for external systems. For details, see [SGLang Service Profiler User Guide] (SGLang_service_oriented_performance_collection_tool.md) and official SGLang installation document.
 

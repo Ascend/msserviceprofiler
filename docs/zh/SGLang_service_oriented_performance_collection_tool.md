@@ -12,14 +12,24 @@ SGLang Service Profiler 适用于在NPU部署SGLang推理服务过程中进行�
 >
 >昇腾产品的具体型号，请参见《[昇腾产品形态说明](https://www.hiascend.com/document/detail/zh/AscendFAQ/ProduTech/productform/hardwaredesc_0001.html)》
 
-|产品类型| 是否支持 |
-|--|:----:|
-|昇腾950PR&昇腾950DT系列产品|×|
-|昇腾A3系列产品|√|
-|昇腾A2系列产品|√|
-|昇腾310B系列产品|×|
-|昇腾310P系列产品|×|
-|昇腾910系列产品|×|
+<!-- npu="950" id1 -->
+- 昇腾950PR&950DT系列产品：不支持
+<!-- end id1 -->
+<!-- npu="A3" id2 -->
+- 昇腾A3系列产品：支持
+<!-- end id2 -->
+<!-- npu="910b" id3 -->
+- 昇腾A2系列产品：支持
+<!-- end id3 -->
+<!-- npu="310b" id4 -->
+- 昇腾310B系列产品：不支持
+<!-- end id4 -->
+<!-- npu="310p" id5 -->
+- 昇腾310P系列产品：不支持
+<!-- end id5 -->
+<!-- npu="910" id6 -->
+- 昇腾910系列产品：不支持
+<!-- end id6 -->
 
 工具支持型号与SGLang框架服务化推理部署支持的NPU型号保持一致，具体可参考 [SGLang installation with NPUs support](https://docs.sglang.io/docs/hardware-platforms/ascend-npus/ascend_npu)。
 

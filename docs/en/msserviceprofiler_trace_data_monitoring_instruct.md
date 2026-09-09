@@ -45,7 +45,7 @@ It collects data from the MindIE Motor service, including request response time,
    pip install opentelemetry-exporter-otlp-proto-http==1.33.1
    ```
 
-4. Install and configure MindIE and ensure that MindIE Motor can run properly. For details, see [MindIE Installation Guide](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/install/installing_mindie.md).
+4. Install and configure MindIE and ensure that MindIE Motor can run properly. For details, see [MindIE Installation Guide](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/deployment/README.md).
 
 5. Establish a stable network connection between the Ascend environment hosting the MindIE Motor service and the OTLP collector (such as Jaeger).
 

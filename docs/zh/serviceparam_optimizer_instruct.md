@@ -34,14 +34,24 @@
 >
 >昇腾产品的具体型号，请参见《[昇腾产品形态说明](https://www.hiascend.com/document/detail/zh/AscendFAQ/ProduTech/productform/hardwaredesc_0001.html)》。
 
-|产品类型| 是否支持 |
-|--|:----:|
-|昇腾950PR&昇腾950DT系列产品|×|
-|昇腾A3系列产品|√|
-|昇腾A2系列产品|√|
-|昇腾310B系列产品|√|
-|昇腾310P系列产品|√|
-|昇腾910系列产品|×|
+<!-- npu="950" id1 -->
+- 昇腾950PR&950DT系列产品：不支持
+<!-- end id1 -->
+<!-- npu="A3" id2 -->
+- 昇腾A3系列产品：支持
+<!-- end id2 -->
+<!-- npu="910b" id3 -->
+- 昇腾A2系列产品：支持
+<!-- end id3 -->
+<!-- npu="310b" id4 -->
+- 昇腾310B系列产品：支持
+<!-- end id4 -->
+<!-- npu="310p" id5 -->
+- 昇腾310P系列产品：支持
+<!-- end id5 -->
+<!-- npu="910" id6 -->
+- 昇腾910系列产品：不支持
+<!-- end id6 -->
 
 > [!NOTE]
 >
@@ -51,7 +61,7 @@
 ## 使用前准备
 
 **环境准备**
-准备好能正常运行服务化（如[MindIE Service](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/quick_start_motor.md)/[VLLM Server](https://docs.vllm.ai/projects/ascend/en/latest/quick_start.html)）和测评工具（如`vllm_benchmark/AISBench`，参见[测评工具部署](https://github.com/AISBench/benchmark/blob/master/docs/source_zh_cn/get_started/install.md)）的环境。
+准备好能正常运行服务化（如[MindIE Service](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/deployment/README.md)/[VLLM Server](https://docs.vllm.ai/projects/ascend/en/latest/quick_start.html)）和测评工具（如`vllm_benchmark/AISBench`，参见[测评工具部署](https://github.com/AISBench/benchmark/blob/master/docs/source_zh_cn/get_started/install.md)）的环境。
 
 ## 工具安装
 

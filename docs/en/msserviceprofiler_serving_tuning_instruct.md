@@ -35,11 +35,11 @@ The tool usage process is as follows:
 
 ## Preparations
 
-The hardware environment supported by the tool is the same as that supported by MindIE. For details, see "Installing MindIE" in [MindIE Installation Guide](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/install/installing_mindie.md).
+The hardware environment supported by the tool is the same as that supported by MindIE. For details, see "Installing MindIE" in [MindIE Installation Guide](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/deployment/README.md).
 
 1. Install the matching CANN Toolkit and ops operator packages, and configure CANN environment variables. For details, see [CANN Installation Guide](https://www.hiascend.com/cann/download).
 2. Install [msServiceProfiler](msserviceprofiler_install_guide.md).
-3. Install and configure MindIE and ensure that MindIE Motor can run properly. For details, see [MindIE Installation Guide](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/install/installing_mindie.md).
+3. Install and configure MindIE and ensure that MindIE Motor can run properly. For details, see [MindIE Installation Guide](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/deployment/README.md).
 4. After the preceding environment is prepared, you can use [msprechecker](https://gitcode.com/Ascend/msit/tree/master/msprechecker) to check environment variables and serving configurations.
 
 ## Data Collection
