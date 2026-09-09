@@ -1,0 +1,136 @@
+# SGLang metric configuration.
+
+# ===== Frontend / request IO =====
+- symbol: sglang.srt.managers.io_struct:GenerateReqInput.normalize_batch_and_arguments
+  handler: ms_service_metric.adapters.sglang.handlers.metric_handlers:request_io_handler
+  metrics:
+    - name: request:normalize:duration
+      type: timer
+
+- symbol: sglang.srt.managers.tokenizer_manager:TokenizerManager._tokenize_one_request
+  handler: ms_service_metric.adapters.sglang.handlers.metric_handlers:request_io_handler
+  metrics:
+    - name: request:tokenize_one:duration
+      type: timer
+
+- symbol: sglang.srt.managers.tokenizer_manager:TokenizerManager._batch_tokenize_and_process
+  handler: ms_service_metric.adapters.sglang.handlers.metric_handlers:request_io_handler
+  metrics:
+    - name: request:batch_tokenize:duration
+      type: timer
+
+- symbol: sglang.srt.managers.tokenizer_manager:TokenizerManager._send_one_request
+  handler: ms_service_metric.adapters.sglang.handlers.metric_handlers:request_io_handler
+  metrics:
+    - name: request:send_one:duration
+      type: timer
+
+- symbol: sglang.srt.managers.tokenizer_manager:TokenizerManager._send_batch_request
+  handler: ms_service_metric.adapters.sglang.handlers.metric_handlers:request_io_handler
+  metrics:
+    - name: request:send_batch:duration
+      type: timer
+
+- symbol: sglang.srt.managers.tokenizer_manager:TokenizerManager._wait_one_response
+  handler: ms_service_metric.adapters.sglang.handlers.metric_handlers:request_io_handler
+  metrics:
+    - name: request:wait_response:duration
+      type: timer
+
+- symbol: sglang.srt.managers.detokenizer_manager:DetokenizerManager.handle_batch_token_id_out
+  handler: ms_service_metric.adapters.sglang.handlers.metric_handlers:request_io_handler
+  metrics:
+    - name: request:detokenize:duration
+      type: timer
+
+# ===== Scheduler =====
+- symbol: sglang.srt.managers.scheduler:SchedulerRequestReceiver.recv_requests
+  handler: ms_service_metric.adapters.sglang.handlers.metric_handlers:scheduler_handler
+  metrics:
+    - name: scheduler:recv_requests:duration
+      type: timer
+
+- symbol: sglang.srt.managers.scheduler:Scheduler.handle_generate_request
+  handler: ms_service_metric.adapters.sglang.handlers.metric_handlers:scheduler_handler
+  metrics:
+    - name: scheduler:handle_generate_request:duration
+      type: timer
+
+- symbol: sglang.srt.managers.scheduler:Scheduler.handle_embedding_request
+  handler: ms_service_metric.adapters.sglang.handlers.metric_handlers:scheduler_handler
+  metrics:
+    - name: scheduler:handle_embedding_request:duration
+      type: timer
+
+- symbol: sglang.srt.managers.scheduler:Scheduler.get_next_batch_to_run
+  handler: ms_service_metric.adapters.sglang.handlers.metric_handlers:scheduler_handler
+  metrics:
+    - name: scheduler:get_next_batch_to_run:duration
+      type: timer
+
+- symbol: sglang.srt.managers.scheduler:Scheduler.run_batch
+  handler: ms_service_metric.adapters.sglang.handlers.metric_handlers:scheduler_handler
+  metrics:
+    - name: scheduler:run_batch:duration
+      type: timer
+
+- symbol: sglang.srt.managers.scheduler:Scheduler.process_batch_result
+  handler: ms_service_metric.adapters.sglang.handlers.metric_handlers:scheduler_handler
+  metrics:
+    - name: scheduler:process_batch_result:duration
+      type: timer
+
+- symbol: sglang.srt.managers.scheduler:Scheduler._add_request_to_queue
+  handler: ms_service_metric.adapters.sglang.handlers.metric_handlers:scheduler_handler
+  metrics:
+    - name: scheduler:add_request_to_queue:duration
+      type: timer
+
+- symbol: sglang.srt.managers.scheduler:Scheduler.get_new_batch_prefill
+  handler: ms_service_metric.adapters.sglang.handlers.metric_handlers:scheduler_handler
+  metrics:
+    - name: scheduler:get_new_batch_prefill:duration
+      type: timer
+
+- symbol: sglang.srt.managers.schedule_batch:Req.init_next_round_input
+  handler: ms_service_metric.adapters.sglang.handlers.metric_handlers:scheduler_handler
+  metrics:
+    - name: scheduler:req_init_next_round_input:duration
+      type: timer
+
+- symbol: sglang.srt.managers.schedule_batch:SchedulerBatchResultProcessor.process_batch_result_prefill
+  handler: ms_service_metric.adapters.sglang.handlers.metric_handlers:scheduler_handler
+  metrics:
+    - name: scheduler:process_batch_result_prefill:duration
+      type: timer
+
+- symbol: sglang.srt.managers.schedule_batch:SchedulerBatchResultProcessor.process_batch_result_decode
+  handler: ms_service_metric.adapters.sglang.handlers.metric_handlers:scheduler_handler
+  metrics:
+    - name: scheduler:process_batch_result_decode:duration
+      type: timer
+
+# ===== Model execution =====
+- symbol: sglang.srt.model_executor.forward_batch_info:ForwardBatch.init_new
+  handler: ms_service_metric.adapters.sglang.handlers.metric_handlers:model_handler
+  metrics:
+    - name: model:preprocess:duration
+      type: timer
+
+- symbol: sglang.srt.model_executor.model_runner:ModelRunner.forward
+  handler: ms_service_metric.adapters.sglang.handlers.metric_handlers:model_handler
+  metrics:
+    - name: model:forward:duration
+      type: timer
+
+- symbol: sglang.srt.model_executor.model_runner:ModelRunner.sample
+  handler: ms_service_metric.adapters.sglang.handlers.metric_handlers:model_handler
+  metrics:
+    - name: model:sample:duration
+      type: timer
+
+- symbol: sglang.srt.managers.tp_worker:TpModelWorker.forward
+  handler: ms_service_metric.adapters.sglang.handlers.metric_handlers:model_handler
+  metrics:
+    - name: model:tp_worker_forward:duration
+      type: timer
