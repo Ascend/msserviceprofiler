@@ -13,153 +13,183 @@
 # MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 # See the Mulan PSL v2 for more details.
 # -------------------------------------------------------------------------
-"""
-SGLang Metric Adapter - SGLang框架适配器
+"""SGLang metric adapter."""
 
-提供对SGLang推理框架的适配支持。
-
-使用示例:
-    >>> from ms_service_metric.adapters.sglang import initialize_sglang_metric
-    >>> initialize_sglang_metric()
-"""
-
+import multiprocessing
 import os
-from typing import Optional
+import re
+from typing import Optional, Tuple
 
+from ms_service_metric.core.config.provider import ProviderRegistry
+from ms_service_metric.core.symbol_handler_manager import SymbolHandlerManager
+from ms_service_metric.metrics.meta_state import get_meta_state, set_dp_rank
 from ms_service_metric.utils.logger import get_logger
 from ms_service_metric.utils.version import get_package_version
-from ms_service_metric.core.symbol_handler_manager import SymbolHandlerManager
-
 
 logger = get_logger(__name__)
 
+try:
+    from setproctitle import getproctitle
+except ImportError:
+    getproctitle = None
+
+
 class SGLangMetricAdapter:
-    """SGLang Metric适配器
-    
-    负责：
-    1. 检测SGLang版本
-    2. 加载对应版本的配置和handlers
-    3. 初始化SymbolHandlerManager
-    
-    Attributes:
-        _manager: SymbolHandlerManager实例
-        _version: 检测到的SGLang版本
-        _initialized: 是否已初始化
-    """
-    
+    """Initialize ms_service_metric hooks for SGLang."""
+
     def __init__(self):
-        """初始化适配器"""
         self._manager: Optional[SymbolHandlerManager] = None
         self._version: Optional[str] = None
         self._initialized: bool = False
-        
+
     def initialize(self):
-        """初始化适配器
-        
-        检测SGLang版本，加载配置，初始化管理器。
-        """
+        """Initialize the adapter and load SGLang metric symbols."""
         if self._initialized:
             logger.debug("SGLangMetricAdapter already initialized")
             return
-        
+
         logger.info("Initializing SGLangMetricAdapter")
-        
-        # 检测SGLang版本
         self._version = self._detect_sglang_version()
-        logger.info(f"Detected SGLang version: {self._version}")
-        
-        # 创建并初始化SymbolHandlerManager
-        self._manager = SymbolHandlerManager()
-        
-        # 加载SGLang特定的配置
-        config_path = self._get_config_path()
-        self._manager.initialize(config_path)
-        
+        logger.info("Detected SGLang version: %s", self._version)
+
+        from ms_service_metric.adapters.sglang.metrics_init import setup_sglang_metrics
+
+        setup_sglang_metrics()
+        self._setup_ranks()
+        self._setup_role()
+
+        self._manager = SymbolHandlerManager(
+            current_version=self._version,
+            provider_registry=ProviderRegistry(),
+        )
+
+        config_path, default_config_path, config_is_user_owned = self._get_config_path()
+        self._manager.initialize(
+            config_path,
+            default_config_path,
+            framework_config_is_user=config_is_user_owned,
+        )
+
         self._initialized = True
         logger.info("SGLangMetricAdapter initialized successfully")
-    
+
     def shutdown(self):
-        """关闭适配器"""
-        if not self._initialized:
+        """Shutdown metric hooks and watchers."""
+        if not self._initialized and self._manager is None:
             return
-        
+
         logger.info("Shutting down SGLangMetricAdapter")
-        
-        if self._manager:
-            self._manager.shutdown()
-            self._manager = None
-        
+        manager = self._manager
+        self._manager = None
         self._initialized = False
+        if manager:
+            manager.shutdown()
         logger.info("SGLangMetricAdapter shutdown complete")
-    
+
     def _detect_sglang_version(self) -> Optional[str]:
-        """检测SGLang版本
-        
-        使用 get_package_version 获取 sglang 包版本信息。
-        
-        Returns:
-            版本字符串，如果未安装则返回None
-        """
+        """Detect the installed SGLang version."""
         version = get_package_version("sglang")
         if version:
-            logger.debug(f"SGLang version: {version}")
+            logger.debug("SGLang version: %s", version)
             return version
         logger.warning("SGLang not installed")
         return None
-    
-    def _get_config_path(self) -> Optional[str]:
-        """获取配置文件路径
-        
-        Returns:
-            配置文件路径，如果没有合适的配置则返回None
-        """
-        
-        # 获取适配器目录
+
+    def _setup_ranks(self):
+        """Set process rank labels used by MetricsManager."""
+        rank_sources = self._get_rank_source_names()
+        dp_rank = self._get_int_env("SGLANG_DP_RANK")
+        if dp_rank < 0:
+            dp_rank = self._parse_rank_from_names(rank_sources, "DP")
+        if dp_rank < 0:
+            logger.warning("Could not resolve SGLang dp_rank from env or process title: %s", rank_sources)
+        set_dp_rank(dp_rank)
+
+        tp_rank = self._get_int_env("SGLANG_TP_RANK")
+        if tp_rank < 0:
+            tp_rank = self._parse_rank_from_names(rank_sources, "TP")
+        if tp_rank < 0:
+            logger.warning("Could not resolve SGLang tp_rank from env or process title: %s", rank_sources)
+        get_meta_state().set("tp_rank", tp_rank)
+        logger.debug("Setup SGLang dp_rank=%s, tp_rank=%s", dp_rank, tp_rank)
+
+    @staticmethod
+    def _get_int_env(name: str) -> int:
+        value = os.getenv(name)
+        if not value:
+            return -1
+        try:
+            return int(value)
+        except ValueError:
+            logger.debug("Invalid %s value: %r", name, value)
+            return -1
+
+    @staticmethod
+    def _parse_rank_from_process_name(process_name: str, prefix: str) -> int:
+        match = re.search(rf"(?:^|[^A-Za-z0-9]){prefix}(\d+)(?:$|[^A-Za-z0-9])", process_name, re.IGNORECASE)
+        if not match:
+            return -1
+        return int(match.group(1))
+
+    @classmethod
+    def _parse_rank_from_names(cls, process_names: Tuple[str, ...], prefix: str) -> int:
+        for process_name in process_names:
+            rank = cls._parse_rank_from_process_name(process_name, prefix)
+            if rank >= 0:
+                return rank
+        return -1
+
+    @staticmethod
+    def _get_rank_source_names() -> Tuple[str, ...]:
+        names = [multiprocessing.current_process().name]
+        if getproctitle is not None:
+            try:
+                process_title = getproctitle()
+            except Exception as err:
+                logger.debug("Failed to get SGLang process title: %s", err)
+            else:
+                if process_title and process_title not in names:
+                    names.append(process_title)
+        return tuple(names)
+
+    def _setup_role(self):
+        role = os.getenv("SGLANG_PD_ROLE", "mixed").lower()
+        get_meta_state().set("pd_role", role)
+        get_meta_state().set("role", role)
+        get_meta_state().set("phase", role if role in {"prefill", "decode"} else "mixed")
+
+    def _get_config_path(self) -> Tuple[Optional[str], Optional[str], bool]:
+        """Return framework config, built-in default config and ownership flag."""
         adapter_dir = os.path.dirname(os.path.abspath(__file__))
         config_dir = os.path.join(adapter_dir, "config")
-        
-        # 首先检查环境变量指定的配置
+        default_config = os.path.join(config_dir, "default.yaml")
+
         env_config = os.getenv("MS_SERVICE_METRIC_SGLANG_CONFIG")
         if env_config and os.path.exists(env_config):
-            logger.debug(f"Using config from environment: {env_config}")
-            return env_config
-        
-        # 使用默认配置
-        default_config = os.path.join(config_dir, "default.yaml")
+            logger.debug("Using config from environment: %s", env_config)
+            return env_config, default_config, True
+
         if os.path.exists(default_config):
-            logger.debug(f"Using default config: {default_config}")
-            return default_config
-        
+            logger.debug("Using default config: %s", default_config)
+            return None, default_config, False
+
         logger.warning("No config file found for SGLang adapter")
-        return None
-    
+        return None, default_config, False
+
     def get_manager(self) -> Optional[SymbolHandlerManager]:
-        """获取SymbolHandlerManager实例
-        
-        Returns:
-            SymbolHandlerManager实例或None
-        """
+        """Return the symbol handler manager."""
         return self._manager
-    
+
     def is_initialized(self) -> bool:
-        """检查是否已初始化
-        
-        Returns:
-            是否已初始化
-        """
+        """Return whether the adapter is initialized."""
         return self._initialized
 
 
-# 全局适配器实例
 _sglang_adapter_instance: Optional[SGLangMetricAdapter] = None
 
 
 def get_sglang_adapter() -> SGLangMetricAdapter:
-    """获取全局SGLang适配器实例（单例模式）
-    
-    Returns:
-        SGLangMetricAdapter单例实例
-    """
+    """Return the global SGLang metric adapter."""
     global _sglang_adapter_instance
     if _sglang_adapter_instance is None:
         _sglang_adapter_instance = SGLangMetricAdapter()
@@ -167,13 +197,17 @@ def get_sglang_adapter() -> SGLangMetricAdapter:
 
 
 def initialize_sglang_metric():
-    """初始化SGLang metric收集
-    
-    这是主要的初始化入口，应在SGLang启动时调用。
-    
-    Example:
-        >>> from ms_service_metric.adapters.sglang import initialize_sglang_metric
-        >>> initialize_sglang_metric()
-    """
-    adapter = get_sglang_adapter()
-    adapter.initialize()
+    """Initialize optional SGLang metric collection."""
+    adapter = None
+    try:
+        adapter = get_sglang_adapter()
+        adapter.initialize()
+    except Exception:
+        logger.exception(
+            "Failed to initialize optional SGLang metrics; metrics are disabled and SGLang startup will continue"
+        )
+        if adapter is not None:
+            try:
+                adapter.shutdown()
+            except Exception:
+                logger.exception("Failed to clean up partially initialized SGLang metrics")
