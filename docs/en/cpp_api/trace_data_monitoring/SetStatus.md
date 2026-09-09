@@ -8,7 +8,8 @@
 
 |Product Type|Supported (Yes/No)|
 |--|:-:|
-|Atlas A3 Training Products and Atlas A3 Inference Products|No|
+|Ascend 950 products|No|
+|Atlas A3 training products and Atlas A3 inference products|No|
 |Atlas A2 Training Products and Atlas A2 Inference Products|Yes|
 |Atlas 200I/500 A2 inference products|No|
 |Atlas Inference Products|Yes|
@@ -25,7 +26,7 @@ Sets the span status.
 
 ## Function Prototype<a name="section1121883194711"></a>
 
-```CPP
+```cpp
 Span& SetStatus(const bool isSuccess, const std::string& msg)
 ```
 

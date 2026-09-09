@@ -17,7 +17,8 @@ msServiceProfiler Compare Tool is designed for comparative analysis of performan
 
 |Product Type| Supported (Yes/No)|
 |--|:----:|
-|Atlas A3 training products and Atlas A3 inference products|  Yes  |
+|Ascend 950 products|No|
+|Atlas A3 Training Products and Atlas A3 Inference Products|  Yes  |
 |Atlas A2 training products and Atlas A2 inference products|  Yes  |
 |Atlas 200I/500 A2 inference products|  Yes  |
 |Atlas inference products|  Yes  |

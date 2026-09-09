@@ -8,6 +8,7 @@
 
 |Product Type|Supported (Yes/No)|
 |--|:-:|
+|Ascend 950 products|No|
 |Atlas A3 training products and Atlas A3 inference products|No|
 |Atlas A2 training products and Atlas A2 inference products|Yes|
 |Atlas 200I/500 A2 inference products|No|
@@ -26,7 +27,7 @@ Specifies a domain for the data, where records with the same domain are grouped 
 ## Function Prototype<a name="section759854510169"></a>
 
 ```python
-def domain(self, domain)
+def domain(self, domain):
 ```
 
 ## Parameter Description<a name="section354791521716"></a>

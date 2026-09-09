@@ -17,11 +17,12 @@ vLLM Service Profiler is used for performance profiling analysis when deploying 
 
 >[!NOTE]
 >
->For details about Ascend product models, see [Ascend Product Models](https://www.hiascend.com/document/detail/zh/AscendFAQ/ProduTech/productform/hardwaredesc_0001.html).
+>For details about Ascend product models, see [Ascend Product Models](https://www.hiascend.com/document/detail/en/AscendFAQ/ProduTech/productform/hardwaredesc_0001.html).
 
 |Product Type| Supported (Yes/No)|
 |--|:----:|
-|Atlas A3 training products and Atlas A3 inference products|  Yes  |
+|Ascend 950 products|Yes|
+|Atlas A3 Training Products and Atlas A3 Inference Products|  Yes  |
 |Atlas A2 training products and Atlas A2 inference products|  Yes  |
 |Atlas 200I/500 A2 inference products|  Yes  |
 |Atlas inference products|  Yes  |
@@ -31,9 +32,9 @@ vLLM Service Profiler is used for performance profiling analysis when deploying 
 
 #### Environment Setup
 
-1. In the Ascend environment, install the matching CANN Toolkit and ops operator packages, and configure CANN environment variables. For details, see [CANN Installation Guide](https://www.hiascend.com/cann/download).
+1. In the Ascend environment, install the matching CANN Toolkit and ops operator packages, and configure CANN environment variables. For details, see [CANN Installation Guide](https://www.hiascend.com/en/cann/download).
 2. Install vLLM and vLLM-Ascend. Verify that vLLM-ascend can run properly. For details, see [vLLM-Ascend installation](https://vllm-ascend.readthedocs.io/en/latest/installation.html).
-3. Upgrade msServiceProfiler. Build the `.run` file from the source code and upgrade the tool. For details, see the section *Upgrade* in [msServiceProfiler Installation Guide](./msserviceprofiler_install_guide.md#upgrade).
+3. Upgrade msServiceProfiler. Build the `.run` file from the source code and upgrade the tool. For details, see the section *Upgrade* in [msServiceProfiler Installation Guide](./msserviceprofiler_install_guide.md#5-upgrade).
 
 #### Constraints
 
@@ -59,9 +60,9 @@ export PROFILING_SYMBOLS_PATH=service_profiling_symbols.yaml
 vllm serve Qwen/Qwen2.5-0.5B-Instruct &
 ```
 
-`ms_service_profiler_config.json` indicates the collection configuration file. If the file does not exist, a default configuration is automatically generated. For custom configurations, see [Collection Configuration User Guide] (#collection-configuration-user-guide).
+`ms_service_profiler_config.json` indicates the collection configuration file. If the file does not exist, a default configuration is automatically generated. For custom configurations, see [Profiling Configuration Usage Guide](#profiling-configuration-usage-guide).
 
-`service_profiling_symbols.yaml` is the instrumentation configuration file. If you do not set the `PROFILING_SYMBOLS_PATH` environment variable, the default configuration file is used. If the file does not exist at the specified path, the system generates a default configuration file at that location for subsequent modification. For custom configurations, see [Symbol Configuration User Guide] (#Symbol-configuration-user-guide).
+`service_profiling_symbols.yaml` is the instrumentation configuration file. If you do not set the `PROFILING_SYMBOLS_PATH` environment variable, the default configuration file is used. If the file does not exist at the specified path, the system generates a default configuration file at that location for subsequent modification. For custom configurations, see [Symbol Configuration User Guide](#symbol-configuration-user-guide).
 
 **2. Starting Data Collection**
 
@@ -200,15 +201,15 @@ attributes:
   # Obtains the tensor shape
   - name: tensor_shape
     expr: input_tensor | attr shape | str
-
+  
   # Obtaining a specific value from a dictionary
   - name: batch_size
     expr: kwargs['batch_size']
-
+  
   # Condition expression (custom processing function required)
   - name: is_training_mode
     expr: training | bool
-
+  
   # Complex data processing
   - name: processed_data_len
     expr: data | attr items | len | str
@@ -270,13 +271,13 @@ After parsing is complete, the deliverables listed in the following table are ge
 
 |          Deliverable         | Description                                                                                                                                        |
 |:---------------------:|:-------------------------------------------------------------------------------------------------------------------------------------------|
-| `chrome_tracing.json` | Records trace data of inference service requests. You can use different visualization tools to view the data. For details, see [Data Visualization] (./msserviceprofiler_serving_tuning_instruct.md# Data Visualization).                                      |
-|     `profiler.db`     | SQLite database file for generating visualized line charts. For details, see [profiler.db] (./msserviceprofiler_serving_tuning_instruct.md#profilerdb).                                |
-|     `request.csv`     | Records detailed data of inference requests in a serving scenario. For details, see [request.csv] (./msserviceprofiler_serving_tuning_instruct.md#requestcsv).                                     |
+| `chrome_tracing.json` | Records trace data of inference service requests. You can use different visualization tools to view the data. For details, see [Data Visualization](./msserviceprofiler_serving_tuning_instruct.md#data-visualization).                                      |
+|     `profiler.db`     | SQLite database file for generating visualized line charts. For details, see [profiler.db](./msserviceprofiler_serving_tuning_instruct.md#profilerdb).                                |
+|     `request.csv`     | Records detailed data of inference requests in a serving scenario. For details, see [request.csv](./msserviceprofiler_serving_tuning_instruct.md#requestcsv).                                     |
 | `request_summary.csv` | Overall request statistics                                                                                                                                  |
 | `forward.csv` | Records detailed data of the forward execution process of an inference model in a serving scenario. For details, see [forward.csv](./msserviceprofiler_serving_tuning_instruct.md#forwardcsv).                                   |
-|     `kvcache.csv`     | Records memory usage during inference. For details, see [kvcache.csv] (./msserviceprofiler_serving_tuning_instruct.md#kvcachecsv).                                         |
-|      `batch.csv`      | Records detailed data of inference batches in a serving scenario. For details, see [batch.csv] (./msserviceprofiler_serving_tuning_instruct.md#batchcsv).                                      |
+|     `kvcache.csv`     | Records memory usage during inference. For details, see [kvcache.csv](./msserviceprofiler_serving_tuning_instruct.md#kvcachecsv).                                         |
+|      `batch.csv`      | Records detailed data of inference batches in a serving scenario. For details, see [batch.csv](./msserviceprofiler_serving_tuning_instruct.md#batchcsv).                                      |
 |   `spec_decode.csv`   | Records detailed data for each request in a speculative inference scenario. For details, see [spec_decode.csv](./msserviceprofiler_serving_tuning_instruct.md#spec_decodecsv).|
 |  `batch_summary.csv`  | Overall statistics metrics of batch scheduling                                                                                                                                |
 | `service_summary.csv` | Overall statistics metrics in the service dimension                                                                                                                               |
@@ -284,7 +285,7 @@ After parsing is complete, the deliverables listed in the following table are ge
 
 >[!NOTE]
 >
-> The output file is closely related to the collection of the domain field. For details, see [Mapping between domain fields and the parsing results] (./msserviceprofiler_serving_tuning_instruct.md# parsing result).
+> The output file is closely related to the collection of the domain field. For details, see [Mapping between domain fields and the parsing results](./msserviceprofiler_serving_tuning_instruct.md#parsed-results).
 
 ## Appendix
 
@@ -307,9 +308,9 @@ After parsing is complete, the deliverables listed in the following table are ge
 
 ### Profiling Configuration Usage Guide
 
-For details about the profiling configuration, see the instructions for creating configuration files and the clarifications [Data Collection] (./msserviceprofiler_serving_tuning_instruct.md# Data Collection).
+For details about the profiling configuration, see the instructions for creating configuration files and the clarifications [Data Collection](./msserviceprofiler_serving_tuning_instruct.md#data-collection).
 
->![](public_sys-resources/icon-note.gif)**Note**:
+>[!NOTE]
 >
 > - When `acl_task_time` is set to `1`, vLLM Service Profiler does not support the configuration of the `VLLM_TORCH_PROFILER_DIR` environment variable of the native vLLM Torch Profiler for profile data collection.
 > - When configuring the Torch Profiler, set `enable` to `0` (disabling profiling) first. After the vLLM-ascend inference service framework starts, set `enable` to `1` (enabling profiling). To avoid collecting too much profile data, you can disable profiling after the corresponding data is collected. If the initial value of `enable` is `1`, a large amount of framework data is collected, which can easily generate trace files of several gigabytes.

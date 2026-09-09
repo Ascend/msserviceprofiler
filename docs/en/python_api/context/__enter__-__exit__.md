@@ -8,6 +8,7 @@
 
 |Product Type|Supported (Yes/No)|
 |--|:-:|
+|Ascend 950 products|No|
 |Atlas A3 training products and Atlas A3 inference products|No|
 |Atlas A2 training products and Atlas A2 inference products|Yes|
 |Atlas 200I/500 A2 inference products|No|
@@ -26,8 +27,8 @@ Upon entry, automatically calls the `span\_start` function to record the start t
 ## Function Prototype<a name="section759854510169"></a>
 
 ```python
-def __enter__(self)
-def __exit__(self, exc_type, exc_val, exc_tb)
+def __enter__(self):
+def __exit__(self, exc_type, exc_val, exc_tb):
 ```
 
 ## Parameter Description<a name="section354791521716"></a>

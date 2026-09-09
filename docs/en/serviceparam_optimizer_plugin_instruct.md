@@ -79,8 +79,7 @@ The process of developing a custom plugin is as follows:
 
 ### Customizing a Performance Benchmark Tool
 
-1. Inherit from `ms_serviceparam_optimizer.optimizer.benchmark.BenchmarkInterface` and implement the `data_field property` and `get_performance_index` methods.
-Example:
+1. Inherit from `ms_serviceparam_optimizer.optimizer.benchmark.BenchmarkInterface` and implement the `data_field property` and `get_performance_index` methods. Example:
 
     ```python
     class ms_serviceparam_optimizer.optimizer.benchmark.BenchmarkInterface():

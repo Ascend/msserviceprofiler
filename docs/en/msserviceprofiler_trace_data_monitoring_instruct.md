@@ -7,9 +7,9 @@ msServiceProfiler Trace receives, processes, and forwards distributed trace data
 It collects data from the MindIE Motor service, including request response time, response status, client IP/port, and server IP/port. Then, it pushes the collected data to OTLP-compliant open-source monitoring platforms such as Jaeger for visualization.
 
 - The current version primarily targets the MindIE inference framework and supports single-node deployment and multi-node Prefill-Decode (PD) competition deployment.
-- Trace monitoring is currently supported only for core inference endpoints [/v1/chat/completions](https://www.hiascend.com/document/detail/zh/mindie/22RC1/mindieservice/servicedev/mindie_service0078.html) and [/v1/completions](https://www.hiascend.com/document/detail/zh/mindie/22RC1/mindieservice/servicedev/mindie_service0323.html) of MindIE.
+- Trace monitoring is currently supported only for core inference endpoints [/v1/chat](https://www.hiascend.com/document/detail/en/mindie/230/LLMframe/llmdev/mindie_service0078.html) and [/v1/completions](https://www.hiascend.com/document/detail/en/mindie/230/LLMframe/llmdev/mindie_service0323.html) of MindIE.
 - For details about data monitoring APIs of msServiceProfiler Trace, see "msServiceProfiler API Reference (C++) \>  [Trace Data Monitoring](./cpp_api/trace_data_monitoring/README.md).
-- For details about MindIE Motor, see [MindIE Motor Developer Guide](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/README.md).
+- For details about MindIE Motor, see [MindIE Motor Developer Guide](https://gitcode.com/Ascend/MindIE-Motor-CPP/blob/v3.0.0/docs/en/user_guide/README.md).
 
 ## Supported Products<a name="ZH-CN_TOPIC_0000002489576470"></a>
 
@@ -19,6 +19,7 @@ It collects data from the MindIE Motor service, including request response time,
 
 |Product Type| Supported (Yes/No)|
 |--|:----:|
+|Ascend 950 products|No|
 |Atlas A3 Training Products and Atlas A3 Inference Products|  Yes  |
 |Atlas A2 Training Products and Atlas A2 Inference Products|  Yes  |
 |Atlas 200I/500 A2 inference products|  Yes  |
@@ -34,11 +35,11 @@ It collects data from the MindIE Motor service, including request response time,
 
 **Environment Setup<a name="section151144214396"></a>**
 
-1. In the Ascend environment, install the matching CANN Toolkit and ops operator packages, and configure CANN environment variables. For details, see [CANN Installation Guide](https://www.hiascend.com/document/detail/zh/canncommercial/850/softwareinst/instg/instg_0000.html?Mode=PmIns&InstallType=netconda&OS=openEuler).
+1. In the Ascend environment, install the matching CANN Toolkit and ops operator packages, and configure CANN environment variables. For details, see [CANN Installation Guide](https://www.hiascend.com/en/cann/download).
 
 2. Install [msServiceProfiler](msserviceprofiler_install_guide.md).
 
-3. Install the environment dependencies.
+3. Install and configure MindIE and ensure that MindIE Motor can run properly. For details, see [MindIE Installation Guide](https://gitcode.com/Ascend/MindIE-Motor/blob/v3.1.0/docs/en/user_guide/maintenance/build_motor_image_from_vllm_ascend.md).
 
    ```bash
    pip install opentelemetry-exporter-otlp-proto-grpc==1.33.1
@@ -75,7 +76,7 @@ Related log messages (the following logs are reported only once per hour):
     - Setting `MS_TRACE_ENABLE` to `1` enables trace collection.
     - If this variable is not set or is set to any other value, trace collection is disabled.
 
-2. Flexibly control sampling by confiuring the following environment variables.
+2. Flexibly control sampling by configuring the following environment variables.
 
     | Environment Variable| Description| 
     |------------|------|
@@ -102,7 +103,7 @@ Related log messages (the following logs are reported only once per hour):
 
 >[!NOTE]
 >
->For security purposes, you are advised to usesecure mode with Transport Layer Security (TLS) authentication
+>For security purposes, you are advised to use secure mode with Transport Layer Security (TLS) authentication
 
 Before [starting the trace forward process](#starting-the-trace-forward-process), you need to specify a target collector using environment variables.
 
@@ -138,7 +139,7 @@ Currently, the following four protocols are supported:
     export OTEL_EXPORTER_OTLP_CERTIFICATE=/home/certificates/ca/ca.crt # Set the absolute path to the certificate. The directory owner and file owner must match the current user. The directory permission is 700 and the file permission is 600.
     ```
 
->[!NOTE]NOTE
+>[!NOTE]
 >
 >This tool depends on the third-party OpenTelemetry library. This document describes only the mandatory parameters required by the tool. For additional features and APIs, see the official documents.
 >
@@ -271,7 +272,7 @@ curl http://127.0.0.1:1025/v1/chat/completions \
 -d '{
 "model": "qwen",
 "messages": [
-{"role": "user", "content": "Use Python to write a simple bubble sort algorithm: "}.
+{"role": "user", "content": "Use Python to write a simple bubble sort algorithm: "}
 ],
 "max_tokens": 300,
 "temperature": 0.5,
@@ -280,10 +281,10 @@ curl http://127.0.0.1:1025/v1/chat/completions \
 
 ## Output Description<a name="ZH-CN_TOPIC_0000002486322050"></a>
 
-After [sending a request] (#sending-a-request), you can view the visualization result on an OTLP-compatible open-source monitoring platform such as Jaeger (the Jaeger service must be started beforehand). See the following example for details.
+After [sending a request](#sending-requests), you can view the visualization result on an OTLP-compatible open-source monitoring platform such as Jaeger (the Jaeger service must be started beforehand). See the following example for details.
 
 **Figure 1** Visualization result<a name="fig485163113451"></a> 
-![](figures/Visualization result .png "Visualized result")
+![](figures/visualization-result.png "Visualized result")
 
 The fields are described as follows:
 

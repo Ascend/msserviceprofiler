@@ -8,6 +8,7 @@
 
 |Product Type|Supported (Yes/No)|
 |--|:-:|
+|Ascend 950 products|No|
 |Atlas A3 training products and Atlas A3 inference products|No|
 |Atlas A2 training products and Atlas A2 inference products|Yes|
 |Atlas 200I/500 A2 inference products|No|
@@ -25,7 +26,7 @@ Parses HTTP trace information and attaches it to the current context.
 
 ## Function Prototype <a name="section1121883194711"></a>
 
-```CPP
+```cpp
 size_t ExtractAndAttach(const std::string& traceParentOfW3C, const std::string& traceOfB3)
 ```
 
@@ -40,4 +41,4 @@ size_t ExtractAndAttach(const std::string& traceParentOfW3C, const std::string& 
 
 ## Return Values<a name="section16621124213476"></a>
 
-Returns a context index, whihc is used as the argument when calling [Unattach](Unattach.md).
+Returns a context index, which is used as the argument when calling [Unattach](Unattach.md).

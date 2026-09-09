@@ -12,6 +12,8 @@
 
 </div>
 
+简体中文 | [English](./README_en.md)
+
 ## ✨ 最新消息
 
 🔹 [2026.03.24] 支持 Prometheus 在线监测。  

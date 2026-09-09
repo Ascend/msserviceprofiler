@@ -16,7 +16,7 @@ Replace *`$\{INSTALL\_DIR\}`* with the CANN software installation path. For exam
 
 The following code example illustrates key steps and is for reference only. Do not copy and compile it directly.
 
-```CPP
+```cpp
 // Set global resource attributes.
 if (msServiceProfiler::Tracer::IsEnable()) {
     msServiceProfiler::TraceContext::addResAttribute("service.name", "my-service");
@@ -52,10 +52,10 @@ APIs are listed below.
 |[GetCurrent](GetCurrent.md)|Obtains the current trace context.|
 |[Span Class](Span_1.md)|Span class, which represents a specific operation or request.|
 |[Span](Span.md)|Creates a span.|
-|[Activate](Activate.md)|Activates the span and starts timing.|
+|[Activate](./Activate.md)|Activates the span and starts timing.|
 |[SetAttribute](SetAttribute.md)|Sets the span attribute.|
 |[SetStatus](SetStatus.md)|Sets the span status.|
 |[End](End.md)|Ends the span.|
 |[Tracer Class](Tracer.md)|Provides APIs for creating spans.|
 |[StartSpanAsActive](StartSpanAsActive.md)|Creates and activates a span.|
-|[IsEnable](IsEnable.md)|Checks whether the trace feature is enabled.|
+|[IsEnable](./IsEnable.md)|Checks whether the trace feature is enabled.|

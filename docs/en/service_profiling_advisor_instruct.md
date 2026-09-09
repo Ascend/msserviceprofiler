@@ -12,6 +12,7 @@
 
 |Product Type| Supported (Yes/No)|
 |--|:----:|
+|Ascend 950 products|No|
 |Atlas A3 Training Products and Atlas A3 Inference Products|  Yes  |
 |Atlas A2 Training Series Product|  Yes  |
 |Atlas 200I/500 A2 inference products|  Yes  |
@@ -40,7 +41,7 @@
 - **Installation from Source**
   Service Profiling Advisor requires msServiceProfiler as its entry point. If msServiceProfiler is not installed, install it first. For details, see [msServiceProfiler](msserviceprofiler_install_guide.md).
 
-  ```sh
+  ```shell
   git clone https://gitcode.com/Ascend/msserviceprofiler.git # Skip this if the repository is already cloned.
   cd msserviceprofiler/msservice_advisor
   pip install .
@@ -84,7 +85,7 @@ Security warning: Do not run this tool as user `root`. Executing operations with
   | Parameters                | Mandatory (Yes/No)| Description                                                           |
   | -------------------- | --------- | --------------------------------------------------------------- |
   | -i or --instance_path | No       | Path to the benchmark instance output. If this parameter is not specified, related information will not be used in the analysis by default. |
-  | -s or --service_config_path | No       | Path to the MindIE Service path or `config. json` file. The default value is the environment variable `MIES_INSTALL_PATH` of MindIE Service. If neither of them is configured, `/usr/local/Ascend/mindie/latest/mindie-service` is used.|
+  | -s or --service_config_path | No       | Path to the MindIE Service path or `config.json` file. The default value is the environment variable `MIES_INSTALL_PATH` of MindIE Service. If neither of them is configured, `/usr/local/Ascend/mindie/latest/mindie-service` is used.|
   | -t or --target        | No       | Metrics to optimize. The options are as follows:<br> · `ttft`: Time to First Token (TTFT).<br> · `firsttokentime`: TTFT.<br> · `throughput`: throughput.<br> The default value is `ttft`.      |
   | -m or --target_metrics| No       | Specific metric to optimize. The options are as follows:<br> · `average`: average value.<br> · `max`: maximum value.<br> · `min`: minimum value.<br> · `P75`: 75th percentile.<br> · `P90`: 90th percentile.<br> · `SLO_P90`: 90 percentile under the specific Service Level Objective (SLO) constraints.<br> · `P99`: 99th percentile.<br> · `N`: Nth percentile.<br>The default value is `average`.|
   | -l or --log_level | No       | Log level. The options are as follows:<br> · `debug`: debug level.<br> · `info`: information level.<br> · `warning`: warning level.<br> · `error`: error level.<br> · `fatal`: fatal level.<br> · `critical`: critical level.<br>The default value is `info`. |

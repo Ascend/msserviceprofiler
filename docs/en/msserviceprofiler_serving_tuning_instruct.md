@@ -5,7 +5,7 @@
 This document describes the profiling tool (msServiceProfiler) for inference serving. The msServiceProfiler APIs collect start and end times for key processes, identify main functions or iterations, and record important events during the MindIE Motor inference serving. msServiceProfiler profiles various data and helps pinpoint performance issues quickly.
 
 - msServiceProfiler includes [C++ APIs](./cpp_api/serving_tuning/README.md) and [Python APIs](./python_api/README.md) .
-- For details about MindIE Motor, see [MindIE Motor Developer Guide](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/README.md).
+- For details about MindIE Motor, see [MindIE Motor Developer Guide](https://gitcode.com/Ascend/MindIE-Motor-CPP/blob/v3.0.0/docs/en/user_guide/README.md).
 
 The tool usage process is as follows:
 
@@ -22,7 +22,8 @@ The tool usage process is as follows:
 
 |Product Type| Supported (Yes/No)|
 |--|:----:|
-|Atlas A3 training products and Atlas A3 inference products|  Yes  |
+|Ascend 950 products|No|
+|Atlas A3 Training Products and Atlas A3 Inference Products|  Yes  |
 |Atlas A2 training products and Atlas A2 inference products|  Yes  |
 |Atlas 200I/500 A2 inference products|  No  |
 |Atlas inference products|  Yes  |
@@ -37,7 +38,7 @@ The tool usage process is as follows:
 
 The hardware environment supported by the tool is the same as that supported by MindIE. For details, see "Installing MindIE" in [MindIE Installation Guide](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/deployment/README.md).
 
-1. Install the matching CANN Toolkit and ops operator packages, and configure CANN environment variables. For details, see [CANN Installation Guide](https://www.hiascend.com/cann/download).
+1. Install the matching CANN Toolkit and ops operator packages, and configure CANN environment variables. For details, see [CANN Installation Guide](https://www.hiascend.com/en/cann/download).
 2. Install [msServiceProfiler](msserviceprofiler_install_guide.md).
 3. Install and configure MindIE and ensure that MindIE Motor can run properly. For details, see [MindIE Installation Guide](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/deployment/README.md).
 4. After the preceding environment is prepared, you can use [msprechecker](https://gitcode.com/Ascend/msit/tree/master/msprechecker) to check environment variables and serving configurations.
@@ -50,7 +51,7 @@ Collects serving profile data.
 
 **Precautions<a name="section7961133411551"></a>**
 
-- Enabling the `acl\_task\_time` feature in msServiceProfiler simultaneously with the msProf dynamic collection feature may cause conflicts. It is advised to use them separately. For details about the msProf dynamic collection feature, see [Profiling Tool User Guide](https://www.hiascend.com/document/detail/en/canncommercial/850/devaids/profiling/atlasprofiling_16_0016.html).
+- Enabling the `acl\_task\_time` feature in msServiceProfiler simultaneously with the msProf dynamic collection feature may cause conflicts. It is advised to use them separately. For details about the msProf dynamic collection feature, see [Dynamic Profiling](https://www.hiascend.com/document/detail/en/CANNCommunityEdition/latest/devaids/Profiling/atlasprofiling_16_0016.html).
 
 **Examples<a name="section1541662513115"></a>**
 
@@ -72,17 +73,16 @@ Collects serving profile data.
 
      | Parameter                    | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | **Mandatory (Yes/No)**|
      | ------------------------ |-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------| -------- |
-     | enable                  | Whether to enable profiling. The options are as follows:<br>`0`: disabled.<br>`1`: enabled.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | Yes      |
-     | metric_enable           | Whether to enable metric (Prometheus/metric) collection. The value is independent of `enable`. The options are as follows:<br>`0`: disabled.<br>`1`: enabled.<br>The default value (without this key) is 0 (disabled).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | No      |
-     | prof_dir                 | Path for storing the collected profile data. The value is of string type and can be customized. The default value is `${HOME}/.ms_server_profiler`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | No      |
-     | profiler_level           | Profiling level, which defaults to **INFO**.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | No      |
-     | host_system_usage_freq   | Frequency of profiling CPU and memory system metrics. Profiling of these metrics is disabled by default. The value is an integer between 1 Hz and 50 Hz, showing the number of profiling samples per second. If this parameter is set to **-1**, profiling of these metrics is disabled.<br>Enabling this function may occupy a large amount of memory. You are advised not to modify this setting.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | No      |
-     | npu_memory_usage_freq    | Frequency of profiling NPU memory usage metrics. Profiling of these metrics is disabled by default. The value is an integer between 1 Hz and 50 Hz, showing the number of profiling samples per second. If this parameter is set to **-1**, profiling of these metrics is disabled.<br>Enabling this function may occupy a large amount of memory. You are advised not to modify this setting.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | No      |
-     | acl_task_time            | Enables or disables profiling for operator dispatch time and execution time. The options are as follows:<br>`0`: disabled. (default). Setting this parameter to `0` or any other invalid value disables this feature.<br>`1`: enabled. When this function is enabled, call the `ACL_PROF_TASK_TIME_L0` parameter of the aclprofCreateConfig API.<br>`2`: enables writing data to disk using the MSPTI. When this function is enabled, the MSPTI is invoked to collect profile data. You need to configure the `export LD_PRELOAD={INSTALL_DIR}/lib64/libmspti.so` environment variable before starting the service.<br>Replace *`${INSTALL_DIR}`* with the file storage path after the CANN software is installed. For example, if the installation is performed by the `root` user, the file storage path is `/usr/local/Ascend/cann`.<br>`3`: enables writing data to disk using the Torch Profiler interface.<br>For details about the aclprofCreateConfig interface and MSPTI, see [Profiling Tool User Guide](https://www.hiascend.com/document/detail/en/canncommercial/850/devaids/profiling/atlasprofiling_16_0016.html). Enabling this function introduces performance overhead, which may cause inaccurate profile data. For further detailed analysis, you are advised to enable this function only when model execution is abnormal.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | No      |
-     | acl_prof_task_time_level | Level and duration for collecting profile data. The options are as follows:<br>`L0`: (level 0) collects the operator dispatch time and operator execution time. Compared with `L1`, `L0` omits basic operator information collection, reducing performance overhead and enabling more accurate timing statistics. It is equivalent to configuring the `aclDataTypeConfig` parameter with `ACL_PROF_MSPROFTX` and `ACL_PROF_TASK_TIME_L0`.<br>`L1`: (level 1) collects AscendCL API profile data, including synchronous/asynchronous memory copy latency (host-device and device-device), operator dispatch and execution time, and basic operator information. This level provides comprehensive profile data for in-depth analysis. It is equivalent to configuring the `aclDataTypeConfig` parameter with `ACL_PROF_MSPROFTX`, `ACL_PROF_TASK_TIME`, and `ACL_PROF_ACL_API`.<br>{time}: indicates the collection duration. The value is an integer ranging from 1 to 999, in seconds.<br>If not set (default), `L0` data is collected until the program finishes execution. If other invalid values are set, the default value is used. The collection level and duration can be specified together in the same configuration, for example, `"acl_prof_task_time_level":`*`"L1;10"`*.<br>Currently, the collection duration {time} cannot be configured for Torch Profiler.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | No      |
-     | aclDataTypeConfig        | The following macros can be combined using logical OR operations. Each macro corresponds to a specific type of profile data:<br>For details about the data collected by the following items, see [Data Collection Description](https://www.hiascend.com/document/detail/en/canncommercial/800/devaids/profiling/atlasprofiling_16_0046.html). Actual results may vary depending on your environment. The `aclDataTypeConfig` parameter accepts one or more of the following macros. For example: `"aclDataTypeConfig": "ACL_PROF_ACL_API"`, or `"aclDataTypeConfig": "ACL_PROF_ACL_API, ACL_PROF_TASK_TIME"`.<br>`ACL_PROF_ACL_API`: collects API profile data, including synchronous/asynchronous memory copy latency (host-device and device-device).<br>`ACL_PROF_TASK_TIME`: collects operator dispatch and execution time, and basic operator information. This level provides comprehensive profile data for in-depth analysis.<br>`ACL_PROF_TASK_TIME_L0`: collects operator dispatch and execution time. Compared with `ACL_PROF_TASK_TIME`, `ACL_PROF_TASK_TIME_L0` omits basic operator information collection, reducing performance overhead and enabling more accurate timing statistics.<br>`ACL_PROF_OP_ATTR`: specifies whether to collect operator attribute information. Currently, only the aclnn operator is supported. `ACL_PROF_AICORE_METRICS`: collects AI Core metrics. This macro must be included in the logical OR combination; otherwise, metrics specified in `aicoreMetrics` will not take effect.<br>`ACL_PROF_TASK_MEMORY`: specifies whether to collect CANN operator memory usage for optimization purposes. Single-operator scenario: Operator memory size and lifecycle information are collected at both the Graph Engine (GE) level and the operator level (in single-operator API execution mode, GE memory is not collected). Static graph and static subgraph scenarios: Operator memory size and lifecycle information are collected at the operator level during the operator compilation phase.<br>`ACL_PROF_AICPU`: collects the start and end data of AICPU tasks.<br>`ACL_PROF_L2CACHE`: collects L2 Cache data.<br>`ACL_PROF_HCCL_TRACE`: specifies whether to collect communication data.<br>`ACL_PROF_TRAINING_TRACE`: specifies whether to collect iteration traces.<br>`ACL_PROF_RUNTIME_API`: specifies whether to collect runtime API profile data.<br>`ACL_PROF_MSPROFTX`: obtains profile data output by the user and upper-layer framework program. Within a profiling session (between `aclprofStart` and `aclprofStop` calls), use MindStudio Tools Extension API (mstx API) or msproftx extension APIs to mark events. These APIs record the duration of specific events during application execution and write the data to a performance file. The `msprof` tool can then parse this file and export the profiling data for analysis.<br>For details about the MindStudio Tools Extension (mstx) API, see [mstx API Reference](https://www.hiascend.com/document/detail/en/canncommercial/800/devaids/profiling/msprof_tx_0001.html). For details about the msproftx extension APIs, see "More Features > Profile Data Collection."<br>By default, this parameter is not set. The `acl_prof_task_time_level` is set to `L0`.| No      |
-     | aclprofAicoreMetrics     | AI Core performance metrics. For details about the data collected by the following items, see [op_summary (Operator Details)](https://www.hiascend.com/document/detail/en/canncommercial/800/devaids/profiling/atlasprofiling_16_0067.html). Actual results may vary depending on your environment. The `aclprofAicoreMetrics` parameter can accept only one of the following macros. For example: `"aclprofAicoreMetrics": "ACL_AICORE_PIPE_UTILIZATION"`.<br>`ACL_AICORE_PIPE_UTILIZATION`: percentages of time taken by compute units and MTEs.<br>`ACL_AICORE_MEMORY_BANDWIDTH`: percentage of global memory read/write instructions.<br>`ACL_AICORE_L0B_AND_WIDTH`: percentage of local memory read/write instructions. `ACL_AICORE_RESOURCE_CONFLICT_RATIO`: percentage of pipeline queue instructions.<br>`ACL_AICORE_MEMORY_UB`: percentage of local memory read/write instructions. `ACL_AICORE_L2_CACHE`: read/write cache hit counts and miss reallocation counts.<br>ACL_AICORE_NONE = 0xFF<br>The default value is `ACL_AICORE_PIPE_UTILIZATION`.<br>This parameter only takes effect when `ACL_PROF_AICORE_METRICS` is included in the `aclDataTypeConfig` configuration.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | No      |
-     | api_filter               | Filters profile data. If this parameter is set, it specifies which API's profile data is to be collected. For example, `matmul` records all API data with names containing `matmul` The value is a case-sensitive string. Multiple filter targets are separated by semicolons (;). The default value is empty (records all data).<br>This parameter is valid only when `acl_task_time` is set to `2`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | No      |
+     | enable                  | Whether to enable profiling. The options are as follows:<br>`0`: disabled.<br>`1`: enabled.| Yes      |
+     | prof_dir                 | Path for storing the collected profile data. The value is of string type and can be customized. The default value is `${HOME}/.ms_server_profiler`.   | No      |
+     | profiler_level           | Profiling level, which defaults to **INFO**.  | No      |
+     | host_system_usage_freq   | Frequency of profiling CPU and memory system metrics. Profiling of these metrics is disabled by default. The value is an integer between 1 Hz and 50 Hz, showing the number of profiling samples per second. If this parameter is set to **-1**, profiling of these metrics is disabled.<br>Enabling this function may occupy a large amount of memory. You are advised not to modify this setting.| No      |
+     | npu_memory_usage_freq    | Frequency of profiling NPU memory usage metrics. Profiling of these metrics is disabled by default. The value is an integer between 1 Hz and 50 Hz, showing the number of profiling samples per second. If this parameter is set to **-1**, profiling of these metrics is disabled.<br>Enabling this function may occupy a large amount of memory. You are advised not to modify this setting. | No      |
+     | acl_task_time            | Enables or disables profiling for operator dispatch time and execution time. The options are as follows:<br>`0`: disabled. (default). Setting this parameter to `0` or any other invalid value disables this feature.<br>`1`: enabled. When this function is enabled, call the `ACL_PROF_TASK_TIME_L0` parameter of the aclprofCreateConfig API.<br>`2`: enables writing data to disk using the MSPTI. When this function is enabled, the MSPTI is invoked to collect profile data. You need to configure the `export LD_PRELOAD={INSTALL_DIR}/lib64/libmspti.so` environment variable before starting the service.<br>Replace *`${INSTALL_DIR}`* with the file storage path after the CANN software is installed. For example, if the installation is performed by the `root` user, the file storage path is `/usr/local/Ascend/cann`.<br>`3`: enables writing data to disk using the Torch Profiler interface.<br>For details about the aclprofCreateConfig interface and MSPTI, see [Performance Tuning Tool](https://www.hiascend.com/document/detail/en/CANNCommunityEdition/latest/devaids/Profiling/atlasprofiling_16_0031.html). Enabling this function introduces performance overhead, which may cause inaccurate profile data. For further detailed analysis, you are advised to enable this function only when model execution is abnormal.   | No      |
+     | acl_prof_task_time_level | Level and duration for collecting profile data. The options are as follows:<br>`L0`: (level 0) collects the operator dispatch time and operator execution time. Compared with `L1`, `L0` omits basic operator information collection, reducing performance overhead and enabling more accurate timing statistics. It is equivalent to configuring the `aclDataTypeConfig` parameter with `ACL_PROF_MSPROFTX` and `ACL_PROF_TASK_TIME_L0`.<br>`L1`: (level 1) collects AscendCL API profile data, including synchronous/asynchronous memory copy latency (host-device and device-device), operator dispatch and execution time, and basic operator information. This level provides comprehensive profile data for in-depth analysis. It is equivalent to configuring the `aclDataTypeConfig` parameter with `ACL_PROF_MSPROFTX`, `ACL_PROF_TASK_TIME`, and `ACL_PROF_ACL_API`.<br>{time}: indicates the collection duration. The value is an integer ranging from 1 to 999, in seconds.<br>If not set (default), `L0` data is collected until the program finishes execution. If other invalid values are set, the default value is used. The collection level and duration can be specified together in the same configuration, for example, `"acl_prof_task_time_level":`*`"L1;10"`*.<br>Currently, the collection duration {time} cannot be configured for Torch Profiler. | No      |
+     | aclDataTypeConfig        | The following macros can be combined using logical OR operations. Each macro corresponds to a specific type of profile data:<br>For details about the data collected by the following items, see [Data Collection Description](https://www.hiascend.com/document/detail/en/CANNCommunityEdition/latest/devaids/Profiling/atlasprofiling_16_0046.html). Actual results may vary depending on your environment. The `aclDataTypeConfig` parameter accepts one or more of the following macros. For example: `"aclDataTypeConfig": "ACL_PROF_ACL_API"`, or `"aclDataTypeConfig": "ACL_PROF_ACL_API, ACL_PROF_TASK_TIME"`.<br>`ACL_PROF_ACL_API`: collects API profile data, including synchronous/asynchronous memory copy latency (host-device and device-device).<br>`ACL_PROF_TASK_TIME`: collects operator dispatch and execution time, and basic operator information. This level provides comprehensive profile data for in-depth analysis.<br>`ACL_PROF_TASK_TIME_L0`: collects operator dispatch and execution time. Compared with `ACL_PROF_TASK_TIME`, `ACL_PROF_TASK_TIME_L0` omits basic operator information collection, reducing performance overhead and enabling more accurate timing statistics.<br>`ACL_PROF_OP_ATTR`: specifies whether to collect operator attribute information. Currently, only the aclnn operator is supported. `ACL_PROF_AICORE_METRICS`: collects AI Core metrics. This macro must be included in the logical OR combination; otherwise, metrics specified in `aicoreMetrics` will not take effect.<br>`ACL_PROF_TASK_MEMORY`: specifies whether to collect CANN operator memory usage for optimization purposes. Single-operator scenario: Operator memory size and lifecycle information are collected at both the Graph Engine (GE) level and the operator level (in single-operator API execution mode, GE memory is not collected). Static graph and static subgraph scenarios: Operator memory size and lifecycle information are collected at the operator level during the operator compilation phase.<br>`ACL_PROF_AICPU`: collects the start and end data of AICPU tasks.<br>`ACL_PROF_L2CACHE`: collects L2 Cache data.<br>`ACL_PROF_HCCL_TRACE`: specifies whether to collect communication data.<br>`ACL_PROF_TRAINING_TRACE`: specifies whether to collect iteration traces.<br>`ACL_PROF_RUNTIME_API`: specifies whether to collect runtime API profile data.<br>`ACL_PROF_MSPROFTX`: obtains profile data output by the user and upper-layer framework program. Within a profiling session (between `aclprofStart` and `aclprofStop` calls), use MindStudio Tools Extension API (mstx API) or msproftx extension APIs to mark events. These APIs record the duration of specific events during application execution and write the data to a performance file. The `msprof` tool can then parse this file and export the profiling data for analysis.<br>For details about the MindStudio Tools Extension (mstx) API, see [mstx API Reference](https://www.hiascend.com/document/detail/en/CANNCommunityEdition/latest/devaids/Profiling/atlasprofiling_16_0142.html). For details about the msproftx extension APIs, see "More Features > Profile Data Collection."<br>By default, this parameter is not set. The `acl_prof_task_time_level` is set to `L0`.| No      |
+     | aclprofAicoreMetrics     | AI Core performance metrics. For details about the data collected by the following items, see [op_summary (Operator Details)](https://www.hiascend.com/document/detail/en/CANNCommunityEdition/latest/devaids/Profiling/atlasprofiling_16_0067.html). Actual results may vary depending on your environment. The `aclprofAicoreMetrics` parameter can accept only one of the following macros. For example: `"aclprofAicoreMetrics": "ACL_AICORE_PIPE_UTILIZATION"`.<br>`ACL_AICORE_PIPE_UTILIZATION`: percentages of time taken by compute units and MTEs.<br>`ACL_AICORE_MEMORY_BANDWIDTH`: percentage of global memory read/write instructions.<br>`ACL_AICORE_L0B_AND_WIDTH`: percentage of local memory read/write instructions. `ACL_AICORE_RESOURCE_CONFLICT_RATIO`: percentage of pipeline queue instructions.<br>`ACL_AICORE_MEMORY_UB`: percentage of local memory read/write instructions. `ACL_AICORE_L2_CACHE`: read/write cache hit counts and miss reallocation counts.<br>ACL_AICORE_NONE = 0xFF<br>The default value is `ACL_AICORE_PIPE_UTILIZATION`.<br>This parameter only takes effect when `ACL_PROF_AICORE_METRICS` is included in the `aclDataTypeConfig` configuration.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | No      |
+     | api_filter               | Filters profile data. If this parameter is set, it specifies which API's profile data is to be collected. For example, `matmul` records all API data with names containing `matmul`. The value is a case-sensitive string. Multiple filter targets are separated by semicolons (;). The default value is empty (records all data).<br>This parameter is valid only when `acl_task_time` is set to `2`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | No      |
      | kernel_filter            | Filters profile data. If this parameter is set, it specifies which Kernel's profile data is to be collected. For example, `matmul` records all Kernel data with names containing `matmul` The value is a case-sensitive string. Multiple filter targets are separated by semicolons (;). The default value is empty (records all data).<br>This parameter is valid only when `acl_task_time` is set to `2`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | No      |
      | timelimit                | Duration (seconds) for serving profile collection. If this parameter is set, process stops automatically after the specified time. The value is an integer ranging from 0 to 7200. It defaults to `0` (unlimited collection time).<br>Recommended minimum: 120s. If too short, data may be insufficient for parsing and an alarm is triggered.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | No      |
      | domain                   | Collects profile data from specified domains to reduce data volume. The input parameter is a case-sensitive string. Multiple domains are separated by semicolons (;), for example, `"Request;KVCache"`. The default value is empty, indicating that the profile data of all domains is collected. The existing domains are `Request`, `KVCache`, `ModelExecute`, `BatchSchedule`, `Communication` and `eplb_observe`. When `eplb_observe` is specified and APIs `MINDIE_ENABLE_EXPERT_HOTPOT_GATHER` and `MINDIE_EXPERT_HOTPOT_DUMP_PATH` for MindIE expert hotspot information collection are enabled, the collected data includes expert hotspot information that can be visualized as a heatmap. Enable the `eplb_observe` domain only when you need to collect expert hotspot information.<br>If the specified domain is incomplete and the collected data cannot be parsed, the tool prints an alarm message. View the [Mapping Between Domains and Parsed Results](#section269581401015).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | No      |
@@ -110,9 +110,9 @@ Collects serving profile data.
         After the collection is complete, the profile data is saved to the path specified by the `prof\_dir` parameter in `ms\_service\_profiler\_config.json`.
 
     >[!NOTE]
->
+    >
     >You can use the Samba tool to share the configuration file for profiling across multiple nodes and devices. In multi-node multi-device setups, follow the same profiling steps mentioned earlier but launch MindIE Motor on every node. Samba is a third-party tool. Search for its usage guide online or try alternative tools for configuring shared directories.
-    >Serving profiling supports dynamic start and stopped at runtime. The dynamic start and stop function allows you to start or stop profiling whenever needed.
+    >Serving profiling supports dynamic start and stop at runtime. The dynamic start and stop function allows you to start or stop profiling whenever needed.
     >There are three main scenarios as follows:
     >- <a name="li0321112752816"></a>Enable the function: Before starting MindIE Motor, the `enable` field is set to `0` in the JSON configuration file. After MindIE Motor starts, change `enable` to `1`. The log confirms profiling is enabled.
     > ![](figures/1_zh-cn_image_0000002450063397.png)
@@ -179,7 +179,7 @@ Parses serving profile data.
 
 **Precautions<a name="section20819721134913"></a>**
 
-- During data collection, files that have been written to disk are locked. Parsing can only be started after collection is complete; otherwise, the error "db is lock" will be displayed.
+- During data collection, files that have been written to disk are locked. Parsing can only be started after collection is complete; otherwise, the error "db is locked" will be displayed.
 - Do not enable dynamic collection again before data parsing is complete, as this may degrade collection performance.
 - The following versions are required for data parsing:
     - python \>= 3.10
@@ -217,7 +217,7 @@ Run the following command to perform basic parsing on profile data.
 python3 -m ms_service_profiler.parse --input-path ${PATH}/prof_dir/
 ```
 
-In addition to basic parsing, you can perform [multi-dimensional parsing](./msserviceprofiler_multi_analyze_instruct.md) on profile data by different dimensions (request-level, batch-level, overall service-level). You can also perform fine-grained [performance breakdown] (./service_performance_split_tool_instruct.md) on data of different batches.
+In addition to basic parsing, you can perform [multi-dimensional parsing](./msserviceprofiler_multi_analyze_instruct.md) on profile data by different dimensions (request-level, batch-level, overall service-level). You can also perform fine-grained [performance breakdown](./service_performance_split_tool_instruct.md) on data of different batches.
 
 **Output Description<a name="section1852614831412"></a>**
 
@@ -247,7 +247,7 @@ The results of `ms\_service\_profiler.parse` are as follows:
 
 >[!NOTE]
 >
->The preceding table does not list the results parsed out from the data collected using the `acl\_prof\_task\_time\_level`, `aclDataTypeConfig`, and `aclprofAicoreMetrics` parameters. For details about the results, see [Data Collection Description](https://www.hiascend.com/document/detail/en/canncommercial/850/devaids/profiling/atlasprofiling_16_0046.html) and [op\_summary (Operator Details)](https://www.hiascend.com/document/detail/en/canncommercial/850/devaids/profiling/atlasprofiling_16_0067.html). Actual results may vary depending on your environment. The `op\_statistic\_\*.csv` and `op\_summary\_\*.csv` files are saved to the `PROF\_XXX` directory under the path specified by `--output-path`. The profile data files collected using the three parameters are saved in the `PROF\_XXX/mindstudio\_profiler\_output` directory under the path specified by `prof\_dir`.
+>The preceding table does not list the results parsed out from the data collected using the `acl\_prof\_task\_time\_level`, `aclDataTypeConfig`, and `aclprofAicoreMetrics` parameters. For details about the results, see [Data Collection Description](https://www.hiascend.com/document/detail/en/CANNCommunityEdition/latest/devaids/Profiling/atlasprofiling_16_0046.html) and [op\_summary (Operator Details)](https://www.hiascend.com/document/detail/en/CANNCommunityEdition/latest/devaids/Profiling/atlasprofiling_16_0067.html). Actual results may vary depending on your environment. The `op\_statistic\_\*.csv` and `op\_summary\_\*.csv` files are saved to the `PROF\_XXX` directory under the path specified by `--output-path`. The profile data files collected using the three parameters are saved in the `PROF\_XXX/mindstudio\_profiler\_output` directory under the path specified by `prof\_dir`.
 
 These files include:
 
@@ -283,7 +283,7 @@ It contains the following database tables, with their specific purposes describe
 |moe_analysis|Records fast/slow rank analysis results for the MoeDistributeCombine and MoeDistributeDispatch operators, collected via MSPTI during DeepSeek expert model serving inference.|
 |data_link|When viewing forward traces, supports clicking `rid` to display request input length information.|
 
-For details about PD disaggregation deployment and related concepts, see "Cluster Service Deployment > PD Disaggregation Service Deployment" in [MindIE Motor Developer Guide](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/README.md). The file connects to Grafana for image display during visualization. It does not include detailed descriptions of its entries.
+For details about PD disaggregation deployment and related concepts, see "Cluster Service Deployment > PD Disaggregation Service Deployment" in [MindIE Motor Developer Guide](https://gitcode.com/Ascend/MindIE-Motor/blob/v3.1.0/docs/en/user_guide/deployment/k8s/pd_disaggregation_deployment.md). The file connects to Grafana for image display during visualization. It does not include detailed descriptions of its entries. Grafana is a third-party open-source tool and is not included in the MindStudio release package. Users may opt for other compatible visualization systems based on their specific environment.
 
 ### **chrome\_tracing.json**
 
@@ -413,7 +413,7 @@ Records detailed data during the model forward execution in serving inference.
 
 Contains communication data for PD disaggregation scenarios. PD disaggregation is a multi-node, multi-device (cluster) deployment that requires a shared configuration file during [data collection](#li177905365245).
 
-For details about PD disaggregation deployment and related concepts, see "Cluster Service Deployment \> PD Disaggregation Service Deployment" in [MindIE Motor Developer Guide](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/README.md).
+For details about PD disaggregation deployment and related concepts, see "Cluster Service Deployment \> PD Disaggregation Service Deployment" in [MindIE Motor Developer Guide](https://gitcode.com/Ascend/MindIE-Motor/blob/v3.1.0/docs/en/user_guide/deployment/k8s/pd_disaggregation_deployment.md).
 
 **Table 7** pd\_split\_communication.csv
 
@@ -430,7 +430,7 @@ For details about PD disaggregation deployment and related concepts, see "Cluste
 
 Records KV cache transfer between P-nodes and D-nodes during PD disaggregation inference. PD disaggregation is a multi-node, multi-device (cluster) deployment that requires a shared configuration file during [data collection](#li177905365245).
 
-For details about PD disaggregation deployment and related concepts, see "Cluster Service Deployment \> PD Disaggregation Service Deployment" in [MindIE Motor Developer Guide](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/README.md).
+For details about PD disaggregation deployment and related concepts, see "Cluster Service Deployment \> PD Disaggregation Service Deployment" in [MindIE Motor Developer Guide](https://gitcode.com/Ascend/MindIE-Motor/blob/v3.1.0/docs/en/user_guide/deployment/k8s/pd_disaggregation_deployment.md).
 
 **Table 8** pd\_split\_kvcache.csv
 
@@ -451,7 +451,7 @@ For details about PD disaggregation deployment and related concepts, see "Cluste
 
 Records changes in the number of requests distributed to each node during PD disaggregation inference. PD disaggregation is a multi-node, multi-device (cluster) deployment that requires a shared configuration file during [data collection](#li177905365245).
 
-For details about PD disaggregation deployment and related concepts, see "Cluster Service Deployment \> PD Disaggregation Service Deployment" in [MindIE Motor Developer Guide](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/README.md).
+For details about PD disaggregation deployment and related concepts, see "Cluster Service Deployment \> PD Disaggregation Service Deployment" in [MindIE Motor Developer Guide](https://gitcode.com/Ascend/MindIE-Motor/blob/v3.1.0/docs/en/user_guide/deployment/k8s/pd_disaggregation_deployment.md).
 
 **Table 9** coordinator.csv
 
@@ -468,7 +468,7 @@ For details about PD disaggregation deployment and related concepts, see "Cluste
 
 Records the request status at each moment during serving inference (the number of `waiting`, `running`, or `swapped` requests). This data can be used to generate line charts that visualize request status trends over time.
 
-Table 12 request\_status.csv
+**Table 12** request\_status.csv
 
 |Field|Description|
 |--|--|
@@ -509,7 +509,8 @@ If data for `ep\_balance` analysis exists, running the parsing command will gene
 |{Process ID} (row header)|Indicates the process ID of each device at runtime.|
 |{Decoder Layer} (column value)|Indicates the decoder layer index of the model running on each device.|
 
-**Figure 1** ep\_balance.png<a name="fig86411261854"></a> 
+**Figure 1** ep\_balance.png<a name="fig86411261854"></a>
+
 ![](figures/ep_balance-png.png "ep_balance-png")
 
 ### **moe\_analysis.csv**
@@ -527,7 +528,8 @@ If data for `moe_analysis` exists, running the parsing command will generate a b
 |CI Lower|2.5th percentile of the total duration for the MoeDistributeCombine and MoeDistributeDispatch operators on this device.|
 |CI Upper|97.5th percentile of the total duration for the MoeDistributeCombine and MoeDistributeDispatch operators on this device.|
 
-**Figure 2** moe\_analysis.png<a name="fig106051734569"></a> 
+**Figure 2** moe\_analysis.png<a name="fig106051734569"></a>
+
 ![](figures/moe_analysis-png.png "moe_analysis-png")
 
 ### **\{host\_name\}\_eplb\_\{i\}\_summed\_hot\_map\_by\_expert.png**
@@ -537,8 +539,9 @@ This is an expert hotspot heatmap. In [Figure 3](#fig732654205612), pixel bright
 - `host\_name` indicates the device name.
 - `i` indicates the number of load balancing table updates during the serving profiling period when dynamic load balancing is enabled on MindIE. If disabled, `i = 0`.
 
-**Figure 3** Heatmap<a name="fig732654205612"></a> 
-![] (figures/heatmap.png "heatmap")
+**Figure 3** Heatmap<a name="fig732654205612"></a>
+
+![](figures/heatmap.png "heatmap")
 
 The x-axis represents expert ID, and the y-axis represents the model's MoE layer.
 
@@ -551,8 +554,9 @@ This is an expert hotspot heatmap. In [Figure 4](#fig455912215212), pixel bright
 - `host\_name` indicates the device name.
 - `i` indicates the number of load balancing table updates during the serving profiling period when dynamic load balancing is enabled on MindIE. If disabled, `i = 0`.
 
-**Figure 4** Heatmap<a name="fig455912215212"></a> 
-![] (figures/heatmap-0.png "heatmap-0")
+**Figure 4** Heatmap<a name="fig455912215212"></a>
+
+![](figures/heatmap-0.png "heatmap-0")
 
 The x-axis represents `Rank\_ID`, and the y-axis represents the model's MoE layer.
 
@@ -564,8 +568,9 @@ This is an expert hotspot heatmap. In [Figure 5](#fig1161912109318), pixel brigh
 - `i` indicates the number of load balancing table updates during the serving profiling period when dynamic load balancing is enabled on MindIE. If disabled, `i = 0`.
 - This figure is generated only when the dynamic load balancing feature of MindIE is enabled.
 
-**Figure 5** Heatmap<a name="fig1161912109318"></a> 
-![] (figures/heatmap-1.png "heatmap-1")
+**Figure 5** Heatmap<a name="fig1161912109318"></a>
+
+![](figures/heatmap-1.png "heatmap-1")
 
 The x-axis represents the model expert IDs, where the shared experts are listed at the end. The y-axis represents the model's MoE layer.
 
@@ -573,8 +578,9 @@ The x-axis represents the model expert IDs, where the shared experts are listed 
 
 This is an expert load imbalance line chart. [Figure 6](#fig3559155015275) shows the degree of expert load imbalance over time.
 
-**Figure 6** Expert load imbalance line chart<a name="fig3559155015275"></a> 
-![] (figures/expert load imbalance line chart.png "expert load imbalance line chart")
+**Figure 6** Expert load imbalance line chart<a name="fig3559155015275"></a>
+
+![](figures/average-of-expert-balance-ratio.png "expert load imbalance line chart")
 
 The horizontal coordinate tokens num indicates the number of model inference rounds, and the vertical coordinate balance ratio indicates the model load imbalance degree, which is calculated based on the standard deviation of expert heat.
 
@@ -584,11 +590,11 @@ The red dotted line indicates a change in the expert load balancing table. The c
 
 ### MindStudio Insight for Visualization
 
-MindStudio Insight can visualize the profile data ([Parsed Results] (#parsed-results)) collected and analyzed by the service profiler. Currently, it supports visualizing `chrome\_tracing.json` and `profiler.db` files. For detailed operations and visualization results, see the section "Serving Tuning" in [MindStudio Insight User Guide](https://gitcode.com/Ascend/msinsight/blob/master/docs/en/user_guide/overview.md).
+MindStudio Insight can visualize the profile data ([Parsed Results](#parsed-results)) collected and analyzed by the service profiler. Currently, it supports visualizing `chrome\_tracing.json` and `profiler.db` files. For detailed operations and visualization results, see the section "[Serving Tuning](https://gitcode.com/Ascend/msinsight/blob/master/docs/en/user_guide/service_optimization.md)" in [MindStudio Insight User Guide](https://gitcode.com/Ascend/msinsight/blob/master/docs/en/user_guide/overview.md).
 
 ### Chrome Tracing Visualization
 
-Chrome tracing can visualize data from t`chrome_tracing.json` file collected and analyzed by the service profiler. To use it:
+Chrome tracing can visualize data from `chrome_tracing.json` file collected and analyzed by the service profiler. To use it:
 
 Enter `chrome://tracing` in the Chrome address bar, drag the .json file to the blank area to open it, and press the shortcut keys (`w`: zoom in; `s`: zoom out; `a`: move left; `d`: move right) to view the file.
 
@@ -602,9 +608,13 @@ Enter `chrome://tracing` in the Chrome address bar, drag the .json file to the b
 
 Grafana can visualize profile data collected and analyzed by the service profiler.
 
+>[!NOTE]
+>
+> Grafana is a third-party open-source tool and is not included in the MindStudio Service Profiler or MindStudio product distribution packages. It is also not the only visualization tool required by this tool—users may choose Grafana or any other compatible visualization system based on their environment.
+
 **Data Preparation <a name="section081361822719"></a>**
 
-[Data parsing](#data-parsing) has been completed, and [parsed results] (#parsed-results) have been generated.
+[Data parsing](#data-parsing) has been completed, and [parsed results](#parsed-results) have been generated.
 
 Ensure that the SQLite database file `profiler.db` exists in the path specified by `--output-path`.
 
@@ -624,24 +634,28 @@ cd grafana-v11.3.0/bin/
 
 When configuring the Windows proxy, you need to add the Linux device IP prefix (for example, `90.90.*;90.91.*`). Access Grafana at `<http://<Linux-Device-IP>:3000/`. Default username and password are both `admin`.
 
-**Figure 1** Grafana<a name="fig133211037409"></a> 
-![] (figures/Grafana.png "Grafana")
+**Figure 1** Grafana<a name="fig133211037409"></a>
+
+![](figures/Grafana.png "Grafana")
 
 **Example<a name="section20198154975911"></a>**
 
 1. Create a data source, as shown in [Figure 2 Data source](#fig119691547124112).
 
-    **Figure 2** Data source<a name="fig119691547124112"></a> 
+    **Figure 2** Data source<a name="fig119691547124112"></a>
+
     ![](figures/Data-source.png "Data_source")
 
     Set the data source type to `SQLite`, as shown in [Figure 3 Add data source](#fig17555112919480).
 
-    **Figure 3** Add data source<a name="fig17555112919480"></a> 
+    **Figure 3** Add data source<a name="fig17555112919480"></a>
+
     ![](figures/Add-data-source.png "Add_data_source")
 
     Connect the generated SQLite database file `profiler.db` to Grafana and record the `datasource uid`, as shown in [Figure 4 Data sources](#fig15266174254917).
 
-    **Figure 4** Data sources<a name="fig15266174254917"></a> 
+    **Figure 4** Data sources<a name="fig15266174254917"></a>
+
     ![](figures/Data-sources.png "Data-sources")
 
 2. Create a dashboard and import the line chart.
@@ -649,29 +663,34 @@ When configuring the Windows proxy, you need to add the Linux device IP prefix (
     The visualization file `profiler\_visualization.json` is located at /xxx/Ascend/cann-_\{version\}_/tools/msserviceprofiler/python/ms\_service\_profiler/views/. Modify the datasource uid in the JSON file to the uid recorded in the previous step.
 
     >[!NOTE]
->
+    >
     >{version} indicates the CANN software package version. CANN 8.1.RC1 and later versions are supported.
 
-    **Figure 5** uid<a name="fig51134371917"></a> 
-    ![] (figures/uid.png "uid")
+    **Figure 5** uid<a name="fig51134371917"></a>
+
+    ![](figures/uid.png "uid")
 
     >[!NOTE]
->
-    >The UID in the JSON file identifies the dashboard uniquely and remain unchanged here. The **title** field names the dashboard, which is defaulted to **Profiler Visualization**.
+    >
+    >The UID in the JSON file identifies the dashboard uniquely and remains unchanged here. The **title** field names the dashboard, which is defaulted to **Profiler Visualization**.
 
-    **Figure 6**  json<a name="fig761123319212"></a> 
-    ![] (figures/json.png "json")
+    **Figure 6**  json<a name="fig761123319212"></a>
+
+    ![](figures/json.png "json")
 
 3. Create a new dashboard, paste the modified JSON content, and import it. Find the dashboard under `Dashboards` with the specified name.
 
     **Figure 7** Dashboards<a name="fig94901561348"></a> 
+
     ![](figures/Dashboards.png "Dashboards")
 
-    **Figure 8** Import dashboard<a name="fig944016531767"></a> 
+    **Figure 8** Import dashboard<a name="fig944016531767"></a>
+
     ![](figures/Import-dashboard.png "Import-dashboard")
 
-    **Figure 9** Setting parameters<a name="fig82151013079"></a> parameter 
-    ![] (figures/Setting parameters.png "Setting_parameters")
+    **Figure 9** Setting parameters<a name="fig82151013079"></a>
+
+    ![](figures/setting-parameters.png "Setting_parameters")
 
 **Visualization Results<a name="section16851525949"></a>**
 
@@ -698,7 +717,8 @@ The generated Grafana dashboard contains the following visualized charts:
 
     y-axis: records the batch sizes for both prefill and decode batches separately.
 
-    **Figure 10** Batch_Size_curve<a name="fig11458160171513"></a> 
+    **Figure 10** Batch_Size_curve<a name="fig11458160171513"></a>
+
     ![](figures/Batch-Size-by-Batch-ID.png "Batch_Size_by_Batch_ID")
 
 - Request_Status_curve
@@ -709,7 +729,8 @@ The generated Grafana dashboard contains the following visualized charts:
 
     Vertical axis: size of the queue in the current state.
 
-    **Figure 11** Request_Status_curve<a name="fig332101019263"></a> 
+    **Figure 11** Request_Status_curve<a name="fig332101019263"></a>
+
     ![](figures/Request-Status.png "Request_Status")
 
 - Kvcache_usage_percent_curve
@@ -720,7 +741,8 @@ The generated Grafana dashboard contains the following visualized charts:
 
     y-axis: KV cache usage of all requests Unit: %
 
-    **Figure 12** Kvcache_usage_percent_curve<a name="fig248583622618"></a> 
+    **Figure 12** Kvcache_usage_percent_curve<a name="fig248583622618"></a>
+
     ![](figures/Kvcache-usage-percent.png "Kvcache_usage_percent")
 
 - First_Token_Latency_curve
@@ -731,7 +753,8 @@ The generated Grafana dashboard contains the following visualized charts:
 
     y-axis: average TTFT across all requests, along with its 99th, 90th, and 50th percentiles, and the minimum value (min), in μs.
 
-    **Figure 13** First\_Token\_Latency\_curve<a name="fig51649142712"></a> 
+    **Figure 13** First\_Token\_Latency\_curve<a name="fig51649142712"></a>
+
     ![](figures/first_token_latency.png "first_token_latency")
 
 - Prefill\_Generate\_Speed\_Latency\_curve
@@ -742,7 +765,8 @@ The generated Grafana dashboard contains the following visualized charts:
 
     y-axis: the average per-token latency during the prefill phase across all requests at each moment, along with its 99th, 90th, and 50th percentiles. Unit: tokens/s
 
-    **Figure 14** Prefill\_Generate\_Speed\_Latency\_curve<a name="fig162756333277"></a> 
+    **Figure 14** Prefill\_Generate\_Speed\_Latency\_curve<a name="fig162756333277"></a>
+
     ![](figures/prefill_generate_speed_latency.png "prefill_generate_speed_latency")
 
 - Decode\_Generate\_Speed\_Latency\_curve
@@ -753,7 +777,8 @@ The generated Grafana dashboard contains the following visualized charts:
 
     y-axis: the average per-token latency during the decode phase across all requests at each moment, along with its 99th, 90th, and 50th percentiles. Unit: tokens/s
 
-    **Figure 15** Decode\_Generate\_Speed\_Latency\_curve<a name="fig413355815278"></a> 
+    **Figure 15** Decode\_Generate\_Speed\_Latency\_curve<a name="fig413355815278"></a>
+
     ![](figures/decode_generate_speed_latency.png "decode_generate_speed_latency")
 
 - Request\_Latency\_curve
@@ -764,7 +789,8 @@ The generated Grafana dashboard contains the following visualized charts:
 
     Vertical axis: the average value of end-to-end latency across all requests, along with its 99th, 90th, and 50th percentiles, in μs.
 
-    **Figure 16** Request\_Latency\_curve<a name="fig7181141962810"></a> 
+    **Figure 16** Request\_Latency\_curve<a name="fig7181141962810"></a>
+
     ![](figures/request_latency.png "request_latency")
 
 ## Extended Functions<a name="ZH-CN_TOPIC_0000002254643849"></a>
