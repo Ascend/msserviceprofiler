@@ -8,7 +8,7 @@ msServiceProfiler Trace采集MindIE Motor服务中的请求响应时间、响应
 
 - 当前版本主要面向MindIE推理框架，支持单机及多机PD竞争部署模式。
 - 当前仅支持对MindIE的[/v1/chat](https://www.hiascend.com/document/detail/zh/mindie/latest/mindiellm/llmdev/mindie_service0078.html)和[/v1/completions](https://www.hiascend.com/document/detail/zh/mindie/latest/mindiellm/llmdev/mindie_service0323.html)两个请求发送的核心接口进行Trace监测。
-- msServiceProfiler Trace数据监测接口包括“msServiceProfiler API参考（C++） \>  [Trace数据监测](./cpp_api/trace_data_monitoring/README.md)”。
+- msServiceProfiler Trace数据监测接口包括“msServiceProfiler API参考（C++） \>  [Trace数据监测](../cpp_api/trace_data_monitoring/README.md)”。
 - 有关MindIE Motor相关介绍请参见《[MindIE Motor开发指南](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/README.md)》。
 
 ## 产品支持情况<a name="ZH-CN_TOPIC_0000002489576470"></a>
@@ -47,7 +47,7 @@ msServiceProfiler Trace采集MindIE Motor服务中的请求响应时间、响应
 
 1. 在昇腾环境安装配套版本的CANN Toolkit开发套件包和ops算子包并配置CANN环境变量，具体请参见[CANN快速安装](https://www.hiascend.com/cann/download)。
 
-2. 完成[msServiceProfiler工具](msserviceprofiler_install_guide.md)的安装。
+2. 完成[msServiceProfiler工具](../install_guide/msserviceprofiler_install_guide.md)的安装。
 
 3. 完成MindIE的安装和配置并确认MindIE Motor可以正常运行，具体请参见《[MindIE 安装](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/maintenance/build_motor_image_from_vllm_ascend.md)》。
 
@@ -294,7 +294,7 @@ curl http://127.0.0.1:1025/v1/chat/completions \
 完成[发送请求](#发送请求)后，可以在支持OTLP协议的开源监测平台（例如Jaeger，须先开启Jaeger平台服务）查看可视化结果，示例如下。
 
 **图 1**  可视化结果<a name="fig485163113451"></a>
-![](figures/可视化结果.png "可视化结果")
+![](../figures/可视化结果.png "可视化结果")
 
 字段说明如下：
 

@@ -149,7 +149,7 @@ ms-service-metric status
 
 ### 4. 更多介绍
 
-详细使用方法，请参考：[使用指南](https://gitcode.com/Ascend/msserviceprofiler/blob/master/docs/zh/vLLM_metrics_tool_instruct.md)
+详细使用方法，请参考：[使用指南](../docs/zh/user_guide/vLLM_metrics_tool_instruct.md)
 
 ## vLLM 内置指标概览
 

@@ -65,7 +65,7 @@
 
 ## 工具安装
 
-寻优工具依赖服务化工具作为入口，如果没有安装服务化工具，请先完成[msServiceProfiler工具](msserviceprofiler_install_guide.md)的安装。命令如下：
+寻优工具依赖服务化工具作为入口，如果没有安装服务化工具，请先完成[msServiceProfiler工具](../install_guide/msserviceprofiler_install_guide.md)的安装。命令如下：
 
  ```bash
  git clone https://gitcode.com/Ascend/msserviceprofiler.git # 如已拉取，则不用重复拉取
@@ -107,7 +107,7 @@ pip uninstall ms_serviceparam_optimizer
 
 1. 完成[使用前准备](#使用前准备)章节要求。
 
-2. 修改配置文件：启动寻优前需用户按照实际情况配置[`config.toml`](../../ms_serviceparam_optimizer/ms_serviceparam_optimizer/config.toml)，包括寻优参数、测评工具参数、服务化参数。参考[配置文件说明](#配置文件说明)章节完成配置。也可通过 `-c` 参数将配置文件放在任意路径，具体见[命令参数说明](#轻量化模式)。
+2. 修改配置文件：启动寻优前需用户按照实际情况配置[`config.toml`](../../../ms_serviceparam_optimizer/ms_serviceparam_optimizer/config.toml)，包括寻优参数、测评工具参数、服务化参数。参考[配置文件说明](#配置文件说明)章节完成配置。也可通过 `-c` 参数将配置文件放在任意路径，具体见[命令参数说明](#轻量化模式)。
 
 3. 启动寻优：完成上述步骤后，执行以下命令，一键启动轻量化自动寻优：
 
@@ -149,7 +149,7 @@ msserviceprofiler optimizer [options]
 
 **使用示例（mindie服务化参数寻优）**
 
-1. 修改配置文件：启动寻优前需用户按照实际情况配置[`config.toml`](../../ms_serviceparam_optimizer/ms_serviceparam_optimizer/config.toml)，包括寻优参数、测评工具参数、服务化参数。参考[配置文件说明](#配置文件说明)章节完成配置。
+1. 修改配置文件：启动寻优前需用户按照实际情况配置[`config.toml`](../../../ms_serviceparam_optimizer/ms_serviceparam_optimizer/config.toml)，包括寻优参数、测评工具参数、服务化参数。参考[配置文件说明](#配置文件说明)章节完成配置。
 
 2. 如果需要设置环境变量作用于mindie/vllm服务，只需在运行工具前设置环境变量即可，例如：
 
@@ -167,7 +167,7 @@ msserviceprofiler optimizer [options]
 
 **使用示例（vllm服务化参数寻优）**
 
-1. 修改配置文件：启动寻优前需用户按照实际情况配置[`config.toml`](../../ms_serviceparam_optimizer/ms_serviceparam_optimizer/config.toml)，包括寻优参数、测评工具参数、服务化参数。参考[配置文件说明](#配置文件说明)章节完成配置。
+1. 修改配置文件：启动寻优前需用户按照实际情况配置[`config.toml`](../../../ms_serviceparam_optimizer/ms_serviceparam_optimizer/config.toml)，包括寻优参数、测评工具参数、服务化参数。参考[配置文件说明](#配置文件说明)章节完成配置。
 2. 如果需要设置环境变量作用于mindie/vllm服务，只需在运行工具前设置环境变量即可，例如：
 
     ```bash
@@ -217,7 +217,7 @@ msserviceprofiler optimizer -e vllm -b vllm_benchmark -c ../configs/vllm_config.
 
 **注意事项**
 
-仿真模式需要先基于服务化采集数据进行训练，参照[服务化调优快速入门](https://gitcode.com/Ascend/msserviceprofiler/blob/master/docs/zh/quick_start.md) 开启profiling实际跑一遍MindIE推理服务的测试脚本，将采集的profiling数据进行解析然后用于训练模型。profiling采集数据需要包括batch_type，batch_size，forward_time，batch_end_time(ms)，request_recv_token_size，request_reply_token_size，need_blocks，request_execution_time(ms)，first_token_latency(ms)。
+仿真模式需要先基于服务化采集数据进行训练，参照[服务化调优快速入门](../quick_start/quick_start.md) 开启profiling实际跑一遍MindIE推理服务的测试脚本，将采集的profiling数据进行解析然后用于训练模型。profiling采集数据需要包括batch_type，batch_size，forward_time，batch_end_time(ms)，request_recv_token_size，request_reply_token_size，need_blocks，request_execution_time(ms)，first_token_latency(ms)。
 
 **命令格式**
 
@@ -254,7 +254,7 @@ msserviceprofiler optimizer -e vllm -b vllm_benchmark -c ../configs/vllm_config.
 
 **使用示例**
 
-1. 修改配置文件：启动寻优前需用户按照实际情况配置[`config.toml`](../../ms_serviceparam_optimizer/ms_serviceparam_optimizer/config.toml)，包括寻优参数、测评工具参数、服务化参数。参考[配置文件说明](#配置文件说明)章节完成配置。
+1. 修改配置文件：启动寻优前需用户按照实际情况配置[`config.toml`](../../../ms_serviceparam_optimizer/ms_serviceparam_optimizer/config.toml)，包括寻优参数、测评工具参数、服务化参数。参考[配置文件说明](#配置文件说明)章节完成配置。
 
 2. 训练模型
 

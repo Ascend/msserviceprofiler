@@ -40,13 +40,13 @@
 
 ## 使用前准备
 
-- 完成[msServiceProfiler工具](msserviceprofiler_install_guide.md)的安装。  
+- 完成[msServiceProfiler工具](../install_guide/msserviceprofiler_install_guide.md)的安装。  
 - 如需算子比对功能，则先完成[msprof-analyze工具](https://gitcode.com/Ascend/msprof-analyze)的安装。
 
 **数据准备**
 
-- 完成服务化性能数据采集，获得两份待比对的性能数据，具体采集方式请参见[服务化调优工具](https://gitcode.com/Ascend/msserviceprofiler/blob/master/docs/zh/msserviceprofiler_serving_tuning_instruct.md)。  
-- 算子比对场景要求使用[服务化调优工具](https://gitcode.com/Ascend/msserviceprofiler/blob/master/docs/zh/msserviceprofiler_serving_tuning_instruct.md)采集性能数据时，配置acl_task_time参数值为3，确保采集的性能数据文件目录中包含以_ascend_pt为后缀的算子数据文件。
+- 完成服务化性能数据采集，获得两份待比对的性能数据，具体采集方式请参见[服务化调优工具](./msserviceprofiler_serving_tuning_instruct.md)。  
+- 算子比对场景要求使用[服务化调优工具](./msserviceprofiler_serving_tuning_instruct.md)采集性能数据时，配置acl_task_time参数值为3，确保采集的性能数据文件目录中包含以_ascend_pt为后缀的算子数据文件。
 
 **约束**
 

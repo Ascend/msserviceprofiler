@@ -125,7 +125,7 @@ PY
 vllm serve --help | grep -- '--otlp-traces-endpoint'
 ```
 
-vLLM 和 vLLM-Ascend 的版本必须采用官方兼容矩阵中的配套组合。如果 `msserviceprofiler` 或 OpenTelemetry 导入失败，请先在该 Python 环境中安装 msServiceProfiler，安装方式请参见《[msServiceProfiler 安装指南](./msserviceprofiler_install_guide.md)》；安装时不可使用 `--no-deps` 跳过 Python 依赖。
+vLLM 和 vLLM-Ascend 的版本必须采用官方兼容矩阵中的配套组合。如果 `msserviceprofiler` 或 OpenTelemetry 导入失败，请先在该 Python 环境中安装 msServiceProfiler，安装方式请参见《[msServiceProfiler 安装指南](../install_guide/msserviceprofiler_install_guide.md)》；安装时不可使用 `--no-deps` 跳过 Python 依赖。
 
 ### 2.5 启动 vLLM 和 Hook Tracing
 

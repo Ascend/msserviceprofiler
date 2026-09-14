@@ -10,11 +10,11 @@ msServiceProfiler（服务化调优工具）提供全链路性能剖析，清晰
 
 ## 前提条件<a name="section1605203618349"></a>
 
-- 在使用性能调优工具前请先完成msServiceProfiler工具安装，具体请参见《[msServiceProfiler工具安装指南](msserviceprofiler_install_guide.md)》。
+- 在使用性能调优工具前请先完成msServiceProfiler工具安装，具体请参见《[msServiceProfiler工具安装指南](../install_guide/msserviceprofiler_install_guide.md)》。
 - 已完成对应服务框架的安装，并通过可用性验证（服务能够正常启动，且可通过官方示例脚本或 API 成功发起一次推理请求）：
   - **MindIE Motor**：请参见《[MindIE 安装](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/maintenance/build_motor_image_from_vllm_ascend.md)》完成 MindIE 的安装和配置，并确认 MindIE Motor 服务可以正常启动且能完成一次示例推理请求。
-  - **vLLM-Ascend**：请参见《[vLLM 服务化性能采集工具使用指南](vLLM_service_oriented_performance_collection_tool.md)》以及 vLLM-Ascend 官方安装文档，完成环境准备并验证 vLLM 服务可正常对外提供推理接口。
-  - **SGLang**：请参见《[SGLang 服务化性能采集工具使用指南](SGLang_service_oriented_performance_collection_tool.md)》以及 SGLang 官方安装文档，完成环境准备并验证 SGLang 服务可正常对外提供推理接口。
+  - **vLLM-Ascend**：请参见《[vLLM 服务化性能采集工具使用指南](../user_guide/vLLM_service_oriented_performance_collection_tool.md)》以及 vLLM-Ascend 官方安装文档，完成环境准备并验证 vLLM 服务可正常对外提供推理接口。
+  - **SGLang**：请参见《[SGLang 服务化性能采集工具使用指南](../user_guide/SGLang_service_oriented_performance_collection_tool.md)》以及 SGLang 官方安装文档，完成环境准备并验证 SGLang 服务可正常对外提供推理接口。
 
 ## 操作步骤<a name="section166491954201410"></a>
 
@@ -211,4 +211,4 @@ python3 -m sglang.launch_server --model-path=/Qwen2.5-0.5B-Instruct --device npu
 
 根据MindStudio Insight工具的可视化呈现性能数据，如下图所示：
 
-![](figures/zh-cn_image_0000002478067012.png)
+![](../figures/zh-cn_image_0000002478067012.png)

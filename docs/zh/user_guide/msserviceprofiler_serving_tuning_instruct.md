@@ -4,7 +4,7 @@
 
 本文介绍推理服务化性能数据采集工具，本工具主要使用msServiceProfiler接口，在MindIE Motor推理服务化进程中，采集关键过程的开始和结束时间点，识别关键函数或迭代等信息，记录关键事件，支持多样的信息采集，对性能问题快速定位。
 
-- msServiceProfiler服务化调优接口包括“ [服务化调优 C++](./cpp_api/serving_tuning/README.md)”和“  [服务化调优 Python](./python_api/README.md)”。
+- msServiceProfiler服务化调优接口包括“ [服务化调优 C++](../cpp_api/serving_tuning/README.md)”和“  [服务化调优 Python](../python_api/README.md)”。
 - 有关MindIE Motor相关介绍请参见《[MindIE Motor开发指南](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/README.md)》。
 
 工具使用流程如下：
@@ -49,7 +49,7 @@
 工具支持的硬件环境与MindIE一致，详细请参见《[MindIE 环境准备](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/environment_preparation.md)》。
 
 1. 安装配套版本的CANN Toolkit开发套件包和ops算子包并配置CANN环境变量，具体请参见[CANN快速安装](https://www.hiascend.com/cann/download)。
-2. 完成[msServiceProfiler工具](msserviceprofiler_install_guide.md)的安装。
+2. 完成[msServiceProfiler工具](../install_guide/msserviceprofiler_install_guide.md)的安装。
 3. 完成MindIE的安装和配置并确认MindIE Motor可以正常运行，具体请参见《[MindIE 安装](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/maintenance/build_motor_image_from_vllm_ascend.md)》。
 4. 完成以上环境准备后，可以进行一次配置预检动作，使用“[msprechecker](https://gitcode.com/Ascend/msit/tree/master/msprechecker)”工具，对环境变量和服务化配置等进行检查。
 
@@ -125,11 +125,11 @@
     >服务化性能数据采集支持运行时动态启停。动态启停指在启动采集任务后，执行采集操作过程中可以随时启动和暂停采集。
     >动态启停场景主要为以下三种：
     >- <a name="li0321112752816"></a>关闭到开启。启动MindIE Motor服务前，json配置文件中“enable”字段设置为0，运行MindIE Motor服务后修改文件中“enable”字段为1，日志中打印开启采集功能的相关信息：
-    > ![](figures/1_zh-cn_image_0000002450063397.png)
+    > ![](../figures/1_zh-cn_image_0000002450063397.png)
     >- 开启到关闭。启动MindIE Motor服务前，json配置文件中“enable”字段设置为1，运行MindIE Motor服务后修改文件中“enable”字段为0，日志中打印关闭采集功能的相关信息：
-    > ![](figures/zh-cn_image_0000002512312449.png)
+    > ![](../figures/zh-cn_image_0000002512312449.png)
     >- 修改json配置文件内容，但“enable”字段未更改，采集功能运行状态不变，日志中打印相关信息：
-    > ![](figures/zh-cn_image_0000002480352568.png)
+    > ![](../figures/zh-cn_image_0000002480352568.png)
 
 **输出说明<a name="section3518349616"></a>**
 
@@ -520,7 +520,7 @@ Span 是分布式追踪（Tracing）中的最小性能监测单元，对应推�
 |{Decoder Layer}（列取值）|该文件中的列取值为各个Device运行的模型Decoder Layer层的序号。|
 
 **图 1**  ep\_balance.png<a name="fig86411261854"></a>  
-![](figures/ep_balance-png.png "ep_balance-png")
+![](../figures/ep_balance-png.png "ep_balance-png")
 
 ### **moe\_analysis.csv**
 
@@ -538,7 +538,7 @@ Span 是分布式追踪（Tracing）中的最小性能监测单元，对应推�
 |CI Upper|该Device上MoeDistributeCombine算子和MoeDistributeDispatch算子之和的上2.5%分位数。|
 
 **图 2**  moe\_analysis.png<a name="fig106051734569"></a>  
-![](figures/moe_analysis-png.png "moe_analysis-png")
+![](../figures/moe_analysis-png.png "moe_analysis-png")
 
 ### **\{host\_name\}\_eplb\_\{i\}\_summed\_hot\_map\_by\_expert.png**
 
@@ -548,7 +548,7 @@ Span 是分布式追踪（Tracing）中的最小性能监测单元，对应推�
 - i表示MindIE开启动态负载均衡场景时，服务化profiling采集周期内，负载均衡表更新的次数；不开启动态负载均衡时，i为0。
 
 **图 3**  热力图<a name="fig732654205612"></a>  
-![](figures/热力图.png "热力图")
+![](../figures/热力图.png "热力图")
 
 横轴为专家编号，纵轴代表模型的moe层。
 
@@ -562,7 +562,7 @@ Span 是分布式追踪（Tracing）中的最小性能监测单元，对应推�
 - i表示MindIE开启动态负载均衡场景时，服务化profiling采集周期内，负载均衡表更新的次数；不开启动态负载均衡时，i为0。
 
 **图 4**  热力图<a name="fig455912215212"></a>  
-![](figures/热力图-0.png "热力图-0")
+![](../figures/热力图-0.png "热力图-0")
 
 横轴为Rank\_ID，纵轴代表模型的moe层。
 
@@ -575,7 +575,7 @@ Span 是分布式追踪（Tracing）中的最小性能监测单元，对应推�
 - 该图需要开启MindIE的动态负载均衡特性才会生成。
 
 **图 5**  热力图<a name="fig1161912109318"></a>  
-![](figures/热力图-1.png "热力图-1")
+![](../figures/热力图-1.png "热力图-1")
 
 横轴为模型的专家编号，其中共享专家编号排列在最后，纵轴代表模型的MoE层。
 
@@ -584,7 +584,7 @@ Span 是分布式追踪（Tracing）中的最小性能监测单元，对应推�
 专家负载不均折线图，[图6](#fig3559155015275)从时间维度上展示模型专家负载不均的程度。
 
 **图 6**  专家负载不均折线图<a name="fig3559155015275"></a>  
-![](figures/专家负载不均折线图.png "专家负载不均折线图")
+![](../figures/专家负载不均折线图.png "专家负载不均折线图")
 
 横坐标tokens num表示模型推理的轮数，纵坐标balance ratio表示基于专家热度使用标准差统计得出的模型负载不均的程度。
 
@@ -639,24 +639,24 @@ cd grafana-v11.3.0/bin/
 配置 Windows 代理时，需添加 Linux 设备 IP 前缀（例如 `90.90.*;90.91.*`）。在浏览器中访问 `http://<Linux设备IP>:3000/` 即可打开 Grafana 的 Web 端，初始账号与密码均为 `admin`。
 
 **图 1**  Grafana示意图<a name="fig133211037409"></a>  
-![](figures/Grafana示意图.png "Grafana示意图")
+![](../figures/Grafana示意图.png "Grafana示意图")
 
 **使用示例<a name="section20198154975911"></a>**
 
 1. 新建Data sources，如[图2 Data source](#fig119691547124112)所示。
 
     **图 2**  Data source<a name="fig119691547124112"></a>  
-    ![](figures/Data-source.png "Data-source")
+    ![](../figures/Data-source.png "Data-source")
 
     data source类型选择SQLite类型，如[图3 Add data source](#fig17555112919480)所示。
 
     **图 3**  Add data source<a name="fig17555112919480"></a>  
-    ![](figures/Add-data-source.png "Add-data-source")
+    ![](../figures/Add-data-source.png "Add-data-source")
 
     将解析生成的SQLite数据库文件profiler.db连接到Grafana，并记录datasource uid，如[图4 Data sources](#fig15266174254917)所示。
 
     **图 4**  Data sources<a name="fig15266174254917"></a>  
-    ![](figures/Data-sources.png "Data-sources")
+    ![](../figures/Data-sources.png "Data-sources")
 
 2. 新建dashboard，导入折线图。
 
@@ -667,25 +667,25 @@ cd grafana-v11.3.0/bin/
     >{version}为CANN软件包版本，支持CANN 8.1.RC1及之后的版本。
 
     **图 5**  uid示意图<a name="fig51134371917"></a>  
-    ![](figures/uid示意图.png "uid示意图")
+    ![](../figures/uid示意图.png "uid示意图")
     
     > [!NOTE]
     >
     >json文件末尾的uid用于唯一标记此dashboard，这里不用修改；title用于给此dashboard命名，默认为Profiler Visualization。
 
     **图 6**  json示意图<a name="fig761123319212"></a>  
-    ![](figures/json示意图.png "json示意图")
+    ![](../figures/json示意图.png "json示意图")
 
 3. 新建dashboard，将修改后的json文件内容粘贴导入，即可在Dashboards中找到相对应名称的dashboard。
 
     **图 7**  Dashboards<a name="fig94901561348"></a>  
-    ![](figures/Dashboards.png "Dashboards")
+    ![](../figures/Dashboards.png "Dashboards")
 
     **图 8**  Import dashboard<a name="fig944016531767"></a>  
-    ![](figures/Import-dashboard.png "Import-dashboard")
+    ![](../figures/Import-dashboard.png "Import-dashboard")
 
     **图 9**  设置参数<a name="fig82151013079"></a>  
-    ![](figures/设置参数.png "设置参数")
+    ![](../figures/设置参数.png "设置参数")
 
 **可视化结果<a name="section16851525949"></a>**
 
@@ -713,7 +713,7 @@ cd grafana-v11.3.0/bin/
     纵轴：记录对应batch的batch size，区分prefill batch和decode batch。
 
     **图 10**  Batch_Size_curve<a name="fig11458160171513"></a>  
-    ![](figures/Batch-Size-by-Batch-ID.png "Batch-Size-by-Batch-ID")
+    ![](../figures/Batch-Size-by-Batch-ID.png "Batch-Size-by-Batch-ID")
 
 - Request_Status_curve
 
@@ -724,7 +724,7 @@ cd grafana-v11.3.0/bin/
     纵轴：当前时刻处于该状态的队列大小。
 
     **图 11**  Request_Status_curve<a name="fig332101019263"></a>  
-    ![](figures/Request-Status.png "Request-Status")
+    ![](../figures/Request-Status.png "Request-Status")
 
 - Kvcache_usage_percent_curve
 
@@ -735,7 +735,7 @@ cd grafana-v11.3.0/bin/
     纵轴：所有请求Kvcache使用率的变化情况。单位：%。
 
     **图 12**  Kvcache_usage_percent_curve<a name="fig248583622618"></a>  
-    ![](figures/Kvcache-usage-percent.png "Kvcache-usage-percent")
+    ![](../figures/Kvcache-usage-percent.png "Kvcache-usage-percent")
 
 - First_Token_Latency_curve
 
@@ -746,7 +746,7 @@ cd grafana-v11.3.0/bin/
     纵轴：所有请求首token时延的平均值avg，分位值p99、p90、p50，最小值min。单位：us。
 
     **图 13**  First\_Token\_Latency\_curve<a name="fig51649142712"></a>  
-    ![](figures/first_token_latency.png "first_token_latency")
+    ![](../figures/first_token_latency.png "first_token_latency")
 
 - Prefill\_Generate\_Speed\_Latency\_curve
 
@@ -757,7 +757,7 @@ cd grafana-v11.3.0/bin/
     纵轴：所有请求prefill阶段不同时刻吞吐的token平均时延的平均值avg，分位值p99、p90、p50，平均值avg。单位：token个数/s。
 
     **图 14**  Prefill\_Generate\_Speed\_Latency\_curve<a name="fig162756333277"></a>  
-    ![](figures/prefill_generate_speed_latency.png "prefill_generate_speed_latency")
+    ![](../figures/prefill_generate_speed_latency.png "prefill_generate_speed_latency")
 
 - Decode\_Generate\_Speed\_Latency\_curve
 
@@ -768,7 +768,7 @@ cd grafana-v11.3.0/bin/
     纵轴：所有请求decode阶段不同时刻吞吐的token平均时延的平均值avg，分位值p99、p90、p50，平均值avg。单位：token个数/s。
 
     **图 15**  Decode\_Generate\_Speed\_Latency\_curve<a name="fig413355815278"></a>  
-    ![](figures/decode_generate_speed_latency.png "decode_generate_speed_latency")
+    ![](../figures/decode_generate_speed_latency.png "decode_generate_speed_latency")
 
 - Request\_Latency\_curve
 
@@ -779,7 +779,7 @@ cd grafana-v11.3.0/bin/
     纵轴：所有请求端到端时延的平均值avg，分位值p99、p90、p50，平均值avg。单位：us。
 
     **图 16**  Request\_Latency\_curve<a name="fig7181141962810"></a>  
-    ![](figures/request_latency.png "request_latency")
+    ![](../figures/request_latency.png "request_latency")
 
 ## 扩展功能<a name="ZH-CN_TOPIC_0000002254643849"></a>
 
@@ -787,7 +787,7 @@ cd grafana-v11.3.0/bin/
 
 MindIE Motor推理服务化框架中默认已添加性能数据采集代码，当前步骤可选。
 
-若需要自定义采集更多性能数据，可以参照如下示例代码对服务化框架中的性能采集代码进行修改，可以使用的接口请参见[API参考（C++）](./cpp_api/serving_tuning/README.md)或[API参考（Python）](./python_api/README.md)。
+若需要自定义采集更多性能数据，可以参照如下示例代码对服务化框架中的性能采集代码进行修改，可以使用的接口请参见[API参考（C++）](../cpp_api/serving_tuning/README.md)或[API参考（Python）](../python_api/README.md)。
 
 > [!NOTE]
 >

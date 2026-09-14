@@ -39,7 +39,7 @@ SGLang Service Profiler 适用于在NPU部署SGLang推理服务过程中进行�
 
 1. 在昇腾环境安装配套版本的CANN Toolkit开发套件包和ops算子包并配置CANN环境变量，具体请参见[CANN快速安装](https://www.hiascend.com/cann/download)。
 2. 完成 SGLang 在NPU上的安装和部署，确保可以正常运行推理服务，具体请参见 [SGLang installation with NPUs support](https://docs.sglang.io/docs/hardware-platforms/ascend-npus/ascend_npu)。
-3. 请参见《msServiceProfiler工具安装指南》文档中“[4. 升级](./msserviceprofiler_install_guide.md#5-升级)”章节。
+3. 请参见《msServiceProfiler工具安装指南》文档中“[5. 升级](../install_guide/msserviceprofiler_install_guide.md#5-升级)”章节。
 
 ### 约束
 

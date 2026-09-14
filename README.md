@@ -3,7 +3,7 @@
 <div align="center">
 <p><b><span style="font-size:24px;">昇腾 AI 服务化调优工具</span></b></p>
 
- [![License](https://badgen.net/badge/快速入门/QuickStart/blue)](./docs/zh/quick_start.md)
+ [![License](https://badgen.net/badge/快速入门/QuickStart/blue)](./docs/zh/quick_start/quick_start.md)
  [![License](https://badgen.net/badge/精确搜索/ReadTheDocs/blue)](https://msserviceprofiler.readthedocs.io/zh-cn/latest/)
  [![License](https://badgen.net/badge/AI问答/DeepWiki/blue)](https://deepwiki.com/mindstudio-docs/master)
  [![License](https://badgen.net/badge/AI问答/ZRead/blue)](https://zread.ai/mindstudio-docs/master)
@@ -32,25 +32,29 @@ MindStudio Service Profiler 是一款专为大模型推理服务设计的全栈�
 
 | 功能名称                       | 功能描述                               | 详细介绍                                                                   |
 |:---------------------------|:-----------------------------------|:-----------------------------------------------------------------------|
-| 【性能调优】服务化性能调优              | 理解服务化调优数据格式、可视化分析方式及典型调优流程         | [点击查看](docs/zh/msserviceprofiler_serving_tuning_instruct.md)           |
-| 【性能采集】vLLM 服务化性能采集         | 针对 vLLM 框架场景的专项服务化性能采集             | [点击查看](docs/zh/vLLM_service_oriented_performance_collection_tool.md)   |
-| 【性能采集】SGLang 服务化性能采集       | 针对 SGLang 框架场景的专项服务化性能采集           | [点击查看](docs/zh/SGLang_service_oriented_performance_collection_tool.md) |
-| 【数据监测】MindIE Trace 数据链路监测  | 将服务端请求链路打通到 Jaeger 等 OTLP 生态       | [点击查看](docs/zh/msserviceprofiler_trace_data_monitoring_instruct.md)    |
-| 【在线监测】vLLM Prometheus 在线监测 | 在 vLLM-Ascend 上结合 Prometheus 做在线监控 | [点击查看](docs/zh/vLLM_metrics_tool_instruct.md)                          |
-| 【比对分析】性能数据比对               | 对不同版本/配置的性能结果做对比分析                 | [点击查看](docs/zh/ms_service_profiler_compare_tool_instruct.md)           |
-| 【比对分析】多维度解析                | 从多维度对采集的性能数据做深入分析                  | [点击查看](docs/zh/msserviceprofiler_multi_analyze_instruct.md)            |
-| 【比对分析】拆解分析                 | 对服务化性能数据做细粒度拆解分析                   | [点击查看](docs/zh/service_performance_split_tool_instruct.md)             |
-| 【寻优建议】服务化自动寻优              | 在已有采集数据基础上进行参数自动寻优                 | [点击查看](docs/zh/serviceparam_optimizer_instruct.md)                     |
-| 【寻优建议】服务化自动寻优插件模式          | 以插件化模式进行参数自动寻优                     | [点击查看](docs/zh/serviceparam_optimizer_plugin_instruct.md)              |
-| 【寻优建议】服务化专家建议              | 基于采集数据获取性能调优专家建议                   | [点击查看](docs/zh/service_profiling_advisor_instruct.md)                  |
+| 【性能调优】服务化性能调优              | 理解服务化调优数据格式、可视化分析方式及典型调优流程         | [点击查看](docs/zh/user_guide/msserviceprofiler_serving_tuning_instruct.md)           |
+| 【性能采集】vLLM 服务化性能采集         | 针对 vLLM 框架场景的专项服务化性能采集             | [点击查看](docs/zh/user_guide/vLLM_service_oriented_performance_collection_tool.md)   |
+| 【性能采集】SGLang 服务化性能采集       | 针对 SGLang 框架场景的专项服务化性能采集           | [点击查看](docs/zh/user_guide/SGLang_service_oriented_performance_collection_tool.md) |
+| 【数据监测】MindIE Trace 数据链路监测  | 将服务端请求链路打通到 Jaeger 等 OTLP 生态       | [点击查看](docs/zh/user_guide/msserviceprofiler_trace_data_monitoring_instruct.md)    |
+| 【在线监测】vLLM Prometheus 在线监测 | 在 vLLM-Ascend 上结合 Prometheus 做在线监控 | [点击查看](docs/zh/user_guide/vLLM_metrics_tool_instruct.md)                          |
+| 【比对分析】性能数据比对               | 对不同版本/配置的性能结果做对比分析                 | [点击查看](docs/zh/user_guide/ms_service_profiler_compare_tool_instruct.md)           |
+| 【比对分析】多维度解析                | 从多维度对采集的性能数据做深入分析                  | [点击查看](docs/zh/user_guide/msserviceprofiler_multi_analyze_instruct.md)            |
+| 【比对分析】拆解分析                 | 对服务化性能数据做细粒度拆解分析                   | [点击查看](docs/zh/user_guide/service_performance_split_tool_instruct.md)             |
+| 【寻优建议】服务化自动寻优              | 在已有采集数据基础上进行参数自动寻优                 | [点击查看](docs/zh/user_guide/serviceparam_optimizer_instruct.md)                     |
+| 【寻优建议】服务化自动寻优插件模式          | 以插件化模式进行参数自动寻优                     | [点击查看](docs/zh/user_guide/serviceparam_optimizer_plugin_instruct.md)              |
+| 【寻优建议】服务化专家建议              | 基于采集数据获取性能调优专家建议                   | [点击查看](docs/zh/user_guide/service_profiling_advisor_instruct.md)                  |
 
 ## 🚀 快速入门
 
-msServiceProfiler服务化调优工具的快速入门，包括必要的操作步骤、参数说明等，具体请参见《[快速入门](docs/zh/quick_start.md)》。
+msServiceProfiler服务化调优工具的快速入门，包括必要的操作步骤、参数说明等，具体请参见《[快速入门](docs/zh/quick_start/quick_start.md)》。
 
 ## 🛠️ 工具安装
 
-安装msServiceProfiler工具，详情请参见《[msServiceProfiler 安装指南](docs/zh/msserviceprofiler_install_guide.md)》。
+安装msServiceProfiler工具，详情请参见《[msServiceProfiler 安装指南](docs/zh/install_guide/msserviceprofiler_install_guide.md)》。
+
+## 💡 典型案例
+
+更多案例，详情请参见《[msServiceProfiler 典型案例](./docs/zh/best_practices/README.md)》。
 
 ## 🌌 智能检索
 

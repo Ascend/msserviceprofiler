@@ -4,7 +4,7 @@
 
 msServiceProfiler模块提供推理服务化性能数据采集（C++）接口，用于采集服务化调优场景性能数据。
 
-推理服务化性能数据采集接口功能介绍和使用示例请参见《[数据采集](../../msserviceprofiler_serving_tuning_instruct.md#数据采集)》。
+推理服务化性能数据采集接口功能介绍和使用示例请参见《[数据采集](../../user_guide/msserviceprofiler_serving_tuning_instruct.md#数据采集)》。
 
 头文件：$\{INSTALL\_DIR\}/include/msServiceProfiler.h
 

@@ -18,7 +18,7 @@ msServiceProfiler（服务化调优工具）是面向推理服务化场景的性
 
 ## 2. 编译环境配置
 
-按照《[msServiceProfiler 安装指南 — 源码安装](../msserviceprofiler_install_guide.md#231-环境准备)》章节完成编译和测试环境的搭建。
+按照《[msServiceProfiler 安装指南 — 源码安装](../install_guide/msserviceprofiler_install_guide.md#231-环境准备)》章节完成编译和测试环境的搭建。
 
 > **说明：** 环境镜像的构建方法及配套软件版本由 MindStudio 统一镜像制作指南维护，本仓库不重复定义。
 
@@ -42,7 +42,7 @@ cd msserviceprofiler
 
 ### 4.1 一键式安装
 
-详细安装说明请参考[msServiceProfiler工具安装指南](../msserviceprofiler_install_guide.md)。
+详细安装说明请参考[msServiceProfiler工具安装指南](../install_guide/msserviceprofiler_install_guide.md)。
 
 ### 4.2 脚本方式构建
 
@@ -254,7 +254,7 @@ MindIE采用侵入式打点采集，需要在代码中直接调用采集接口�
 
 - C++接口：参考[服务化调优 C++ API](../cpp_api/serving_tuning/README.md)
 - Python接口：参考[服务化调优 Python API](../python_api/README.md)
-- 使用说明：参考[服务化调优工具使用指南](../msserviceprofiler_serving_tuning_instruct.md)
+- 使用说明：参考[服务化调优工具使用指南](../user_guide/msserviceprofiler_serving_tuning_instruct.md)
 
 **开发流程**：
 
@@ -268,8 +268,8 @@ vLLM采用动态Hook方式采集，通过配置YAML文件定义采集点，无�
 
 **开发指南**：
 
-- 使用说明：参考[vLLM服务化性能采集工具使用指南](../vLLM_service_oriented_performance_collection_tool.md)
-- 点位配置：参考[vLLM点位配置使用指南](../vLLM_service_oriented_performance_collection_tool.md#点位配置使用指南)
+- 使用说明：参考[vLLM服务化性能采集工具使用指南](../user_guide/vLLM_service_oriented_performance_collection_tool.md)
+- 点位配置：参考[vLLM点位配置使用指南](../user_guide/vLLM_service_oriented_performance_collection_tool.md#点位配置使用指南)
 - 配置文件：`ms_service_profiler/patcher/vllm/config/service_profiling_symbols.yaml`
 - Hook实现：`ms_service_profiler/patcher/vllm/handlers/`
 
@@ -285,11 +285,11 @@ SGLang采用动态Hook方式采集，与vLLM类似。
 
 **开发指南**：
 
-- 使用说明：参考[SGLang服务化性能采集工具使用指南](../SGLang_service_oriented_performance_collection_tool.md)
+- 使用说明：参考[SGLang服务化性能采集工具使用指南](../user_guide/SGLang_service_oriented_performance_collection_tool.md)
 - 配置文件：`ms_service_profiler/patcher/sglang/config/service_profiling_symbols.yaml`
 - Hook实现：`ms_service_profiler/patcher/sglang/handlers/`
 
-**配置说明**：SGLang的YAML配置格式与vLLM相同，参考[vLLM点位配置使用指南](../vLLM_service_oriented_performance_collection_tool.md#点位配置使用指南)。
+**配置说明**：SGLang的YAML配置格式与vLLM相同，参考[vLLM点位配置使用指南](../user_guide/vLLM_service_oriented_performance_collection_tool.md#点位配置使用指南)。
 
 **开发流程**：
 
@@ -830,12 +830,12 @@ A: 检查日志中是否有类似以下输出：
 
 ## 11. 相关文档
 
-- [msServiceProfiler工具安装指南](../msserviceprofiler_install_guide.md)
-- [快速入门](../quick_start.md)
-- [服务化调优工具使用指南](../msserviceprofiler_serving_tuning_instruct.md)
-- [vLLM服务化性能采集工具](../vLLM_service_oriented_performance_collection_tool.md)
-- [SGLang服务化性能采集工具](../SGLang_service_oriented_performance_collection_tool.md)
-- [Trace数据监测工具](../msserviceprofiler_trace_data_monitoring_instruct.md)
-- [服务化自动寻优工具](../serviceparam_optimizer_instruct.md)
-- [服务化专家建议工具](../service_profiling_advisor_instruct.md)
+- [msServiceProfiler工具安装指南](../install_guide/msserviceprofiler_install_guide.md)
+- [快速入门](../quick_start/quick_start.md)
+- [服务化调优工具使用指南](../user_guide/msserviceprofiler_serving_tuning_instruct.md)
+- [vLLM服务化性能采集工具](../user_guide/vLLM_service_oriented_performance_collection_tool.md)
+- [SGLang服务化性能采集工具](../user_guide/SGLang_service_oriented_performance_collection_tool.md)
+- [Trace数据监测工具](../user_guide/msserviceprofiler_trace_data_monitoring_instruct.md)
+- [服务化自动寻优工具](../user_guide/serviceparam_optimizer_instruct.md)
+- [服务化专家建议工具](../user_guide/service_profiling_advisor_instruct.md)
 - [贡献指南](../../../CONTRIBUTING.md)

@@ -38,7 +38,7 @@
 
 **环境准备**
 
-完成[msServiceProfiler工具](msserviceprofiler_install_guide.md)的安装。
+完成[msServiceProfiler工具](../install_guide/msserviceprofiler_install_guide.md)的安装。
 
 **版本配套关系**
 

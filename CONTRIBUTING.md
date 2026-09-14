@@ -49,7 +49,7 @@
 
 5. 安装测试
 
-   将开发完成的代码进行安装测试，详细步骤请参见《[msServiceProfiler工具安装指南](docs/zh/msserviceprofiler_install_guide.md)》。
+   将开发完成的代码进行安装测试，详细步骤请参见《[msServiceProfiler工具安装指南](docs/zh/install_guide/msserviceprofiler_install_guide.md)》。
 
 6. 文档开发
 

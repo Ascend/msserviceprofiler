@@ -49,7 +49,7 @@ pip install scipy loguru pandas psutil  # 安装必要的依赖
 
 ## 工具安装
 
-- **源码安装**：服务化专家建议工具依赖服务化工具作为入口，如果没有安装服务化工具，请先完成[msServiceProfiler工具](msserviceprofiler_install_guide.md)的安装。
+- **源码安装**：服务化专家建议工具依赖服务化工具作为入口，如果没有安装服务化工具，请先完成[msServiceProfiler工具](../install_guide/msserviceprofiler_install_guide.md)的安装。
 
 ```bash
 git clone https://gitcode.com/Ascend/msserviceprofiler.git  # 如已拉取，则不用重复拉取

@@ -4,7 +4,7 @@
 
 msServiceProfiler模块提供推理服务化性能数据采集（Python）接口，用于实现采集服务化调优场景性能数据。
 
-推理服务化性能数据采集接口功能介绍和使用示例请参见[数据采集](.././msserviceprofiler_serving_tuning_instruct.md#数据采集)。
+推理服务化性能数据采集接口功能介绍和使用示例请参见[数据采集](.././user_guide/msserviceprofiler_serving_tuning_instruct.md#数据采集)。
 
 Python接口导入：from ms\_service\_profiler import Profiler, Level
 

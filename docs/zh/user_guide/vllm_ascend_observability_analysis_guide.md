@@ -326,7 +326,7 @@ Metrics 和 Trace 的关联使用同一异常时间窗口，并优先使用 `req
 
 ### 7.1 新测评数据集触发 KVCache 容量瓶颈
 
-完整案例参见[新测评数据集触发 KVCache 容量瓶颈](./best_practices/kv_block_shortage.md)。这是一个真实 Metrics 定界案例，历史原始数据没有保留，文档不补写数值、截图或 Trace 结论。可复用证据链如下：
+完整案例参见[新测评数据集触发 KVCache 容量瓶颈](../best_practices/kv_block_shortage.md)。这是一个真实 Metrics 定界案例，历史原始数据没有保留，文档不补写数值、截图或 Trace 结论。可复用证据链如下：
 
 1. 更换测评数据集后，TTFT 和 TPOT 同时劣化。
 2. waiting 队列在同一窗口增长。
@@ -337,7 +337,7 @@ Metrics 和 Trace 的关联使用同一异常时间窗口，并优先使用 `req
 
 ### 7.2 动态 EPLB 开启后投机推理接受率下降
 
-完整案例参见[动态 EPLB 开启后投机推理接受率下降](./best_practices/speculative_acceptance_rate_with_dynamic_eplb.md)。标准证据链如下：
+完整案例参见[动态 EPLB 开启后投机推理接受率下降](../best_practices/speculative_acceptance_rate_with_dynamic_eplb.md)。标准证据链如下：
 
 1. 未开启动态 EPLB 时，各实例投机推理接受率曲线集中且稳定。
 2. 开启动态 EPLB 后，接受率曲线分散、整体下移，部分实例降至接近 0。
@@ -350,7 +350,7 @@ Metrics 和 Trace 的关联使用同一异常时间窗口，并优先使用 `req
 
 ### 7.3 Scheduler 耗时过长导致吞吐下降
 
-完整案例参见[scheduler耗时过长](./best_practices/scheduler_high_latency.md)。标准证据链如下：
+完整案例参见[scheduler耗时过长](../best_practices/scheduler_high_latency.md)。标准证据链如下：
 
 1. waiting 持续增长，running 未达到配置上限，NPU 利用率低。
 2. `scheduler:duration` P99 升高，模型执行相关指标保持基线。
@@ -456,4 +456,4 @@ Metrics 和 Trace 的关联使用同一异常时间窗口，并优先使用 `req
 - [vLLM 服务化 Prometheus 数据监测工具使用指南](./vLLM_metrics_tool_instruct.md)
 - [vLLM Hook Tracing 使用指南](./vLLM_hook_tracing_instruct.md)
 - [vLLM 服务化性能采集工具使用指南](./vLLM_service_oriented_performance_collection_tool.md)
-- [msServiceProfiler 典型案例](./best_practices/README.md)
+- [msServiceProfiler 典型案例](../best_practices/README.md)
