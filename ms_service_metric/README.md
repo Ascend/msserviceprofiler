@@ -7,7 +7,7 @@
 - 🔧 **动态 Hook**: 基于 YAML 配置动态 Hook 目标函数
 - 📊 **Prometheus 集成**: 支持 Timer、Counter、Gauge、Histogram 等指标类型
 - 🔄 **动态开关**: 通过共享内存和信号实现运行时开关控制
-- 🏗️ **框架适配**: 内置 vLLM 框架适配器（SGLang 作为示例参考）
+- 🏗️ **框架适配**: 内置 vLLM 框架适配器
 - 🔍 **Locals 访问**: 通过字节码注入访问函数局部变量
 
 ## 安装
@@ -25,16 +25,18 @@ pip install ms_service_metric
 
 ## 快速开始
 
-### 1. vLLM 集成
+### 1. 框架集成
 
-vLLM 通过 entry_points 机制自动适配，无需额外代码：
+vLLM 通过 entry_points 机制自动适配，无需额外代码；SGLang在启动服务前，需要在该框架的**三个入口文件**中导入采集模块（详情请参见该README ## 框架适配 部分）。
 
 1. 安装 `ms_service_metric`
-2. 启动 vLLM 的多进程 metric 采集环境变量
+2. 启动框架的多进程 metric 采集环境变量
 
 ```bash
-# 开启 vLLM 多进程 metric 采集环境变量
+# 开启框架多进程 metric 采集环境变量
 export PROMETHEUS_MULTIPROC_DIR=/dev/shm/vllm_metrics && mkdir -p $PROMETHEUS_MULTIPROC_DIR
+# or
+export PROMETHEUS_MULTIPROC_DIR=/dev/shm/sglang_metrics && mkdir -p $PROMETHEUS_MULTIPROC_DIR
 
 # 可选，清理上次的指标文件
 # rm -rf $PROMETHEUS_MULTIPROC_DIR/*
@@ -47,8 +49,10 @@ ms-service-metric status
 # 如之前已开启过指标，之后修改了内容，需要重启
 ms-service-metric restart
 
-# 启动vllm
+# 启动服务
 # vllm serve --model your_model
+# or
+# python -m sglang.launch_server   --model-path=/data/models/origin/Qwen2.5-0.5B-Instruct   --device npu   --enable-metrics   --host 0.0.0.0   --port 30000
 ```
 
 ### 2. 控制指标采集
@@ -519,7 +523,7 @@ Handler 根目录。只加载 YAML 明确引用的 `.py` 文件，不扫描或�
 | 旧 Core + 新框架 | 旧 Core 不发现该 Entry Point，框架原有逻辑不受影响 |
 | Provider 激活失败 | 跳过 Provider，继续使用 Core/Adapter 兜底 |
 
-当前阶段只完成 Provider 架构和 vLLM-Ascend 穿刺，不包含 SGLang Provider 适配。
+当前阶段只完成 Provider 架构和 vLLM-Ascend 穿刺。
 
 ## Handler 类型
 
@@ -607,31 +611,48 @@ def context_handler(ctx):
 
 通过 entry_points 自动适配，安装后即可使用，无需额外代码。
 
-### SGLang（示例参考）
+### SGLang
 
-> **注意**: SGLang 适配器仅作为示例参考，不作为正式发布功能。
+在启动服务前，需要在SGLang框架的**三个入口文件**中导入采集模块。
 
-```python
+> [!NOTE]
+>
+> SGLang 使用 `spawn` 方式启动多进程，主进程（TokenizerManager）、调度进程（Scheduler/ModelRunner）、解码进程（DetokenizerManager）**各自运行在独立的 Python 解释器中**，彼此不共享 monkey-patch 状态，因此必须在每个子进程的入口函数里单独注册 metric。
+>
+
+**（1）主进程入口（TokenizerManager / HTTP 服务）**
+
+```bash
+# 编辑 SGLang 服务化启动入口文件
+# /usr/local/pythonx.xx.xx/lib/pythonx.xx/site-packages 为 pip show sglang 回显的安装路径
+vim /usr/local/pythonx.xx.xx/lib/pythonx.xx/site-packages/sglang/launch_server.py
+# 在原本所有 import 语句后插入如下代码：
 from ms_service_metric.adapters.sglang import initialize_sglang_metric
-
-# 初始化
 initialize_sglang_metric()
 ```
 
-### 自定义适配器
+**（2）调度子进程入口（Scheduler / ModelRunner）**
 
-```python
-from ms_service_metric.core import SymbolHandlerManager
+```bash
+vim /usr/local/pythonx.xx.xx/lib/pythonx.xx/site-packages/sglang/srt/managers/scheduler.py
+# 在 run_scheduler_process 函数体最开头（dp_rank = configure_scheduler_process(...) 之前）插入：
+try:
+    from ms_service_metric.adapters.sglang import initialize_sglang_metric
+    initialize_sglang_metric()
+except ImportError:
+    pass
+```
 
-class MyAdapter:
-    def __init__(self):
-        self._manager = SymbolHandlerManager()
+**（3）解码子进程入口（DetokenizerManager）**
 
-    def initialize(self, config_path: str):
-        self._manager.initialize(config_path)
-
-    def shutdown(self):
-        self._manager.shutdown()
+```bash
+vim /usr/local/pythonx.xx.xx/lib/pythonx.xx/site-packages/sglang/srt/managers/detokenizer_manager.py
+# 在 run_detokenizer_process 函数体最开头（kill_itself_when_parent_died() 之前）插入：
+try:
+    from ms_service_metric.adapters.sglang import initialize_sglang_metric
+    initialize_sglang_metric()
+except ImportError:
+    pass
 ```
 
 ## 开发

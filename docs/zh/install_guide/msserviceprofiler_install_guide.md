@@ -102,7 +102,7 @@ mindstudio-msserviceprofiler package install success, the path is: '<install_pat
 安装完成后，执行以下命令验证工具是否安装成功：
 
 ```bash
-pip list | grep msserviceprofiler
+pip list | grep ms_service_profiler
 ```
 
 若输出不报错，且能显示版本信息，则表明安装成功。
@@ -139,4 +139,4 @@ pip list | grep msserviceprofiler
 ## 5. 升级
 
 升级即“先卸后装”。直接执行安装命令，工具将自动卸载旧版本，并引导您完成覆盖安装。<br>
-可通过`pip list | grep msserviceprofiler`命令查看当前环境的版本信息，再选择需要升级的版本。升级版本时需要关注版本配套关系，请参见《[版本说明](https://gitcode.com/Ascend/release-management/blob/master/MindStudio/26.1.0/release_notes.md)》。
+可通过`pip list | grep ms_service_profiler`命令查看当前环境的版本信息，再选择需要升级的版本。升级版本时需要关注版本配套关系，请参见《[版本说明](https://gitcode.com/Ascend/release-management/blob/master/MindStudio/26.1.0/release_notes.md)》。
