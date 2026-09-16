@@ -71,7 +71,7 @@
           根据参数更新服务的配置文件，或者其他配置，服务启动前根据传递的参数值 修改配置文件。使得新的配置生效。 
           Args:
       
-              params: 调优参数列表，是一个元祖，根据其中每一个元素的value和config position进行定义。
+              params: 调优参数列表，是一个元组，根据其中每一个元素的value和config position进行定义。
           
           Returns: bool, 返回更新成功或者失败。
           
@@ -143,9 +143,9 @@ options:
 -lb, --load_breakpoint
 Continue from where the last optimization was aborted.
 --backup Whether to back up data.
--e {vllm，vllm_infer}, --engine {vllm， vllm_infer}
+-e {vllm，vllm_infer}, --engine {vllm, vllm_infer}
 Specifies the engine to be used.
--b {vllm_benchmark，vllm_infer_benchmark}, --benchmark {vllm_benchmark， vllm_infer_benchmark}
+-b {vllm_benchmark，vllm_infer_benchmark}, --benchmark {vllm_benchmark, vllm_infer_benchmark}
 Specified benchmark to be used.
 ```
 
@@ -257,7 +257,7 @@ class ..optimizer.simulator.SimulatorInterface()
         根据参数更新服务的配置文件，或者其他配置，服务启动前根据传递的参数值 修改配置文件。使得新的配置生效。 
         Args:
     
-            params: 调优参数列表，是一个元祖，根据其中每一个元素的value和config position进行定义。
+            params: 调优参数列表，是一个元组，根据其中每一个元素的value和config position进行定义。
         
         Returns: bool, 返回更新成功或者失败。
         
