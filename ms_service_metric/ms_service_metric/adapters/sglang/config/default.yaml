@@ -98,14 +98,16 @@
     - name: scheduler:req_init_next_round_input:duration
       type: timer
 
-- symbol: sglang.srt.managers.schedule_batch:SchedulerBatchResultProcessor.process_batch_result_prefill
+- symbol: sglang.srt.managers.scheduler_components.batch_result_processor:SchedulerBatchResultProcessor.process_batch_result_prefill
   handler: ms_service_metric.adapters.sglang.handlers.metric_handlers:scheduler_handler
+  min_version: "0.5.13"
   metrics:
     - name: scheduler:process_batch_result_prefill:duration
       type: timer
 
-- symbol: sglang.srt.managers.schedule_batch:SchedulerBatchResultProcessor.process_batch_result_decode
+- symbol: sglang.srt.managers.scheduler_components.batch_result_processor:SchedulerBatchResultProcessor.process_batch_result_decode
   handler: ms_service_metric.adapters.sglang.handlers.metric_handlers:scheduler_handler
+  min_version: "0.5.13"
   metrics:
     - name: scheduler:process_batch_result_decode:duration
       type: timer
@@ -129,7 +131,13 @@
     - name: model:sample:duration
       type: timer
 
-- symbol: sglang.srt.managers.tp_worker:TpModelWorker.forward
+- symbol: sglang.srt.managers.tp_worker:TpModelWorker.forward_batch_generation
+  handler: ms_service_metric.adapters.sglang.handlers.metric_handlers:model_handler
+  metrics:
+    - name: model:tp_worker_forward:duration
+      type: timer
+
+- symbol: sglang.srt.managers.tp_worker:BaseTpWorker.forward_batch_generation
   handler: ms_service_metric.adapters.sglang.handlers.metric_handlers:model_handler
   metrics:
     - name: model:tp_worker_forward:duration
