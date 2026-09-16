@@ -41,8 +41,10 @@ print("vLLM-Ascend:", ascend_version)
 print("OpenTelemetry: ready")
 PY
 
-vllm serve --help | grep -- '--otlp-traces-endpoint'
+python3 -c "from vllm.config import ObservabilityConfig; assert 'otlp_traces_endpoint' in ObservabilityConfig.__dataclass_fields__, 'vLLM 不支持 --otlp-traces-endpoint'; print('--otlp-traces-endpoint: 支持')"
 ```
+
+`--otlp-traces-endpoint` 的支持情况通过 vLLM 配置定义（`vllm.config.ObservabilityConfig`）判断。新版 vLLM 的 `vllm serve --help` 默认输出按参数分组截断，observability 相关参数可能不出现在帮助文本中，不能通过 `grep` 帮助输出验证。
 
 版本号和参数检查通过后，仍需以运行结果完成最终确认：启动日志显示使用 V1 引擎，日志中没有 `Falling back to V0`，发送真实推理请求后 Jaeger 同时收到 vLLM 原生请求 Span 和 msServiceProfiler Hook Span。三项全部满足才表示 Tracing 链路可用于本文的请求级分析。
 
@@ -115,17 +117,17 @@ ascend_version = Version(version("vllm-ascend"))
 assert ascend_version >= Version("0.20.0"), ascend_version
 print("vLLM:", version("vllm"))
 print("vLLM-Ascend:", ascend_version)
-print("msServiceProfiler:", version("msserviceprofiler"))
+print("msServiceProfiler:", version("ms_service_profiler"))
 
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 from opentelemetry.sdk.trace import TracerProvider
 print("OpenTelemetry HTTP exporter: ready")
 PY
 
-vllm serve --help | grep -- '--otlp-traces-endpoint'
+python3 -c "from vllm.config import ObservabilityConfig; assert 'otlp_traces_endpoint' in ObservabilityConfig.__dataclass_fields__, 'vLLM 不支持 --otlp-traces-endpoint'; print('--otlp-traces-endpoint: 支持')"
 ```
 
-vLLM 和 vLLM-Ascend 的版本必须采用官方兼容矩阵中的配套组合。如果 `msserviceprofiler` 或 OpenTelemetry 导入失败，请先在该 Python 环境中安装 msServiceProfiler，安装方式请参见《[msServiceProfiler 安装指南](../install_guide/msserviceprofiler_install_guide.md)》；安装时不可使用 `--no-deps` 跳过 Python 依赖。
+vLLM 和 vLLM-Ascend 的版本必须采用官方兼容矩阵中的配套组合。如果 `ms_service_profiler` 版本查询报 `PackageNotFoundError` 或 OpenTelemetry 导入失败，请先在该 Python 环境中安装 msServiceProfiler，安装方式请参见《[msServiceProfiler 安装指南](../install_guide/msserviceprofiler_install_guide.md)》；安装时不可使用 `--no-deps` 跳过 Python 依赖。
 
 ### 2.5 启动 vLLM 和 Hook Tracing
 
