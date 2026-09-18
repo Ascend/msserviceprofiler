@@ -51,7 +51,7 @@
 1. 安装配套版本的CANN Toolkit开发套件包和ops算子包并配置CANN环境变量，具体请参见[CANN快速安装](https://www.hiascend.com/cann/download)。
 2. 完成[msServiceProfiler工具](../install_guide/msserviceprofiler_install_guide.md)的安装。
 3. 完成MindIE的安装和配置并确认MindIE Motor可以正常运行，具体请参见《[MindIE 安装](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/maintenance/build_motor_image_from_vllm_ascend.md)》。
-4. 完成以上环境准备后，可以进行一次配置预检动作，使用“[msprechecker](https://gitcode.com/Ascend/msit/tree/master/msprechecker)”工具，对环境变量和服务化配置等进行检查。
+4. 完成以上环境准备后，可以进行一次配置预检动作，使用“[msprechecker](https://gitcode.com/Ascend/msit/tree/26.2.0/msprechecker)”工具，对环境变量和服务化配置等进行检查。
 
 ## 数据采集
 
@@ -594,7 +594,7 @@ Span 是分布式追踪（Tracing）中的最小性能监测单元，对应推�
 
 ### MindStudio Insight可视化
 
-MindStudio Insight工具支持对服务化调优工具采集并解析的性能数据（[解析结果](#解析结果)）进行可视化，当前支持chrome\_tracing.json文件及profiler.db文件的可视化，详细操作及可视化结果介绍请参见《[MindStudio Insight工具用户指南](https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/user_guide/overview.md)》中的“[服务化调优](https://gitcode.com/Ascend/msinsight/blob/master/docs/zh/user_guide/service_optimization.md)”章节。
+MindStudio Insight工具支持对服务化调优工具采集并解析的性能数据（[解析结果](#解析结果)）进行可视化，当前支持chrome\_tracing.json文件及profiler.db文件的可视化，详细操作及可视化结果介绍请参见《[MindStudio Insight工具用户指南](https://gitcode.com/Ascend/msinsight/blob/26.2.0/docs/zh/user_guide/overview.md)》中的“[服务化调优](https://gitcode.com/Ascend/msinsight/blob/26.2.0/docs/zh/user_guide/service_optimization.md)”章节。
 
 ### Chrome tracing可视化
 

@@ -50,7 +50,7 @@ msServiceProfiler服务化调优工具的快速入门，包括必要的操作步
 
 ## 🛠️ 工具安装
 
-安装msServiceProfiler工具，详情请参见《[msServiceProfiler 安装指南](docs/zh/install_guide/msserviceprofiler_install_guide.md)》。
+msServiceProfiler工具支持在线安装、离线安装以及源码安装。具体安装方式请参见《[msServiceProfiler 安装指南](docs/zh/install_guide/msserviceprofiler_install_guide.md)》。
 
 ## 💡 典型案例
 
