@@ -123,8 +123,8 @@
 
 3. 设置插件入口点
 
-    将自定义的内容的注册函数添加到入口组'ms_serviceparam_optimizer.plugins'即可。
-    例如通过调用vllm_inference_optimization模块的register来注册，例如：
+    将自定义内容的注册函数添加到入口组'ms_serviceparam_optimizer.plugins'即可。
+    可通过调用vllm_inference_optimization模块的register来注册，例如：
 
     ```python
     [project.entry-points.'ms_serviceparam_optimizer.plugins']
@@ -148,7 +148,7 @@
 5. 使用插件
 
     可以通过寻优工具的调用参数来指定插件实现的模块。
-    例如，新注册了服务框架vllm_infer和性能测试客户端vllm_infer_benchmark，先查看支持的服务和benchmark工具，是否包含刚刚注册的vllm_infer和vllm_infer_benchmark。例如：
+    新注册了服务框架vllm_infer和性能测试客户端vllm_infer_benchmark，先查看支持的服务和benchmark工具，是否包含刚刚注册的vllm_infer和vllm_infer_benchmark。例如：
 
     ```bash
     msserviceprofiler optimizer -h
