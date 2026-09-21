@@ -259,6 +259,34 @@ def test_scenario_registry_and_vllm_args(tmp_path):
         get_scenario("unknown")
 
 
+@pytest.mark.parametrize("key", ["num_experts", "n_routed_experts", "moe_intermediate_size", "num_local_experts"])
+@pytest.mark.parametrize("nested", [False, True])
+def test_moe_model_markers_at_top_level_or_in_text_config(tmp_path, key, nested):
+    config = {"text_config": {key: 8}} if nested else {key: 8}
+    (tmp_path / "config.json").write_text(json.dumps(config), encoding="utf-8")
+    report = metric_smoke_utils.PreflightReport()
+
+    metric_scenarios._require_moe_model(str(tmp_path), report, get_scenario("eplb"))
+
+    assert "MoE model markers found" in str(report)
+
+
+@pytest.mark.parametrize("text_config", [None, {}, [], ["num_experts"], "num_experts", 8])
+@pytest.mark.parametrize("top_level_moe", [False, True])
+def test_moe_model_ignores_text_config_without_markers(tmp_path, text_config, top_level_moe):
+    config = {"text_config": text_config, "vision_config": {"num_experts": 8}}
+    if top_level_moe:
+        config["num_experts"] = 8
+    (tmp_path / "config.json").write_text(json.dumps(config), encoding="utf-8")
+    report = metric_smoke_utils.PreflightReport()
+
+    if top_level_moe:
+        metric_scenarios._require_moe_model(str(tmp_path), report, get_scenario("eplb"))
+    else:
+        with pytest.raises(metric_scenarios.ScenarioUnavailable, match="EPLB requires a MoE model config"):
+            metric_scenarios._require_moe_model(str(tmp_path), report, get_scenario("eplb"))
+
+
 def test_scenario_expectations_cover_stable_and_triggered_metrics():
     basic_expectations = get_scenario("basic").expectations()
     eplb_expectations = get_scenario("eplb").expectations()

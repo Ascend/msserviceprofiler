@@ -380,7 +380,11 @@ def _require_moe_model(model_path: str, report: PreflightReport, scenario: Metri
         scenario.unavailable(report, f"failed to read model config.json: {exc}")
 
     moe_keys = ("num_experts", "n_routed_experts", "moe_intermediate_size", "num_local_experts")
-    if not any(key in config for key in moe_keys):
+    text_config = config.get("text_config")
+    candidates = [config]
+    if isinstance(text_config, dict):
+        candidates.append(text_config)
+    if not any(key in candidate for candidate in candidates for key in moe_keys):
         scenario.unavailable(report, f"EPLB requires a MoE model config, missing keys {moe_keys}")
     report.pass_(f"scenario:{scenario.name}", "MoE model markers found")
 
