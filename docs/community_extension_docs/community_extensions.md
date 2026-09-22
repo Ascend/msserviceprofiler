@@ -92,7 +92,7 @@ msServiceProfiler 本项目采用 **木兰宽松许可证第 2 版（Mulan PSL v
 2. **提交方式**：在本仓库 [新建 Issue](https://gitcode.com/Ascend/msserviceprofiler/issues/new)，选择 **「Extension 扩展提交」** 模板，按项填写。
 3. **审核**：维护者会在 1～3 个工作日内审核；通过后会将信息**加入本文档**（本目录页）的对应分类表格中。
 
-详细步骤与填写说明见 [社区拓展指南](community_extensions_contributing.md)。
+详细步骤与填写说明见 [社区扩展指南](community_extensions_contributing.md)。
 
 ---
 

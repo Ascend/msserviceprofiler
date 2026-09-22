@@ -15,22 +15,22 @@ vLLM 服务化 Prometheus 数据监测工具用于增强 vLLM-Ascend 推理服�
 >昇腾产品的具体型号，请参见《[昇腾产品形态说明](https://www.hiascend.com/document/detail/zh/AscendFAQ/ProduTech/productform/hardwaredesc_0001.html)》
 
 <!-- npu="950" id1 -->
-- Ascend 950PR&950DT 系列产品：支持
+- Ascend 950PR&950DT系列产品：支持
 <!-- end id1 -->
 <!-- npu="A3" id2 -->
-- Atlas A3 系列产品：支持
+- Atlas A3系列产品：支持
 <!-- end id2 -->
 <!-- npu="910b" id3 -->
-- Atlas A2 系列产品：支持
+- Atlas A2系列产品：支持
 <!-- end id3 -->
 <!-- npu="310b" id4 -->
-- Atlas 200I/500 A2 推理产品：支持
+- Atlas 200I/500 A2推理产品：支持
 <!-- end id4 -->
 <!-- npu="310p" id5 -->
-- Atlas 推理系列产品：支持
+- Atlas推理系列产品：支持
 <!-- end id5 -->
 <!-- npu="910" id6 -->
-- Atlas 训练系列产品：不支持
+- Atlas训练系列产品：不支持
 <!-- end id6 -->
 
 ## 使用前准备
@@ -428,11 +428,11 @@ Metrics 已经能够形成阶段或容量结论时，可以直接进入处理和
 4. 使用 `request.id`、`request.ids`、Trace ID 和 Span Links 确认请求与 Batch 的关联。
 5. 对比 scheduler、model、model runner 和 output Span；只有同一 Trace ID 或统一 Perfetto Timeline 才计算 Span 间空白。
 
-完整流程参见[《vLLM-Ascend 可观测性性能诊断指南》](./vllm_ascend_observability_analysis_guide.md)。
+完整流程参见[《vLLM-Ascend 可观测性性能诊断指南》](../best_practices/vllm_ascend_observability_analysis_guide.md)。
 
 ## 相关文档
 
 - [vLLM 服务化性能采集工具](./vLLM_service_oriented_performance_collection_tool.md)：性能剖析与 Trace 分析
 - [vLLM Hook Tracing 使用指南](./vLLM_hook_tracing_instruct.md)：请求链路分析
-- [vLLM-Ascend 可观测性性能诊断指南](./vllm_ascend_observability_analysis_guide.md)：Metrics 与 Tracing 联合分析
+- [vLLM-Ascend 可观测性性能诊断指南](../best_practices/vllm_ascend_observability_analysis_guide.md)：Metrics 与 Tracing 联合分析
 - [数据采集配置说明](./msserviceprofiler_serving_tuning_instruct.md#数据采集)：`ms_service_profiler_config.json` 配置详解
