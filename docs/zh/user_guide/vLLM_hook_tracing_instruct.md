@@ -1,20 +1,44 @@
 # vLLM Hook Tracing 使用指南
 
-## 1. 功能边界
+## 简介
 
-vLLM Hook Tracing 通过 msServiceProfiler 现有 Hook/YAML 机制，为请求调度、模型执行和输出处理创建 OpenTelemetry Span。
+vLLM Hook Tracing 通过 msServiceProfiler 现有 Hook/YAML 机制，为请求调度、模型执行和输出处理创建 OpenTelemetry Span。目前工具支持Jaeger和Perfetto两种数据展示方式：
 
-- vLLM 原生 Tracing 是前置条件，必须配置 `--otlp-traces-endpoint`。
 - Jaeger：Hook Span 复用 vLLM 的全局 Provider 和 OTLP exporter。
 - Perfetto：可选将 msServiceProfiler Hook Span 额外写成 Chrome Trace JSON。
-- 不支持 Perfetto-only；启动 Perfetto Forwarder 本身不会创建 Span。
-- profiling、metrics、MindIE C++ Trace 和原 OTLP Forwarder 行为不变。
-- 本功能没有新增 C/C++ 接口，不需要替换带新增符号的 `.so`。
-- 当前及后续版本均不修改 vLLM/vLLM-Ascend 源码或 IPC；只读取上游公开的 `request_id`、`trace_headers` 和业务对象字段。
 
-Tracing 和 profiling 是两套独立交付流程：Tracing 不需要 `enable.json` 和 `parse`；profiling 仍按原流程生成 CSV、DB 和离线 Chrome Trace 等交付件。
+>[!NOTE]
+>
+>Tracing 和 profiling 是两套独立交付流程：Tracing 不需要 `enable.json` 和 `parse`；profiling 仍按原流程生成 CSV、DB 和离线 Chrome Trace 等交付件。
 
-### 1.1 版本要求
+## 产品支持情况
+
+> [!NOTE]
+>
+>昇腾产品的具体型号，请参见《[昇腾产品形态说明](https://www.hiascend.com/document/detail/zh/AscendFAQ/ProduTech/productform/hardwaredesc_0001.html)》
+
+<!-- npu="950" id1 -->
+- Ascend 950PR&950DT系列产品：不支持
+<!-- end id1 -->
+<!-- npu="A3" id2 -->
+- Atlas A3系列产品：支持
+<!-- end id2 -->
+<!-- npu="910b" id3 -->
+- Atlas A2系列产品：支持
+<!-- end id3 -->
+<!-- npu="310b" id4 -->
+- Atlas 200I/500 A2推理产品：不支持
+<!-- end id4 -->
+<!-- npu="310p" id5 -->
+- Atlas推理系列产品：不支持
+<!-- end id5 -->
+<!-- npu="910" id6 -->
+- Atlas训练系列产品：不支持
+<!-- end id6 -->
+
+工具支持型号与SGLang框架服务化推理部署支持的NPU型号保持一致，具体可参考 [SGLang installation with NPUs support](https://docs.sglang.io/docs/hardware-platforms/ascend-npus/ascend_npu)。
+
+## 版本配套关系
 
 本功能依赖 vLLM V1 引擎提供原生 OpenTelemetry Tracing，并复用 vLLM 创建的全局 `TracerProvider` 和 OTLP exporter。为减少旧版符号和链路行为的维护成本，Hook Tracing 的支持范围从 vLLM-Ascend `v0.20.0` 开始。低于该版本的组合不再作为问题定位、兼容适配和回归验证范围；profiling、metrics 等其他功能的版本范围以各自资料为准。
 
@@ -48,11 +72,16 @@ python3 -c "from vllm.config import ObservabilityConfig; assert 'otlp_traces_end
 
 版本号和参数检查通过后，仍需以运行结果完成最终确认：启动日志显示使用 V1 引擎，日志中没有 `Falling back to V0`，发送真实推理请求后 Jaeger 同时收到 vLLM 原生请求 Span 和 msServiceProfiler Hook Span。三项全部满足才表示 Tracing 链路可用于本文的请求级分析。
 
-## 2. 快速入门
+## 使用前准备
+
+- vLLM 原生 Tracing 是前置条件，必须配置 `--otlp-traces-endpoint`。
+- 完成[msServiceProfiler工具](../install_guide/msserviceprofiler_install_guide.md)的安装。
+
+## 快速入门
 
 本章给出开发和验证环境的最短闭环。假设 vLLM-Ascend 已经能正常推理，Jaeger 和 vLLM 分别运行在两个 Docker 容器中。Jaeger all-in-one 使用内存存储，容器重启后数据会丢失，只适合学习和功能验证，不作为生产部署方案。
 
-### 2.1 准备变量和容器网络
+### 1. 准备变量和容器网络
 
 在宿主机执行。将 `VLLM_CONTAINER` 改成实际的 vLLM 容器名；变量为空时不可继续执行后续命令。
 
@@ -67,7 +96,7 @@ docker network inspect "$TRACE_NETWORK" >/dev/null 2>&1 || \
   docker network create "$TRACE_NETWORK"
 ```
 
-### 2.2 启动 Jaeger
+### 2. 启动 Jaeger
 
 以下命令按 [Jaeger 2.20 Getting Started](https://www.jaegertracing.io/docs/2.20/getting-started/) 固定使用 Jaeger `2.20.0`，开放 Web UI 端口 `16686`、OTLP gRPC 端口 `4317` 和本文使用的 OTLP HTTP 端口 `4318`：
 
@@ -87,7 +116,7 @@ curl -fsS http://127.0.0.1:16686/ >/dev/null && echo "Jaeger UI: ready"
 
 若容器名已存在，先使用 `docker start "$JAEGER_CONTAINER"`，不要重复执行 `docker run`。浏览器访问 `http://<宿主机IP>:16686`；宿主机启用了防火墙时，只向可信管理网开放 `16686`，不可将 `4317/4318` 向公网开放。
 
-### 2.3 将 vLLM 容器接入同一网络
+### 3. 将 vLLM 容器接入同一网络
 
 ```bash
 docker network connect "$TRACE_NETWORK" "$VLLM_CONTAINER" 2>/dev/null || true
@@ -104,7 +133,7 @@ docker exec "$VLLM_CONTAINER" sh -c \
 
 第二条命令返回任意 HTTP 状态码都表示 DNS、路由和 TCP 端口已经连通；只有解析失败、`Connection refused` 或超时才表示网络未通。OTLP `/v1/traces` 需要 POST protobuf，使用普通 GET 得到 `404` 或 `405` 不是导出失败。
 
-### 2.4 检查运行环境
+### 4. 检查运行环境
 
 进入启动 vLLM 的同一个容器和 Python 环境后执行：
 
@@ -129,7 +158,7 @@ python3 -c "from vllm.config import ObservabilityConfig; assert 'otlp_traces_end
 
 vLLM 和 vLLM-Ascend 的版本必须采用官方兼容矩阵中的配套组合。如果 `ms_service_profiler` 版本查询报 `PackageNotFoundError` 或 OpenTelemetry 导入失败，请先在该 Python 环境中安装 msServiceProfiler，安装方式请参见《[msServiceProfiler 安装指南](../install_guide/msserviceprofiler_install_guide.md)》；安装时不可使用 `--no-deps` 跳过 Python 依赖。
 
-### 2.5 启动 vLLM 和 Hook Tracing
+### 5. 启动 vLLM 和 Hook Tracing
 
 以下命令必须在最终承载 vLLM 进程的容器内执行。
 
@@ -155,7 +184,7 @@ vllm serve "$MODEL" \
 
 `MS_TRACE_ENABLE` 和 OTLP 变量必须在启动 vLLM **之前**设置。`OTEL_SERVICE_NAME` 决定 Jaeger Service 下拉框中的名称。启动日志必须显示 V1 引擎，且没有回退到 V0。
 
-### 2.6 发送真实推理请求
+### 6. 发送真实推理请求
 
 在能够访问 vLLM API 的终端执行。先用 `/health` 等待就绪，再发送一次真实推理；只有真实推理才会生成要验证的请求 Trace。
 
@@ -170,7 +199,7 @@ curl -sS "http://${VLLM_HOST}:${PORT}/v1/completions" \
   -d "{\"model\":\"${MODEL_NAME}\",\"prompt\":\"Hello\",\"max_tokens\":8,\"temperature\":0}"
 ```
 
-### 2.7 在 Jaeger 验证
+### 7. 在 Jaeger 验证
 
 完成真实推理请求后，vLLM 的批量 exporter 需要数秒将 Span 数据刷新至 Jaeger。等待数据刷新后，执行以下命令验证 Trace：
 
@@ -184,11 +213,14 @@ Jaeger Trace 链路的验证通过标准如下：
 1. `/api/services` 中存在 `vllm-server`。
 2. `/api/traces` 的 `data` 数组非空。
 3. 在 Jaeger UI 中选择 `vllm-server` 后，界面上同时呈现 vLLM 原生请求 Span，以及 `vllm.scheduler.schedule`、`vllm.model.execute`、`vllm_ascend.model_runner.execute` 或 `vllm.output.process` 中至少一个 Hook Span。
-4. 若需将调度、模型执行和输出处理 Span 归属于具体推理请求，还须满足[验收层级](#sectionAcceptanceLevels)中的“请求关联通过”条件；Jaeger 页面存在 Trace 数据仅表示数据出口可用，不足以证明请求关联有效。
 
 如果 `/api/services` 中不存在 `vllm-server`，请按照[网络和数据链路排障](#sectionNetworkDataLinkTroubleshooting)中的顺序，依次检查容器状态、DNS、端口、vLLM 参数、exporter 日志和 Hook 命中情况。排查过程中每次只调整一个变量，以便确认故障原因。
 
-## 3. 数据流和地址选择
+## 功能介绍
+
+### 操作说明
+
+#### 数据流和地址选择
 
 ```mermaid
 flowchart LR
@@ -214,7 +246,7 @@ Jaeger 和 vLLM 位于不同容器时，地址必须按发起访问的进程位�
 
 `127.0.0.1` 始终指向当前进程所在容器或主机，不能跨容器访问另一个服务。
 
-## 4. 埋点配置
+#### 埋点配置
 
 Tracing 复用 profiling 的同一份符号 YAML，不存在第二份 Tracing YAML。未设置 `PROFILING_SYMBOLS_PATH` 时使用 msServiceProfiler 包内 default 配置。
 
@@ -238,9 +270,9 @@ Tracing 复用 profiling 的同一份符号 YAML，不存在第二份 Tracing YA
 | `model` | 记录模型执行并关联批次 request IDs |
 | `output` | 记录输出处理并清理已完成请求上下文 |
 
-## 5. 启动原则
+#### 启动原则
 
-### 5.1 Jaeger-only
+##### Jaeger-only
 
 仅验证 Jaeger 时，不需要运行 `python3 -m ms_service_profiler.trace`。在 vLLM 进程环境中开启 Hook tracing，并为 vLLM 配置原生 OTLP endpoint：
 
@@ -257,7 +289,7 @@ vllm serve "$MODEL" \
   --otlp-traces-endpoint http://ms-trace-jaeger:4318/v1/traces
 ```
 
-### 5.2 同时输出 Jaeger 和 Perfetto 数据
+##### 同时输出 Jaeger 和 Perfetto 数据
 
 建议先启动 Perfetto Forwarder，便于第一条 Hook Span 就写入文件；这不是硬性顺序要求。当前 Hook backend 会在创建后续 Span 时重新探测 Forwarder，并在探测成功后注册附加 Processor，因此 Forwarder 晚于 vLLM 启动时无需重启 vLLM，但启动前已经结束的 Span 不会补写。
 
@@ -279,7 +311,7 @@ echo $! >"$TRACE_VERIFY_DIR/perfetto_forwarder.pid"
 
 验证时应先确认 Jaeger 与 vLLM 的网络连通性，再按后续章节发送真实推理负载并检查两个数据出口。
 
-## 6. 真实推理负载
+#### 真实推理负载
 
 `/health` 只用于等待服务就绪，不能用于验证推理 Trace。必须发送 `/v1/completions` 等真实推理请求，例如：
 
@@ -302,7 +334,7 @@ vllm bench serve \
 
 不要把 `VLLM_PLUGINS` 只设置为 `msserviceprofiler`，否则会过滤掉 `ascend` 平台插件并导致 vLLM 无法识别 NPU。验证时执行 `unset VLLM_PLUGINS`，让 vLLM 自动发现全部插件。
 
-### 6.1 分析前检查
+**分析前检查**
 
 以下检查全部通过后，再使用 Trace 做请求级性能归因：
 
@@ -321,9 +353,9 @@ vllm bench serve \
 
 请求关联未通过时，Hook Span 仍能用于操作级耗时统计，但不能证明某个 scheduler、model 或 output Span 属于目标请求。
 
-## 7. Jaeger 怎么看
+### Jaeger 操作流程及输出说明
 
-### 7.1 搜索页
+#### 1. 搜索页
 
 1. 打开 `http://<宿主机IP>:16686`。
 2. Service 选择实际服务名，例如 `vllm-server`。
@@ -333,7 +365,7 @@ vllm bench serve \
 
 散点图横轴是开始时间，纵轴是 Trace 总时长。明显高于正常分布的点通常是性能异常候选。列表中的 Spans 表示该 Trace 包含的 Span 数量，Duration 表示端到端或当前 Trace 的总时长。
 
-### 7.2 Trace 详情页
+#### 2. Trace 详情页
 
 点击一条 Trace 后重点观察：
 
@@ -355,7 +387,7 @@ vllm bench serve \
 | `vllm_ascend.model_runner.execute` | Ascend ModelRunner 实际执行耗时 |
 | `vllm.output.process` | 输出处理、请求完成和后处理耗时 |
 
-### 7.3 常见性能判断
+#### 3. 常见性能判断
 
 - scheduler Span 持续升高、model Span 稳定：重点检查排队、KV Cache 压力、batch 组织和调度策略。
 - model Span 占绝大多数且随 batch 增大明显升高：重点检查模型计算、通信、算子和 NPU 利用率，并与 profiling 结果结合。
@@ -366,7 +398,7 @@ vllm bench serve \
 
 Tracing 用于缩小问题所在阶段；若需要分析算子、kernel、HCCL、显存或 NPU 时间线，继续使用原 profiling 采集和解析能力。
 
-### 7.4 标准分析步骤
+#### 4. 标准分析步骤
 
 Tracing 不依赖 Metrics 才能开始分析。根据已有信息选择入口：
 
@@ -399,7 +431,7 @@ Tracing 不依赖 Metrics 才能开始分析。根据已有信息选择入口：
 
 同一 Trace ID 场景中，异常阶段的差值需要解释 Trace 总时长的主要变化。Span Links 场景分别比较关联 Span 的时间戳和耗时，不把不同 Trace 的界面空白解释为等待。无法解释时，检查未插桩区间；问题已经进入模型执行内部时，继续使用 Profiling 下钻。
 
-### 7.5 Metrics 与 Span 联合对照
+#### 5. Metrics 与 Span 联合对照
 
 本节用于 Metrics 和 Tracing 数据同时可用的场景，不是 Tracing 独立分析的前置步骤。
 
@@ -411,9 +443,9 @@ Tracing 不依赖 Metrics 才能开始分析。根据已有信息选择入口：
 | execute model 升高，model runner 稳定 | model Span 的外围时间增加 | Executor 外围 IPC、同步或数据准备变慢 |
 | output processor 升高，模型执行稳定 | output Span 变长 | 输出处理阶段变慢 |
 
-Tracing 独立分析可以定位目标请求的关键路径和异常阶段，但结论范围仅覆盖已分析的请求或观测组。Metrics 独立分析可以确认异常趋势、容量和影响范围，但不描述单请求调用链。两类数据联合使用时，要求 SLO 现象、Metrics 定界和 Trace 定位相互对应。完整流程参见[《vLLM-Ascend 可观测性性能诊断指南》](./vllm_ascend_observability_analysis_guide.md)。
+Tracing 独立分析可以定位目标请求的关键路径和异常阶段，但结论范围仅覆盖已分析的请求或观测组。Metrics 独立分析可以确认异常趋势、容量和影响范围，但不描述单请求调用链。两类数据联合使用时，要求 SLO 现象、Metrics 定界和 Trace 定位相互对应。完整流程参见[《vLLM-Ascend 可观测性性能诊断指南》](../best_practices/vllm_ascend_observability_analysis_guide.md)。
 
-### 7.6 请求关联方式与数量边界
+#### 6. 请求关联方式与数量边界
 
 | 关联方式 | 识别方法 | 能够执行的分析 |
 |---|---|---|
@@ -423,28 +455,7 @@ Tracing 独立分析可以定位目标请求的关键路径和异常阶段，但
 
 单个 Hook Span 最多记录 128 个 `request.ids` 和 Span Links。Batch 请求数超过 128 时，后续请求不会进入该 Span 的请求关联集合。此时使用 `batch.request_count`、`batch.scheduled_tokens`、Metrics 的实例/DP/phase 聚合以及 Perfetto 或 Profiling 数据完成 Batch 级分析，不能宣称该 Span 覆盖了 Batch 内全部请求。
 
-## 8. 验收层级<a name="sectionAcceptanceLevels"></a>
-
-| 层级 | 判定依据 |
-|---|---|
-| 数据出口通过 | Jaeger API有 Trace，Perfetto JSON 有合法 Complete Event |
-| 埋点展示通过 | Jaeger/Perfetto 能看到预期 Hook Span 名称和耗时 |
-| 请求关联通过 | request、schedule、model、output 可通过父子关系、同一 trace ID 或明确 Span Links 关联 |
-| 性能分析有效 | 能用 Span 时长和属性区分调度、模型、输出或等待瓶颈，并可下钻 profiling |
-
-不能用“Jaeger 页面有数据”替代“完整请求链路关联通过”的结论。
-
-## 9. Profiling 共存验证
-
-Profiling 仍必须按原流程配置 `enable.json`、指定采集目录并执行 `parse`。Tracing 不替代该流程。
-
-按以下顺序分别验证：
-
-1. 只开 profiling：交付件和历史版本一致。
-2. 只开 tracing：Jaeger 中出现原生 Span 和 Hook Span；若启动 Perfetto Forwarder，JSON 非空。
-3. profiling + tracing：推理成功，两类交付件均生成；Tracing Span 会包含少量 profiling handler 开销。
-
-## 10. 网络和数据链路排障<a name="sectionNetworkDataLinkTroubleshooting"></a>
+### 网络和数据链路排障<a name="sectionNetworkDataLinkTroubleshooting"></a>
 
 请按照下表顺序逐层排查，上层检查通过后才可继续下一层检查，请勿在 Jaeger UI 中反复刷新：
 
@@ -493,7 +504,7 @@ PY
 | vLLM 无法识别 NPU | 不要将 `VLLM_PLUGINS` 限制为单个 msserviceprofiler 插件；同时检查 `ASCEND_RT_VISIBLE_DEVICES` |
 | Jaeger Trace 只有 1～2 个 Span | 检查上下文传播、Span Links 和 `request.ids`；不要直接宣称完整请求链通过 |
 
-## 11. 异常行为
+## 异常场景说明
 
 | 场景 | 行为 |
 |---|---|
@@ -503,3 +514,9 @@ PY
 | Perfetto Forwarder 未启动 | 不注册 Perfetto Processor，Jaeger 不受影响 |
 | 部分 YAML 符号不存在 | 跳过该 Hook，其他 Hook 继续 |
 | profiling 同时开启 | tracing 包在 profiling 外层，原业务函数只执行一次 |
+
+## 免责声明
+
+- profiling、metrics、MindIE C++ Trace 和原 OTLP Forwarder 行为不变。
+- 本功能没有新增 C/C++ 接口，不需要替换带新增符号的 `.so`。
+- 当前及后续版本均不修改 vLLM/vLLM-Ascend 源码或 IPC；只读取上游公开的 `request_id`、`trace_headers` 和业务对象字段。

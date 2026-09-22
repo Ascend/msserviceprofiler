@@ -85,7 +85,7 @@ Metrics 和 Tracing 是两条可以独立执行的分析路径，也可以在数
 
 ### 3.3 检查观测链路
 
-Tracing 依赖 vLLM V1 引擎的原生 OpenTelemetry 能力。为减少旧版本维护成本，本资料中 Hook Tracing 的支持策略下限为 vLLM-Ascend `v0.20.0`；实际安装时必须从官方兼容矩阵选择完整组合，首个满足该边界的公开组合为 vLLM-Ascend `v0.20.2rc1` 与 vLLM `v0.20.2`。版本依据、Jaeger 部署、启动参数、网络调试和验证方法参见[《vLLM Hook Tracing 使用指南》](./vLLM_hook_tracing_instruct.md)。Metrics 独立分析不以该 Tracing 版本条件为前置要求。
+Tracing 依赖 vLLM V1 引擎的原生 OpenTelemetry 能力。为减少旧版本维护成本，本资料中 Hook Tracing 的支持策略下限为 vLLM-Ascend `v0.20.0`；实际安装时必须从官方兼容矩阵选择完整组合，首个满足该边界的公开组合为 vLLM-Ascend `v0.20.2rc1` 与 vLLM `v0.20.2`。版本依据、Jaeger 部署、启动参数、网络调试和验证方法参见[《vLLM Hook Tracing 使用指南》](../user_guide/vLLM_hook_tracing_instruct.md)。Metrics 独立分析不以该 Tracing 版本条件为前置要求。
 
 | 检查项 | 通过标准 | 失败后的处理 |
 |---|---|---|
@@ -453,7 +453,7 @@ Metrics 和 Trace 的关联使用同一异常时间窗口，并优先使用 `req
 
 ## 12. 相关文档
 
-- [vLLM 服务化 Prometheus 数据监测工具使用指南](./vLLM_metrics_tool_instruct.md)
-- [vLLM Hook Tracing 使用指南](./vLLM_hook_tracing_instruct.md)
-- [vLLM 服务化性能采集工具使用指南](./vLLM_service_oriented_performance_collection_tool.md)
+- [vLLM 服务化 Prometheus 数据监测工具使用指南](../user_guide/vLLM_metrics_tool_instruct.md)
+- [vLLM Hook Tracing 使用指南](../user_guide/vLLM_hook_tracing_instruct.md)
+- [vLLM 服务化性能采集工具使用指南](../user_guide/vLLM_service_oriented_performance_collection_tool.md)
 - [msServiceProfiler 典型案例](../best_practices/README.md)

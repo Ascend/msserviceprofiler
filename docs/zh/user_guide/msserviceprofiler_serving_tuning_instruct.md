@@ -1,8 +1,8 @@
-# 服务化调优工具<a name="ZH-CN_TOPIC_0000002518521921"></a>
+# 推理服务化性能调优工具<a name="ZH-CN_TOPIC_0000002518521921"></a>
 
 ## 简介<a name="ZH-CN_TOPIC_0000002171752224"></a>
 
-本文介绍推理服务化性能数据采集工具，本工具主要使用msServiceProfiler接口，在MindIE Motor推理服务化进程中，采集关键过程的开始和结束时间点，识别关键函数或迭代等信息，记录关键事件，支持多样的信息采集，对性能问题快速定位。
+本文介绍推理服务化性能调优工具，本工具主要使用msServiceProfiler接口，在MindIE Motor推理服务化进程中，采集关键过程的开始和结束时间点，识别关键函数或迭代等信息，记录关键事件，支持多样的信息采集，对性能问题快速定位。
 
 - msServiceProfiler服务化调优接口包括“ [服务化调优 C++](../cpp_api/serving_tuning/README.md)”和“  [服务化调优 Python](../python_api/README.md)”。
 - 有关MindIE Motor相关介绍请参见《[MindIE Motor开发指南](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/README.md)》。
@@ -21,28 +21,28 @@
 >昇腾产品的具体型号，请参见《[昇腾产品形态说明](https://www.hiascend.com/document/detail/zh/AscendFAQ/ProduTech/productform/hardwaredesc_0001.html)》
 
 <!-- npu="950" id1 -->
-- Ascend 950PR&950DT 系列产品：不支持
+- Ascend 950PR&950DT系列产品：不支持
 <!-- end id1 -->
 <!-- npu="A3" id2 -->
-- Atlas A3 系列产品：支持
+- Atlas A3系列产品：支持
 <!-- end id2 -->
 <!-- npu="910b" id3 -->
-- Atlas A2 系列产品：支持
+- Atlas A2系列产品：支持
 <!-- end id3 -->
 <!-- npu="310b" id4 -->
-- Atlas 200I/500 A2 推理产品：不支持
+- Atlas 200I/500 A2推理产品：不支持
 <!-- end id4 -->
 <!-- npu="310p" id5 -->
-- Atlas 推理系列产品：支持
+- Atlas推理系列产品：支持
 <!-- end id5 -->
 <!-- npu="910" id6 -->
-- Atlas 训练系列产品：不支持
+- Atlas训练系列产品：不支持
 <!-- end id6 -->
 
 > [!NOTE]
 > 
->针对Atlas A2 系列产品，当前仅支持该系列产品中的Atlas 800I A2 推理服务器。
->针对Atlas 推理系列产品，当前仅支持该系列产品中的Atlas 300I Duo 推理卡 + A800-3000推理服务器。
+>针对Atlas A2系列产品，当前仅支持该系列产品中的Atlas 800I A2推理服务器。
+>针对Atlas推理系列产品，当前仅支持该系列产品中的Atlas 300I Duo推理卡 + Atlas 800推理服务器（型号：3000）。
 
 ## 使用前准备
 
