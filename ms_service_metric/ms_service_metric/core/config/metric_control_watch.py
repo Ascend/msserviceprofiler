@@ -251,6 +251,10 @@ class MetricControlWatch:
         - 时间戳变化时触发回调（用于重启检测）
         - 回调执行后更新本地状态，避免失败回调被信号重复触发
         """
+        if self._manager and not self._manager.is_control_state_valid():
+            logger.warning("Skipping invalid metric control state")
+            return
+
         state, timestamp = self._read_control_state()
 
         # 转换为is_start标志

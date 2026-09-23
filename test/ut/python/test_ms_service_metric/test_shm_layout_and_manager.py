@@ -16,12 +16,17 @@
 
 """SharedMemoryLayout / SharedMemoryManager tests (posix_ipc stub from conftest)."""
 
+# pylint: disable=redefined-outer-name
+
 import uuid
 
 import pytest
 
 from ms_service_metric.utils.shm_manager import (
-    DEFAULT_SHM_PREFIX,
+    IPC_OBJECT_MODE,
+    MAGIC_NUMBER,
+    HEADER_END_MARKER,
+    CURRENT_VERSION,
     SharedMemoryLayout,
     SharedMemoryManager,
     STATE_OFF,
@@ -52,6 +57,8 @@ def test_manager_connect_create_write_state(unique_shm_prefix):
     mgr = SharedMemoryManager()
     assert mgr.connect(create=True) is True
     try:
+        assert mgr._shm.mode == IPC_OBJECT_MODE
+        assert mgr._sem.mode == IPC_OBJECT_MODE
         assert mgr.get_state() == STATE_OFF
         mgr.set_state(STATE_ON)
         assert mgr.get_state() == STATE_ON
@@ -82,3 +89,24 @@ def test_manager_second_client_sees_same_state(unique_shm_prefix):
             b.disconnect()
     finally:
         a.destroy()
+
+
+def test_control_state_validation_rejects_bad_header_and_state(unique_shm_prefix):
+    mgr = SharedMemoryManager()
+    assert mgr.connect(create=True) is True
+    try:
+        assert mgr.is_control_state_valid() is True
+
+        mgr.write_int(SharedMemoryLayout.OFFSET_STATE, 42)
+        assert mgr.is_control_state_valid() is False
+
+        mgr.write_int(SharedMemoryLayout.OFFSET_STATE, STATE_ON)
+        mgr.write_int(SharedMemoryLayout.OFFSET_MAGIC, 0)
+        assert mgr.is_control_state_valid() is False
+
+        mgr.write_int(SharedMemoryLayout.OFFSET_MAGIC, MAGIC_NUMBER)
+        mgr.write_int(SharedMemoryLayout.OFFSET_VERSION, CURRENT_VERSION)
+        mgr.write_int(SharedMemoryLayout.OFFSET_HEADER_END, HEADER_END_MARKER)
+        assert mgr.is_control_state_valid() is True
+    finally:
+        mgr.destroy()

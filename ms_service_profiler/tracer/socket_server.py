@@ -14,6 +14,8 @@
 # See the Mulan PSL v2 for more details.
 # -------------------------------------------------------------------------
 
+# pylint: disable=logging-fstring-interpolation
+
 import socket
 import ctypes
 import os
@@ -33,15 +35,12 @@ WARNING_INTERVAL = 3600
 
 # define ucred
 class Ucred(ctypes.Structure):
-    _fields_ = [
-        ("pid", ctypes.c_uint32),
-        ("uid", ctypes.c_uint32),
-        ("gid", ctypes.c_uint32)
-    ]
+    _fields_ = [("pid", ctypes.c_uint32), ("uid", ctypes.c_uint32), ("gid", ctypes.c_uint32)]
 
 
 class AbstractSocketServer:
     """Abstract socket server for receiving data."""
+
     def __init__(
         self,
         socket_name: str,
@@ -49,10 +48,10 @@ class AbstractSocketServer:
         max_listen_num: int,
         socket_timeout: int,
         max_queue_size=1000,
-        warning_queue_size=100
+        warning_queue_size=100,
     ):
         """Initialize the socket server."""
-        self.socket_name = '\0' + socket_name # Use abstract namespace
+        self.socket_name = '\0' + socket_name  # Use abstract namespace
         self.buffer_size = buffer_size
         self.max_listen_num = max_listen_num
         self.socket_timeout = socket_timeout
@@ -95,7 +94,7 @@ class AbstractSocketServer:
             cred_data = client_sock.getsockopt(socket.SOL_SOCKET, 17, cred_size)
             ctypes.memmove(ctypes.byref(cred), cred_data, cred_size)
         except Exception as e:
-            print(f"Get peer cred failed: {e}")
+            logger.warning(f"Get peer cred failed: {e}")
             return False
 
         self_uid = os.getuid()
@@ -106,13 +105,15 @@ class AbstractSocketServer:
         peer_pid = cred.pid
 
         if peer_uid != self_uid or peer_gid != self_gid:
-            logger.debug(f"Current user {self_uid} group {self_gid}, "
-                         f"connect with unexpected user {peer_uid} group {peer_gid}.")
+            logger.debug(
+                f"Current user {self_uid} group {self_gid}, connect with unexpected user {peer_uid} group {peer_gid}."
+            )
             return False
 
         try:
-            if (self._get_namespace_inode(self_pid, "pid") != self._get_namespace_inode(peer_pid, "pid") or
-                    self._get_namespace_inode(self_pid, "user") != self._get_namespace_inode(peer_pid, "user")):
+            if self._get_namespace_inode(self_pid, "pid") != self._get_namespace_inode(
+                peer_pid, "pid"
+            ) or self._get_namespace_inode(self_pid, "user") != self._get_namespace_inode(peer_pid, "user"):
                 logger.debug(f"Connect with unexpected pid {peer_pid}.")
                 return False
         except Exception as e:
@@ -124,10 +125,12 @@ class AbstractSocketServer:
     def _handle_client(self, client_sock: socket.socket, client_addr, length_field_size=OTEL_Length_Field):
         """Handle a client connection."""
         try:
-            logger.debug(f"New connection...")
+            logger.debug("New connection...")
             if not self._validate_peer_cred(client_sock):
-                logger.warning(f"Unexpected connection: The user who runs the program must be the same as the user "
-                               f"who runs the MindIE.")
+                logger.warning(
+                    "Unexpected connection: The user who runs the program must be the same as the user "
+                    "who runs the MindIE."
+                )
                 return
 
             buffer = self._handle_recv(client_sock, length_field_size)
@@ -158,8 +161,8 @@ class AbstractSocketServer:
         """Process a single data frame from the buffer."""
         length = int.from_bytes(buffer[:length_field_size], byteorder='big')
         if len(buffer) >= length_field_size + length:
-            data = buffer[length_field_size:length_field_size + length]
-            buffer = buffer[length_field_size + length:]
+            data = buffer[length_field_size : length_field_size + length]
+            buffer = buffer[length_field_size + length :]
             logger.debug(f"Receive data: {len(data)} bytes.")
             return data, buffer
         return None, buffer
@@ -196,9 +199,7 @@ class AbstractSocketServer:
                 self.server_socket.settimeout(self.socket_timeout)
                 client_sock, client_addr = self.server_socket.accept()
                 client_thread = threading.Thread(
-                    target=self._handle_client,
-                    args=(client_sock, client_addr),
-                    daemon=True
+                    target=self._handle_client, args=(client_sock, client_addr), daemon=True
                 )
                 client_thread.start()
             except socket.timeout:

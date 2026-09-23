@@ -31,7 +31,7 @@ Shared Memory Manager - 共享内存管理器
     manager = SharedMemoryManager()
     manager.connect()  # 连接或创建共享内存
     manager.add_current_process()  # 添加当前进程到列表
-    
+
     # 在控制端
     manager = SharedMemoryManager()
     manager.connect()
@@ -44,15 +44,17 @@ import time
 import mmap
 from typing import List, Optional, Tuple
 
+# pylint: disable=logging-fstring-interpolation
+
+from ms_service_metric.utils.exceptions import SharedMemoryError
+from ms_service_metric.utils.logger import get_logger
+
 # 仅在Linux平台导入posix_ipc
 POSIX_IPC_AVAILABLE = True
 try:
     import posix_ipc
 except ImportError:
     POSIX_IPC_AVAILABLE = False
-
-from ms_service_metric.utils.exceptions import SharedMemoryError
-from ms_service_metric.utils.logger import get_logger
 
 logger = get_logger("shm_manager")
 
@@ -63,6 +65,7 @@ ENV_MAX_PROCS = "MS_SERVICE_METRIC_MAX_PROCS"
 # 默认值
 DEFAULT_SHM_PREFIX = "/ms_service_metric"
 DEFAULT_MAX_PROCS = 1000
+IPC_OBJECT_MODE = 0o600
 
 # 状态值
 STATE_OFF = 0
@@ -79,12 +82,12 @@ INT32_SIZE = 4
 
 class SharedMemoryLayout:
     """共享内存布局定义（版本兼容设计）
-    
+
     所有偏移量都相对于共享内存起始位置
-    
+
     内存布局：
     [魔数:4][版本:4][头部长度:4][状态:4][时间戳:4][进程列表偏移:4][头部结束标记:4][进程列表长度:4][进程列表游标:4][PID1:4][PID2:4]...[PIDn:4]
-    
+
     字段说明（每个都是int32）：
     - 魔数 (0x4D534D54)
     - 版本号
@@ -97,41 +100,41 @@ class SharedMemoryLayout:
     - 进程列表游标（循环列表当前位置）
     - 进程ID数组...
     """
-    
+
     # 头部字段偏移量（相对于共享内存起始位置）
-    OFFSET_MAGIC = 0       # 魔数（int32）
-    OFFSET_VERSION = 4     # 版本号（int32）
+    OFFSET_MAGIC = 0  # 魔数（int32）
+    OFFSET_VERSION = 4  # 版本号（int32）
     OFFSET_HEADER_LEN = 8  # 头部长度（int32）
-    OFFSET_STATE = 12      # 状态（int32）
+    OFFSET_STATE = 12  # 状态（int32）
     OFFSET_TIMESTAMP = 16  # 时间戳（int32）
     OFFSET_PROC_OFFSET = 20  # 进程列表偏移（int32，相对于共享内存起始位置）
-    OFFSET_HEADER_END = 24 # 头部结束标记（int32）
-    
+    OFFSET_HEADER_END = 24  # 头部结束标记（int32）
+
     # 头部总大小
     HEADER_SIZE = 28
-    
+
     # 进程列表字段偏移量（相对于共享内存起始位置）
     # 注意：实际位置 = 进程列表偏移 + 相对偏移
-    PROC_LIST_REL_OFFSET_LEN = 0     # 进程列表长度字段相对偏移
+    PROC_LIST_REL_OFFSET_LEN = 0  # 进程列表长度字段相对偏移
     PROC_LIST_REL_OFFSET_CURSOR = 4  # 进程列表游标字段相对偏移
-    PROC_LIST_REL_OFFSET_DATA = 8    # 进程列表数据开始相对偏移
-    PROC_LIST_HEADER_SIZE = 8        # 进程列表头部大小（长度+游标）
-    PROC_ENTRY_SIZE = 4              # 每个进程ID占用的字节数
-    
+    PROC_LIST_REL_OFFSET_DATA = 8  # 进程列表数据开始相对偏移
+    PROC_LIST_HEADER_SIZE = 8  # 进程列表头部大小（长度+游标）
+    PROC_ENTRY_SIZE = 4  # 每个进程ID占用的字节数
+
     @classmethod
     def get_shm_name(cls, prefix: str = DEFAULT_SHM_PREFIX) -> str:
         """获取共享内存完整名称"""
         return f"{prefix}_control"
-    
+
     @classmethod
     def get_sem_name(cls, prefix: str = DEFAULT_SHM_PREFIX) -> str:
         """获取信号量完整名称"""
         return f"{prefix}_semaphore"
-    
+
     @classmethod
     def calc_memory_size(cls, max_procs: int) -> int:
         """计算共享内存大小
-        
+
         总大小 = 头部大小 + 进程列表结构大小
         进程列表结构 = 长度字段 + 游标字段 + max_procs * 每个PID大小
         """
@@ -160,37 +163,33 @@ class SharedMemoryManager:
     # 进程列表长度异常值（表示进程列表不可用）
     PROC_LEN_INVALID = -1
 
-    def __init__(
-        self,
-        shm_prefix: Optional[str] = None,
-        max_procs: Optional[int] = None
-    ):
+    def __init__(self, shm_prefix: Optional[str] = None, max_procs: Optional[int] = None):
         """初始化共享内存管理器
-        
+
         Args:
             shm_prefix: 共享内存前缀（默认从环境变量读取）
             max_procs: 最大进程数（默认从环境变量读取）
         """
         if not POSIX_IPC_AVAILABLE:
             raise SharedMemoryError("posix_ipc not available, requires Linux platform")
-        
+
         self._shm_prefix = shm_prefix or os.environ.get(ENV_SHM_PREFIX, DEFAULT_SHM_PREFIX)
         self._max_procs = max_procs or int(os.environ.get(ENV_MAX_PROCS, DEFAULT_MAX_PROCS))
         self._memory_size = SharedMemoryLayout.calc_memory_size(self._max_procs)
-        
+
         self._shm_name = SharedMemoryLayout.get_shm_name(self._shm_prefix)
         self._sem_name = SharedMemoryLayout.get_sem_name(self._shm_prefix)
-        
+
         self._shm = None
         self._mmap = None
         self._sem = None
         self._version_mismatch = False
         self._header_len = SharedMemoryLayout.HEADER_SIZE  # 实际头部长度（用于兼容）
-        
+
         logger.debug(f"SharedMemoryManager initialized: shm={self._shm_name}, max_procs={self._max_procs}")
-    
+
     # ========== 连接管理 ==========
-    
+
     def connect(self, create: bool = True) -> bool:
         """连接到共享内存
 
@@ -215,7 +214,7 @@ class SharedMemoryManager:
 
             # 检查版本兼容性
             self._check_version_compatibility()
-            
+
         except posix_ipc.ExistentialError:
             if not create:
                 logger.debug(f"Shared memory not found: {self._shm_name}")
@@ -223,16 +222,14 @@ class SharedMemoryManager:
             # 创建新的共享内存
             logger.debug(f"Creating new shared memory: {self._shm_name}")
             self._shm = posix_ipc.SharedMemory(
-                self._shm_name,
-                flags=posix_ipc.O_CREX,
-                size=self._memory_size
+                self._shm_name, flags=posix_ipc.O_CREX, mode=IPC_OBJECT_MODE, size=self._memory_size
             )
             self._mmap = mmap.mmap(self._shm.fd, self._memory_size)
             # 初始化为全0
             self._mmap[:] = b'\x00' * self._memory_size
             # 初始化头部
             self._init_header()
-        
+
         # 连接或创建信号量
         try:
             self._sem = posix_ipc.Semaphore(self._sem_name)
@@ -240,13 +237,11 @@ class SharedMemoryManager:
         except posix_ipc.ExistentialError:
             logger.debug(f"Creating new semaphore: {self._sem_name}")
             self._sem = posix_ipc.Semaphore(
-                self._sem_name,
-                flags=posix_ipc.O_CREX,
-                initial_value=1
+                self._sem_name, flags=posix_ipc.O_CREX, mode=IPC_OBJECT_MODE, initial_value=1
             )
-        
+
         return True
-    
+
     def _init_header(self):
         """初始化共享内存头部和进程列表结构"""
         with self.semaphore_lock():
@@ -263,12 +258,12 @@ class SharedMemoryManager:
             proc_offset = self._get_proc_offset()
             self.write_int(proc_offset + SharedMemoryLayout.PROC_LIST_REL_OFFSET_LEN, self._max_procs)
             self.write_int(proc_offset + SharedMemoryLayout.PROC_LIST_REL_OFFSET_CURSOR, 0)
-            
+
         logger.debug(f"Initialized shared memory header with version {CURRENT_VERSION}")
-    
+
     def _check_version_compatibility(self):
         """检查版本兼容性
-        
+
         如果头部结束标记不匹配或版本不一致，标记为版本不匹配。
         但即使版本不匹配，也尽量读取能读到的字段（能读多少读多少）。
         """
@@ -280,8 +275,10 @@ class SharedMemoryManager:
 
             # 检查魔数和头部结束标记
             if magic != MAGIC_NUMBER or header_end != HEADER_END_MARKER:
-                logger.warning(f"Version mismatch detected: magic={magic:08X}, expected={MAGIC_NUMBER:08X}, "
-                             f"header_end={header_end:08X}, expected={HEADER_END_MARKER:08X}")
+                logger.warning(
+                    f"Version mismatch detected: magic={magic:08X}, expected={MAGIC_NUMBER:08X}, "
+                    f"header_end={header_end:08X}, expected={HEADER_END_MARKER:08X}"
+                )
                 self._version_mismatch = True
                 return
 
@@ -294,14 +291,49 @@ class SharedMemoryManager:
                 if header_len > 0:
                     self._header_len = min(header_len, SharedMemoryLayout.HEADER_SIZE)
                 return
-            
+
             self._version_mismatch = False
             logger.debug(f"Version check passed: version={version}")
-            
+
         except Exception as e:
             logger.warning(f"Failed to check version compatibility: {e}")
             self._version_mismatch = True
-    
+
+    def is_control_state_valid(self) -> bool:
+        """Validate shared memory header and control state before acting on it."""
+        if not self._mmap or self._memory_size < SharedMemoryLayout.HEADER_SIZE:
+            logger.warning("Invalid control state: shared memory is not connected or too small")
+            return False
+
+        try:
+            magic = self.read_int(SharedMemoryLayout.OFFSET_MAGIC)
+            version = self.read_int(SharedMemoryLayout.OFFSET_VERSION)
+            header_len = self.read_int(SharedMemoryLayout.OFFSET_HEADER_LEN)
+            state = self.read_int(SharedMemoryLayout.OFFSET_STATE)
+            header_end = self.read_int(SharedMemoryLayout.OFFSET_HEADER_END)
+        except Exception as e:
+            logger.warning(f"Invalid control state: failed to read shared memory header: {e}")
+            return False
+
+        if magic != MAGIC_NUMBER or version != CURRENT_VERSION or header_end != HEADER_END_MARKER:
+            logger.warning(
+                f"Invalid control state header: magic={magic:08X}, version={version}, header_end={header_end:08X}"
+            )
+            return False
+
+        if header_len != SharedMemoryLayout.HEADER_SIZE:
+            logger.warning(
+                f"Invalid control state header length: header_len={header_len}, "
+                f"expected={SharedMemoryLayout.HEADER_SIZE}"
+            )
+            return False
+
+        if state not in (STATE_OFF, STATE_ON):
+            logger.warning(f"Invalid control state value: state={state}")
+            return False
+
+        return True
+
     def disconnect(self):
         """断开连接"""
         if self._mmap:
@@ -314,16 +346,16 @@ class SharedMemoryManager:
             self._sem.close()
             self._sem = None
         logger.debug("Disconnected from shared memory")
-    
+
     def destroy(self):
         """销毁共享内存和信号量
-        
+
         完全删除共享内存和信号量，释放系统资源。
         应该在确认没有进程使用时调用。
         """
         # 先断开连接
         self.disconnect()
-        
+
         # 删除共享内存
         try:
             posix_ipc.unlink_shared_memory(self._shm_name)
@@ -332,7 +364,7 @@ class SharedMemoryManager:
             logger.debug(f"Shared memory already unlinked: {self._shm_name}")
         except Exception as e:
             logger.warning(f"Failed to unlink shared memory: {e}")
-        
+
         # 删除信号量
         try:
             posix_ipc.unlink_semaphore(self._sem_name)
@@ -341,57 +373,61 @@ class SharedMemoryManager:
             logger.debug(f"Semaphore already unlinked: {self._sem_name}")
         except Exception as e:
             logger.warning(f"Failed to unlink semaphore: {e}")
-    
+
     # ========== 信号量操作 ==========
     def lock(self):
         """获取信号量锁（阻塞）"""
         if self._sem:
             self._sem.acquire()
-    
+
     def unlock(self):
         """释放信号量锁"""
         if self._sem:
             self._sem.release()
-    
+
     def semaphore_lock(self):
         """获取信号量锁（上下文管理器）
-        
+
         使用方式:
             with manager.semaphore_lock():
                 # 临界区代码
                 pass
         """
+
         class SemaphoreLock:
             def __init__(self, sem):
                 self._sem = sem
+
             def __enter__(self):
                 if self._sem:
                     self._sem.acquire()
+
             def __exit__(self, *args):
                 if self._sem:
                     self._sem.release()
+
         return SemaphoreLock(self._sem)
-    
+
     # ========== 基础读写 ==========
-    
+
     def read_int(self, offset: int) -> int:
         """从共享内存读取int32"""
         if not self._mmap:
             return 0
-        return int.from_bytes(self._mmap[offset:offset+4], 'little', signed=False)
+        return int.from_bytes(self._mmap[offset : offset + 4], 'little', signed=False)
 
     def write_int(self, offset: int, value: int):
         """向共享内存写入int32"""
         if not self._mmap:
             return
-        self._mmap[offset:offset+4] = value.to_bytes(4, 'little', signed=False)
-    
+        self._mmap[offset : offset + 4] = value.to_bytes(4, 'little', signed=False)
+
     # ========== 状态操作 ==========
-    
+
     def _is_field_available(self, offset: int) -> bool:
         """检查指定偏移量的字段是否可用（在有效头部长度范围内）"""
         return offset + INT32_SIZE <= self._header_len
-    
+
     def get_state(self) -> int:
         """获取当前状态
 
@@ -419,7 +455,7 @@ class SharedMemoryManager:
         """设置时间戳"""
         if self._is_field_available(SharedMemoryLayout.OFFSET_TIMESTAMP):
             self.write_int(SharedMemoryLayout.OFFSET_TIMESTAMP, timestamp)
-    
+
     def update_state_and_timestamp(self, state: int):
         """同时更新状态和时间戳"""
         with self.semaphore_lock():
@@ -526,7 +562,7 @@ class SharedMemoryManager:
         if offset < 0:
             return
         self.write_int(offset, pid)
-    
+
     def get_all_procs(self) -> List[int]:
         """获取所有有效进程ID（去重）
 
@@ -541,7 +577,7 @@ class SharedMemoryManager:
             if pid > 0:
                 procs.add(pid)
         return list(procs)
-    
+
     def add_process(self, pid: Optional[int] = None) -> int:
         """添加进程到列表
 
@@ -578,11 +614,11 @@ class SharedMemoryManager:
 
             logger.debug(f"Added process {pid} at index {index}, new_cursor={new_cursor}")
             return index
-    
+
     def add_current_process(self) -> int:
         """添加当前进程到列表"""
         return self.add_process(os.getpid())
-    
+
     def cleanup_invalid_processes(self) -> int:
         """清理无效的进程（进程不存在的）
 
@@ -601,7 +637,7 @@ class SharedMemoryManager:
             pid = self.get_proc_at(i)
             if pid <= 0:
                 continue
-            
+
             try:
                 # 检查进程是否存在（发送信号0）
                 os.kill(pid, 0)
@@ -615,71 +651,68 @@ class SharedMemoryManager:
                 pass
             except Exception as e:
                 logger.debug(f"Failed to check process {pid}: {e}")
-        
+
         return cleaned
-    
+
     def get_valid_processes(self) -> List[int]:
         """获取所有有效的进程ID（验证进程是否存在）
-        
+
         Returns:
             存在的进程ID列表
         """
         all_procs = self.get_all_procs()
         valid_procs = []
-        
+
         for pid in all_procs:
             try:
                 os.kill(pid, 0)
                 valid_procs.append(pid)
             except (ProcessLookupError, PermissionError, OSError):
                 pass
-        
+
         return valid_procs
-    
+
     # ========== 控制命令 ==========
-    
+
     def send_control_command(
-        self,
-        is_start: bool,
-        force: bool = False,
-        send_signal: bool = True
+        self, is_start: bool, force: bool = False, send_signal: bool = True
     ) -> Tuple[bool, int, int, bool]:
         """发送控制命令
-        
+
         Args:
             is_start: 控制状态，True=开启，False=关闭
             force: 是否强制执行
             send_signal: 是否发送SIGUSR1信号
-            
+
         Returns:
             (是否成功, 成功发送信号数, 清理的无效进程数, 是否实际执行了变更)
         """
         target_state = STATE_ON if is_start else STATE_OFF
-        
+
         with self.semaphore_lock():
             # 检查当前状态
             current_state = self.get_state()
-            
+
             # 如果不是强制模式，且状态没有变化，则跳过
             if not force and current_state == target_state:
                 action = "START" if is_start else "STOP"
                 logger.info(f"State already {action}, no change needed")
                 return True, 0, 0, False
-            
+
             # 1. 先更新状态和时间戳
             self.set_state(target_state)
             self.set_timestamp(int(time.time()))
-            
+
             # 2. 发送信号并清理无效进程
             if send_signal:
                 signaled, cleaned = self._send_signals_and_cleanup()
             else:
                 signaled, cleaned = 0, 0
-            
+
             action = "START" if is_start else "STOP"
             logger.info(f"Sent {action} command to {signaled} processes, cleaned {cleaned}")
             return True, signaled, cleaned, True
-    
+
     def _send_signals_and_cleanup(self) -> Tuple[int, int]:
         """发送信号并清理无效进程
 
@@ -694,10 +727,10 @@ class SharedMemoryManager:
         cleaned = 0
         for i in range(proc_len):
             pid = self.get_proc_at(i)
-            
+
             if pid <= 0:
                 continue
-            
+
             try:
                 os.kill(pid, signal.SIGUSR1)
                 signaled += 1
@@ -711,22 +744,22 @@ class SharedMemoryManager:
                 logger.warning(f"Permission denied to signal process {pid}")
             except Exception as e:
                 logger.warning(f"Failed to signal process {pid}: {e}")
-        
+
         return signaled, cleaned
-    
+
     # ========== 状态查询 ==========
-    
+
     def get_status(self) -> dict:
         """获取完整状态信息
-        
+
         同时清理无效的进程。
         """
         with self.semaphore_lock():
             # 清理无效进程
             cleaned = self.cleanup_invalid_processes()
-            
+
             valid_procs = self.get_valid_processes()
-            
+
             return {
                 "state": "ON" if self.get_state() == STATE_ON else "OFF",
                 "timestamp": self.get_timestamp(),
@@ -737,18 +770,18 @@ class SharedMemoryManager:
                 "cleaned": cleaned,
                 "version_mismatch": self._version_mismatch,
             }
-    
+
     def should_destroy(self) -> bool:
         """检查是否应该销毁共享内存
-        
+
         当状态为OFF且没有有效进程时，应该销毁共享内存。
-        
+
         Returns:
             是否应该销毁
         """
         state = self.get_state()
         valid_procs = self.get_valid_processes()
-        
+
         return state == STATE_OFF and len(valid_procs) == 0
 
 
@@ -769,6 +802,7 @@ __all__ = [
     'ENV_MAX_PROCS',
     'DEFAULT_SHM_PREFIX',
     'DEFAULT_MAX_PROCS',
+    'IPC_OBJECT_MODE',
     'STATE_OFF',
     'STATE_ON',
     'MAGIC_NUMBER',

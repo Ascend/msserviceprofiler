@@ -76,3 +76,19 @@ def test_check_state_given_callback_failure_then_acknowledges_once(
     assert w._current_state == w.STATE_ON
     assert w._last_timestamp == 7
     callback.assert_called_once_with(True, 7)
+
+
+def test_check_state_given_invalid_shared_memory_then_skips_callback(unique_shm_prefix):
+    w = MetricControlWatch()
+    w._manager = MagicMock()
+    w._manager.is_control_state_valid.return_value = False
+    w._read_control_state = MagicMock(return_value=(w.STATE_ON, 7))
+    callback = MagicMock()
+    w.register_callback(callback)
+
+    w._check_control_state()
+
+    w._read_control_state.assert_not_called()
+    callback.assert_not_called()
+    assert w._current_state == w.STATE_OFF
+    assert w._last_timestamp == 0

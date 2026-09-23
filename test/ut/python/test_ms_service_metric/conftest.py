@@ -17,6 +17,7 @@
 import ctypes
 import os
 import sys
+import tempfile
 import threading
 import types
 
@@ -60,7 +61,7 @@ def _install_posix_ipc_dummy():
     O_CREX = 0x1000
 
     class SharedMemory:
-        def __init__(self, name, flags=0, size=None):
+        def __init__(self, name, flags=0, mode=0o600, size=None):
             self._name = name
             if name in _shm_registry:
                 if flags & O_CREX:
@@ -70,17 +71,24 @@ def _install_posix_ipc_dummy():
                 self._entry = entry
                 self.fd = entry["fd"]
                 self.size = entry["size"]
+                self.mode = entry["mode"]
                 return
             if flags & O_CREX:
                 if size is None:
                     raise ValueError("size required for O_CREX")
-                fd = _memfd_create("ms_metric_ut_shm", 0)
+                backing_file = None
+                if os.name == "nt":
+                    backing_file = tempfile.TemporaryFile()  # noqa: SIM115
+                    fd = backing_file.fileno()
+                else:
+                    fd = _memfd_create("ms_metric_ut_shm", 0)
                 os.ftruncate(fd, size)
-                entry = {"fd": fd, "size": size, "refcount": 1}
+                entry = {"fd": fd, "file": backing_file, "size": size, "mode": mode, "refcount": 1}
                 _shm_registry[name] = entry
                 self._entry = entry
                 self.fd = fd
                 self.size = size
+                self.mode = mode
             else:
                 raise ExistentialError("shm missing")
 
@@ -91,23 +99,29 @@ def _install_posix_ipc_dummy():
             entry["refcount"] -= 1
             if entry["refcount"] <= 0:
                 try:
-                    os.close(entry["fd"])
+                    if entry.get("file") is not None:
+                        entry["file"].close()
+                    else:
+                        os.close(entry["fd"])
                 except OSError:
                     pass
                 _shm_registry.pop(self._name, None)
 
     class Semaphore:
-        def __init__(self, name, flags=0, initial_value=1):
+        def __init__(self, name, flags=0, mode=0o600, initial_value=1):
             self._name = name
             if name in _sem_registry:
                 if flags & O_CREX:
                     raise ExistentialError("sem exists")
-                self._sem = _sem_registry[name]
+                entry = _sem_registry[name]
+                self._sem = entry["sem"]
+                self.mode = entry["mode"]
                 return
             if flags & O_CREX:
                 sem = threading.Semaphore(initial_value)
-                _sem_registry[name] = sem
+                _sem_registry[name] = {"sem": sem, "mode": mode}
                 self._sem = sem
+                self.mode = mode
             else:
                 raise ExistentialError("sem missing")
 
@@ -125,7 +139,10 @@ def _install_posix_ipc_dummy():
         entry = _shm_registry.pop(name, None)
         if entry:
             try:
-                os.close(entry["fd"])
+                if entry.get("file") is not None:
+                    entry["file"].close()
+                else:
+                    os.close(entry["fd"])
             except OSError:
                 pass
 
