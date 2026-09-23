@@ -259,6 +259,43 @@ def test_scenario_registry_and_vllm_args(tmp_path):
         get_scenario("unknown")
 
 
+@pytest.mark.parametrize("runner", ["1", "2", "-1"])
+def test_eplb_preflight_rejects_model_runner_v2_before_imports(monkeypatch, tmp_path, runner):
+    monkeypatch.setenv("VLLM_USE_V2_MODEL_RUNNER", runner)
+    context = ScenarioContext(str(tmp_path), [0, 1], 8000, tmp_path)
+
+    with pytest.raises(metric_scenarios.ScenarioUnavailable, match="VLLM_USE_V2_MODEL_RUNNER=0"):
+        get_scenario("eplb").preflight(context, metric_smoke_utils.PreflightReport())
+
+
+@pytest.mark.parametrize("runner", [None, "0"])
+def test_eplb_preflight_preserves_model_runner_v1(monkeypatch, tmp_path, runner):
+    monkeypatch.delenv("VLLM_USE_V2_MODEL_RUNNER", raising=False)
+    if runner is not None:
+        monkeypatch.setenv("VLLM_USE_V2_MODEL_RUNNER", runner)
+    (tmp_path / "config.json").write_text('{"num_experts": 8}', encoding="utf-8")
+    imports = []
+    monkeypatch.setattr(metric_scenarios, "_require_import", lambda name, *_args: imports.append(name))
+    monkeypatch.setattr(
+        metric_scenarios,
+        "_get_vllm_help",
+        lambda *_args: "--tensor-parallel-size --enable-expert-parallel --additional-config",
+    )
+    context = ScenarioContext(str(tmp_path), [0, 1], 8000, tmp_path)
+
+    get_scenario("eplb").preflight(context, metric_smoke_utils.PreflightReport())
+
+    assert imports == ["vllm_ascend.eplb.core.eplb_worker"]
+
+
+def test_eplb_preflight_reports_invalid_runner_value(monkeypatch, tmp_path):
+    monkeypatch.setenv("VLLM_USE_V2_MODEL_RUNNER", "invalid")
+    context = ScenarioContext(str(tmp_path), [0, 1], 8000, tmp_path)
+
+    with pytest.raises(metric_scenarios.ScenarioUnavailable, match="VLLM_USE_V2_MODEL_RUNNER must be an integer"):
+        get_scenario("eplb").preflight(context, metric_smoke_utils.PreflightReport())
+
+
 @pytest.mark.parametrize("key", ["num_experts", "n_routed_experts", "moe_intermediate_size", "num_local_experts"])
 @pytest.mark.parametrize("nested", [False, True])
 def test_moe_model_markers_at_top_level_or_in_text_config(tmp_path, key, nested):

@@ -19,6 +19,9 @@ python run_metric_st.py --scenario dplb --model-path /data/models/model --device
 The EPLB scenario sets `DYNAMIC_EPLB=true`, enables expert parallelism, uses
 tensor parallel size equal to the selected device count, and injects the
 vllm-ascend `eplb_config` through `--additional-config`.
+This legacy EPLB scenario requires Model Runner V1. If the environment enables
+`VLLM_USE_V2_MODEL_RUNNER`, preflight skips the scenario with a diagnostic;
+set `VLLM_USE_V2_MODEL_RUNNER=0` to retry.
 
 The runner owns vLLM scenario arguments and capability checks. Advanced arguments
 can be appended with `--vllm-extra-arg=--option`.

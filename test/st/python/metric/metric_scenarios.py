@@ -5,6 +5,7 @@
 # MindStudio is licensed under Mulan PSL v2.
 # -------------------------------------------------------------------------
 import json
+import os
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
@@ -187,6 +188,15 @@ class EplbScenario(MetricScenario):
 
     def preflight(self, context: ScenarioContext, report: PreflightReport) -> None:
         super().preflight(context, report)
+        try:
+            use_v2_runner = bool(int(os.environ.get("VLLM_USE_V2_MODEL_RUNNER", "0")))
+        except ValueError:
+            self.unavailable(report, "VLLM_USE_V2_MODEL_RUNNER must be an integer; set it to 0 for legacy EPLB")
+        if use_v2_runner:
+            self.unavailable(
+                report,
+                "legacy Dynamic EPLB requires Model Runner V1; set VLLM_USE_V2_MODEL_RUNNER=0 and retry",
+            )
         _require_moe_model(context.model_path, report, self)
         _require_import("vllm_ascend.eplb.core.eplb_worker", report, self)
         help_text = _get_vllm_help(report, self)
