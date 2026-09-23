@@ -486,13 +486,13 @@ class VLLMHookerBase(ABC):
             return thread_local.context
 
         def before_ori_func():
+            running_index = None
             try:
                 ctx = get_context()
                 thread_local.hook_context_funcs = []
                 for func in context_hook_funcs:
                     thread_local.hook_context_funcs.append(func(ctx))
 
-                running_index = None
                 for running_index, func in enumerate(thread_local.hook_context_funcs):
                     if failed_hook_func[running_index] >= MAX_HOOK_FAILURES:
                         continue
@@ -503,10 +503,10 @@ class VLLMHookerBase(ABC):
                     failed_hook_func[running_index] += 1
 
         def after_ori_func(ret):
+            running_index = None
             try:
                 ctx = get_context()
                 ctx.return_value = ret
-                running_index = None
                 for reversed_running_index, func in enumerate(reversed(thread_local.hook_context_funcs)):
                     running_index = len(thread_local.hook_context_funcs) - 1 - reversed_running_index
                     if failed_hook_func[running_index] >= MAX_HOOK_FAILURES:

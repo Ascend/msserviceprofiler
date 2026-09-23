@@ -658,3 +658,28 @@ class TestHookFuncNotNeedLocals:
         assert result == 42
         mock_logger.error.assert_called_once()
         assert "function enter failed" in mock_logger.error.call_args[0][0]
+
+    def test_given_context_hook_factory_throws_exception_when_call_wrapper_then_original_function_still_runs(self):
+        """Context hook construction failures must not interrupt the wrapped function."""
+
+        def failing_hook_factory(ctx):
+            raise ValueError("Factory failed")
+
+        def original_func():
+            return 42
+
+        trackable_ori_func = TrackableOriginalFunc(original_func)
+
+        with patch("ms_service_profiler.patcher.core.module_hook.logger") as mock_logger:
+            wrapper = VLLMHookerBase.hook_func_not_need_locals(
+                trackable_ori_func,
+                original_func,
+                [failing_hook_factory],
+                VLLMHookerBase.default_hook_func,
+            )
+
+            result = wrapper()
+
+        assert result == 42
+        mock_logger.error.assert_called_once()
+        assert "function enter failed" in mock_logger.error.call_args[0][0]
