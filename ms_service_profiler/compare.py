@@ -307,7 +307,12 @@ def arg_parse(subparsers):
         default=os.path.join(os.getcwd(), 'compare_result'),
         help="Output directory for comparison result",
     )
-    parser.add_argument('--log-level', choices=['debug', 'info', 'warning', 'error'], default='info', help='Log level')
+    parser.add_argument(
+        '--log-level',
+        choices=['debug', 'info', 'warning', 'error', 'fatal', 'critical'],
+        default='info',
+        help='Log level',
+    )
     parser.set_defaults(func=main)
 
 

@@ -21,15 +21,35 @@ import pandas as pd
 from pandas import DataFrame
 from sklearn.preprocessing import OneHotEncoder, LabelEncoder
 
-from ..inference.constant import DTYPE_CATEGORY, ALL_HIDDEN_ACT, ALL_MODEL_TYPE, \
-    ALL_QUANTIZE, \
-    ALL_KV_QUANT_TYPE, ALL_GROUP_SIZE, ALL_REDUCE_QUANT_TYPE, ALL_BATCH_STAGE
-from ..inference.data_format_v1 import BatchField, RequestField, \
-    ModelOpField, ModelStruct, ModelConfig, MindieConfig, \
-    EnvField, HardWare, BATCH_FIELD, REQUEST_FIELD, MODEL_OP_FIELD, MODEL_STRUCT_FIELD, MODEL_CONFIG_FIELD, \
-    MINDIE_FIELD, ENV_FIELD, HARDWARE_FIELD
-from ..inference.utils import PreprocessTool, TOTAL_OUTPUT_LENGTH, TOTAL_SEQ_LENGTH, \
-    TOTAL_PREFILL_TOKEN
+from ..inference.constant import (
+    DTYPE_CATEGORY,
+    ALL_HIDDEN_ACT,
+    ALL_MODEL_TYPE,
+    ALL_QUANTIZE,
+    ALL_KV_QUANT_TYPE,
+    ALL_GROUP_SIZE,
+    ALL_REDUCE_QUANT_TYPE,
+    ALL_BATCH_STAGE,
+)
+from ..inference.data_format_v1 import (
+    BatchField,
+    RequestField,
+    ModelOpField,
+    ModelStruct,
+    ModelConfig,
+    MindieConfig,
+    EnvField,
+    HardWare,
+    BATCH_FIELD,
+    REQUEST_FIELD,
+    MODEL_OP_FIELD,
+    MODEL_STRUCT_FIELD,
+    MODEL_CONFIG_FIELD,
+    MINDIE_FIELD,
+    ENV_FIELD,
+    HARDWARE_FIELD,
+)
+from ..inference.utils import PreprocessTool, TOTAL_OUTPUT_LENGTH, TOTAL_SEQ_LENGTH, TOTAL_PREFILL_TOKEN
 
 
 @dataclass
@@ -58,7 +78,7 @@ preset_category_data = [
     CategoryInfo("quantize", ALL_QUANTIZE),
     CategoryInfo("kv_quant_type", ALL_KV_QUANT_TYPE),
     CategoryInfo("group_size", ALL_GROUP_SIZE),
-    CategoryInfo("reduce_quant_type", ALL_REDUCE_QUANT_TYPE)
+    CategoryInfo("reduce_quant_type", ALL_REDUCE_QUANT_TYPE),
 ]
 
 
@@ -95,7 +115,8 @@ class CustomOneHotEncoder:
         self.update_encoders(x.columns)
         for i, _one_hot_encoder in enumerate(self.one_hot_encoders):
             _one_hot_info = self.one_hots[i]
-            encode_value = _one_hot_encoder.transform(x[_one_hot_info.name].values.reshape(-1, 1)).toarray()
+            values = np.asarray(x[_one_hot_info.name].to_numpy()).reshape(-1, 1)
+            encode_value = _one_hot_encoder.transform(values).toarray()
             encode_columns = []
             for categories in _one_hot_encoder.categories_:
                 for category in categories:
@@ -113,12 +134,16 @@ class CustomOneHotEncoder:
         for i, _one_hot_encoder in enumerate(self.one_hot_encoders):
             _one_hot_info = self.one_hots[i]
             _col_index = data_column.index(_one_hot_info.name)
-            encode_value = _one_hot_encoder.transform(np.array([[data[_col_index], ]]))
-            _new_column = [
-                f"{_one_hot_info.name}__{i}"
-                for k in _one_hot_encoder.categories_
-                for i in k
-            ]
+            encode_value = _one_hot_encoder.transform(
+                np.array(
+                    [
+                        [
+                            data[_col_index],
+                        ]
+                    ]
+                )
+            )
+            _new_column = [f"{_one_hot_info.name}__{i}" for k in _one_hot_encoder.categories_ for i in k]
             new_data.extend(*encode_value.toarray().tolist())
             new_data_column.extend(_new_column)
         return new_data, new_data_column
@@ -174,7 +199,11 @@ class CustomLabelEncoder:
             if _cache in self.encode_cache:
                 data[_col_index] = self.encode_cache.get(_cache)
             else:
-                encode_value = _cate_encoder.transform([data[_col_index], ])
+                encode_value = _cate_encoder.transform(
+                    [
+                        data[_col_index],
+                    ]
+                )
                 data[_col_index] = encode_value[0]
                 self.encode_cache[_cache] = data[_col_index]
         return data, data_column
@@ -212,13 +241,11 @@ class DataProcessor:
             load_value.extend(v)
             load_col.extend(col)
         if input_data.model_struct_field:
-            v, col = PreprocessTool.generate_data_with_struct_info(input_data.model_struct_field,
-                                                                   MODEL_STRUCT_FIELD)
+            v, col = PreprocessTool.generate_data_with_struct_info(input_data.model_struct_field, MODEL_STRUCT_FIELD)
             load_value.extend(v)
             load_col.extend(col)
         if input_data.model_config_field:
-            v, col = PreprocessTool.generate_data_with_model_config(input_data.model_config_field,
-                                                                    MODEL_CONFIG_FIELD)
+            v, col = PreprocessTool.generate_data_with_model_config(input_data.model_config_field, MODEL_CONFIG_FIELD)
             load_value.extend(v)
             load_col.extend(col)
         if input_data.mindie_field:

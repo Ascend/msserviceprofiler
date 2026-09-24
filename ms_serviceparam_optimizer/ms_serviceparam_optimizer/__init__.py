@@ -21,5 +21,6 @@ from loguru import logger
 
 # 增加 MODELEVALSTATE_LEVEL设置日志级别，ERROR， INFO DEBUG
 log_level = os.getenv("MODELEVALSTATE_LEVEL", "INFO").upper()
+async_logging = os.getenv("MS_SERVICEPARAM_OPTIMIZER_ASYNC_LOGGING", "true").lower() != "false"
 logger.remove()
-logger.add(sys.stderr, level=log_level, enqueue=True)
+logger.add(sys.stderr, level=log_level, enqueue=async_logging)

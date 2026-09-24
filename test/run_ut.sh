@@ -174,6 +174,7 @@ function run_ms_service_profiler_cpp_ut() {
 
 function run_ms_serviceparam_optimizer_ut() {
     local UT_DIR="${UT_PYTHON_DIR}/test_optimizer"
+    export MS_SERVICEPARAM_OPTIMIZER_ASYNC_LOGGING=false
 
     if ! pip3 show ms_service_profiler > /dev/null; then
         pip3 install -e "${PROJECT_DIR}[test]"

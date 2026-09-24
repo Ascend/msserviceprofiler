@@ -38,29 +38,29 @@ extra_css:
 nav:
   - 首页: index.md
   - 开始使用:
-    - 安装指南: zh/msserviceprofiler_install_guide.md
-    - 快速入门: zh/quick_start.md
-    - vLLM-Ascend 可观测性性能诊断: zh/vllm_ascend_observability_analysis_guide.md
+    - 安装指南: zh/install_guide/msserviceprofiler_install_guide.md
+    - 快速入门: zh/quick_start/quick_start.md
+    - vLLM-Ascend 可观测性性能诊断: zh/best_practices/vllm_ascend_observability_analysis_guide.md
     - 项目目录: zh/dir_structure.md
   - 功能介绍:
     - 1. 服务化性能调优:
-      - 服务化调优工具: zh/msserviceprofiler_serving_tuning_instruct.md
+      - 服务化调优工具: zh/user_guide/msserviceprofiler_serving_tuning_instruct.md
     - 2. vLLM / SGLang 场景专项采集:
-      - vLLM 服务化性能采集工具: zh/vLLM_service_oriented_performance_collection_tool.md
-      - SGLang 服务化性能采集工具: zh/SGLang_service_oriented_performance_collection_tool.md
+      - vLLM 服务化性能采集工具: zh/user_guide/vLLM_service_oriented_performance_collection_tool.md
+      - SGLang 服务化性能采集工具: zh/user_guide/SGLang_service_oriented_performance_collection_tool.md
     - 3. Trace 数据链路监测:
-      - 服务化Trace数据监测工具: zh/msserviceprofiler_trace_data_monitoring_instruct.md
-      - vLLM Hook Tracing 使用指南: zh/vLLM_hook_tracing_instruct.md
+      - 服务化Trace数据监测工具: zh/user_guide/msserviceprofiler_trace_data_monitoring_instruct.md
+      - vLLM Hook Tracing 使用指南: zh/user_guide/vLLM_hook_tracing_instruct.md
     - 4. 采集数据的比对与多维分析:
-      - 服务化性能数据比对工具: zh/ms_service_profiler_compare_tool_instruct.md
-      - 服务化多维度解析工具: zh/msserviceprofiler_multi_analyze_instruct.md
-      - 服务化拆解工具: zh/service_performance_split_tool_instruct.md
+      - 服务化性能数据比对工具: zh/user_guide/ms_service_profiler_compare_tool_instruct.md
+      - 服务化多维度解析工具: zh/user_guide/msserviceprofiler_multi_analyze_instruct.md
+      - 服务化拆解工具: zh/user_guide/service_performance_split_tool_instruct.md
     - 5. 自动寻优与专家建议:
-      - 服务化自动寻优工具: zh/serviceparam_optimizer_instruct.md
-      - 服务化自动寻优插件模式: zh/serviceparam_optimizer_plugin_instruct.md
-      - 服务化专家建议工具: zh/service_profiling_advisor_instruct.md
+      - 服务化自动寻优工具: zh/user_guide/serviceparam_optimizer_instruct.md
+      - 服务化自动寻优插件模式: zh/user_guide/serviceparam_optimizer_plugin_instruct.md
+      - 服务化专家建议工具: zh/user_guide/service_profiling_advisor_instruct.md
     - 6. Prometheus 在线监测:
-      - vLLM 服务化 Prometheus 数据监测工具: zh/vLLM_metrics_tool_instruct.md
+      - vLLM 服务化 Prometheus 数据监测工具: zh/user_guide/vLLM_metrics_tool_instruct.md
   - API:
     - 服务化调优:
       - Python API:
@@ -143,10 +143,9 @@ nav:
       - 贡献指南: community_extension_docs/community_extensions_contributing.md
       - 免责声明: zh/legal/disclaimer.md
       - License: zh/legal/license_notice.md
-      - 发布说明: zh/release_notes.md
-      - 安全声明: zh/security_statement.md
-      - 漏洞处理流程: zh/vulnerability_handling_procedure.md
-      - 公网地址: zh/public_ip_address.md
+      - 安全声明: zh/legal/security_statement.md
+      - 漏洞处理流程: zh/legal/vulnerability_handling_procedure.md
+      - 公网地址: zh/legal/public_ip_address.md
       - 贡献指导: contributing.md
     - 设计文档:
       - 26.0.0 特性设计: design/MindStudio Service Profiler 26.0.0 特性设计说明书.md

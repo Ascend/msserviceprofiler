@@ -60,6 +60,8 @@ EXCLUDED_MD=(
   en/cpp_api/trace_data_monitoring/Unattach.md
   en/developer_guide/development_guide.md
   en/dir_structure.md
+  en/legal/disclaimer.md
+  en/legal/license_notice.md
   en/ms_service_profiler_compare_tool_instruct.md
   en/msserviceprofiler_install_guide.md
   en/msserviceprofiler_multi_analyze_instruct.md
@@ -92,6 +94,7 @@ EXCLUDED_MD=(
   en/vLLM_metrics_tool_instruct.md
   en/vLLM_service_oriented_performance_collection_tool.md
   en/vulnerability_handling_procedure.md
+  en/overview.md
   design/Ternary_Relationship_Detailed_Design.md
 )
 

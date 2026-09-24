@@ -406,15 +406,15 @@ from .base import ExporterBase
 
 class ExporterXxx(ExporterBase):
     name = 'xxx'  # Exporter name
-    
+
     @classmethod
     def initialize(cls, args):
         cls.args = args
-    
+
     @classmethod
     def is_provide(cls, formats):
         return 'xxx' in formats  # Any combination of 'csv', 'json', and 'db'
-    
+
     def do_export(self):
         # Implement the export logic.
         data = self.load_data()
@@ -433,7 +433,7 @@ class ExporterFactory:
     ]
 ```
 
-#### 5.6.4 Example of Adding a Plugin 
+#### 5.6.4 Example of Adding a Plugin
 
 Create a new plugin in the `ms_service_profiler/plugins/` directory.
 
@@ -563,11 +563,11 @@ from .base_data_source import BaseDataSource
 class XxxDataSource(BaseDataSource):
     def __init__(self, config):
         super().__init__(config)
-        
+
     def load(self):
         # // Implement the data loading logic
         pass
-        
+
     def parse(self):
         # // Implement the data parsing logic
         pass
@@ -586,15 +586,15 @@ from .base import ExporterBase
 
 class ExporterXxx(ExporterBase):
     name = 'xxx'  # Exporter name
-    
+
     @classmethod
     def initialize(cls, args):
         cls.args = args
-    
+
     @classmethod
     def is_provide(cls, formats):
         return 'xxx' in formats  # Supported formats
-    
+
     def do_export(self):
         # Implement the export logic
         data = self.load_data()
@@ -641,13 +641,13 @@ Add a new hook handler in the `ms_service_profiler/patcher/` directory:
 def xxx_handler(original_func, this, *args, **kwargs):
     """
     Custom hook handler function
-    
+
     Args:
         original_func: Original function object
         this: Calling object (for method calls)
         *args: Positional arguments
         **kwargs: Keyword arguments
-    
+
     Returns:
         Processing result
     """
@@ -743,7 +743,7 @@ msserviceprofiler parse --input-path=./prof_dir
 msserviceprofiler analyze --input-path=./output
 
 # Data comparison
-msserviceprofiler compare --input-path1=./dir1 --input-path2=./dir2
+msserviceprofiler compare ./dir1 ./dir2
 
 # Data splitting
 msserviceprofiler split --input-path=./prof_dir
