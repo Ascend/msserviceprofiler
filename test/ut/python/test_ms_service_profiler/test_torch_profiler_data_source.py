@@ -3,7 +3,8 @@
 # Copyright (c) 2026 Huawei Technologies Co.,Ltd.
 #
 # MindStudio is licensed under Mulan PSL v2.
-# You can obtain a copy of Mulan PSL v2 at:
+# You can use this software according to the terms and conditions of the Mulan PSL v2.
+# You may obtain a copy of Mulan PSL v2 at:
 #
 #          http://license.coscl.org.cn/MulanPSL2
 #
@@ -63,10 +64,7 @@ class TestTorchProfilerDataSource(unittest.TestCase):
         self.assertFalse(result)
 
     @patch('ms_service_profiler.data_source.torch_profiler_data_source.logger')
-    @patch.dict('sys.modules', {
-        'torch': None,
-        'torch_npu': None
-    })
+    @patch.dict('sys.modules', {'torch': None, 'torch_npu': None})
     def test_run_torch_profiler_parse_import_error(self, mock_logger):
         """测试 run_torch_profiler_parse 方法（导入错误）"""
         result = TorchProfilerDataSource.run_torch_profiler_parse("test_path")
@@ -85,7 +83,7 @@ class TestTorchProfilerDataSource(unittest.TestCase):
             'torch': mock_torch,
             'torch_npu': mock_torch_npu,
             'torch_npu.profiler': mock_torch_npu.profiler,
-            'torch_npu.profiler.profiler': mock_torch_npu.profiler.profiler
+            'torch_npu.profiler.profiler': mock_torch_npu.profiler.profiler,
         }
 
         with patch.dict('sys.modules', mock_modules):
@@ -120,7 +118,7 @@ class TestTorchProfilerDataSource(unittest.TestCase):
             'torch': mock_torch,
             'torch_npu': mock_torch_npu,
             'torch_npu.profiler': mock_torch_npu.profiler,
-            'torch_npu.profiler.profiler': mock_torch_npu.profiler.profiler
+            'torch_npu.profiler.profiler': mock_torch_npu.profiler.profiler,
         }
 
         with patch.dict('sys.modules', mock_modules):
@@ -145,10 +143,12 @@ class TestTorchProfilerDataSource(unittest.TestCase):
 
     @patch('ms_service_profiler.data_source.torch_profiler_data_source.TorchProfilerDataSource.is_need_torchprofiler')
     @patch(
-        'ms_service_profiler.data_source.torch_profiler_data_source.TorchProfilerDataSource.run_torch_profiler_parse')
+        'ms_service_profiler.data_source.torch_profiler_data_source.TorchProfilerDataSource.run_torch_profiler_parse'
+    )
     @patch('ms_service_profiler.data_source.torch_profiler_data_source.BaseDataSource.get_filepaths')
-    def test_load_with_torchprofiler(self, mock_get_filepaths, mock_run_torch_profiler_parse,
-                                     mock_is_need_torchprofiler):
+    def test_load_with_torchprofiler(
+        self, mock_get_filepaths, mock_run_torch_profiler_parse, mock_is_need_torchprofiler
+    ):
         """测试 load 方法（需要 torch profiler）"""
         mock_is_need_torchprofiler.return_value = True
         mock_run_torch_profiler_parse.return_value = "test_result"
@@ -164,10 +164,12 @@ class TestTorchProfilerDataSource(unittest.TestCase):
 
     @patch('ms_service_profiler.data_source.torch_profiler_data_source.TorchProfilerDataSource.is_need_torchprofiler')
     @patch(
-        'ms_service_profiler.data_source.torch_profiler_data_source.TorchProfilerDataSource.run_torch_profiler_parse')
+        'ms_service_profiler.data_source.torch_profiler_data_source.TorchProfilerDataSource.run_torch_profiler_parse'
+    )
     @patch('ms_service_profiler.data_source.torch_profiler_data_source.BaseDataSource.get_filepaths')
-    def test_load_without_torchprofiler(self, mock_get_filepaths, mock_run_torch_profiler_parse,
-                                        mock_is_need_torchprofiler):
+    def test_load_without_torchprofiler(
+        self, mock_get_filepaths, mock_run_torch_profiler_parse, mock_is_need_torchprofiler
+    ):
         """测试 load 方法（不需要 torch profiler）"""
         mock_is_need_torchprofiler.return_value = False
         mock_get_filepaths.return_value = {"test": "path"}
@@ -183,11 +185,13 @@ class TestTorchProfilerDataSource(unittest.TestCase):
     def test_class_inheritance(self):
         """测试类继承关系"""
         from ms_service_profiler.data_source.base_data_source import BaseDataSource
+
         self.assertTrue(issubclass(TorchProfilerDataSource, BaseDataSource))
 
     def test_task_registration(self):
         """测试任务注册"""
         import inspect
+
         source_code = inspect.getsource(TorchProfilerDataSource)
         self.assertIn('@Task.register("data_source:torch_profiler")', source_code)
 

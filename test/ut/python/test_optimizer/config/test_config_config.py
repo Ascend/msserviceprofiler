@@ -13,7 +13,6 @@
 # MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 # See the Mulan PSL v2 for more details.
 # -------------------------------------------------------------------------
-# pylint: disable=too-many-lines,duplicate-code
 import os
 import unittest
 from copy import deepcopy

@@ -13,7 +13,6 @@
 # MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 # See the Mulan PSL v2 for more details.
 # -------------------------------------------------------------------------
-# pylint: disable=no-member
 from collections import defaultdict
 from unittest.mock import MagicMock
 

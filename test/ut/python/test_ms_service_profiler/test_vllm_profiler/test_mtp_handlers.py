@@ -4,13 +4,19 @@
 #
 # MindStudio is licensed under Mulan PSL v2.
 # You can use this software according to the terms and conditions of the Mulan PSL v2.
-# See the Mulan PSL v2 at https://license.coscl.org.cn/MulanPSL2
+# You may obtain a copy of Mulan PSL v2 at:
+#
+#          http://license.coscl.org.cn/MulanPSL2
+#
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+# EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+# MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+# See the Mulan PSL v2 for more details.
 # -------------------------------------------------------------------------
 
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 import numpy as np
-import pytest
 
 from ms_service_profiler.patcher.vllm.handlers.v1 import mtp_handlers
 
@@ -113,7 +119,7 @@ class TestProposeDraftTokenIdsNpu:
         scheduler = MagicMock()
         scheduler.scheduled_spec_decode_tokens = {"r1": [1, 2]}
         original = MagicMock(return_value="ret")
-        with patch.object(mtp_handlers, "_get_state") as mock_state:
+        with patch.object(mtp_handlers, "_get_state"):
             with patch.object(mtp_handlers, "classify_requests") as mock_classify:
                 mock_classify.return_value = ([], [], "Decode")  # request_id_with_iter_list 为空
                 result = mtp_handlers.propose_draft_token_ids_npu(original, MagicMock(), "a", "b", scheduler)

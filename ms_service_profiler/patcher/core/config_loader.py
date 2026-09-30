@@ -13,7 +13,6 @@
 # MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 # See the Mulan PSL v2 for more details.
 # -------------------------------------------------------------------------
-# pylint: disable=logging-fstring-interpolation
 
 """
 ConfigLoader: 加载 YAML 配置并解析为 Handler 列表。

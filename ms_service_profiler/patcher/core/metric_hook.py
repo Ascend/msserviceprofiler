@@ -1,18 +1,19 @@
-# Copyright (c) 2025-2025 Huawei Technologies Co., Ltd.
+# -------------------------------------------------------------------------
+# This file is part of the MindStudio project.
+# Copyright (c) 2026 Huawei Technologies Co.,Ltd.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# MindStudio is licensed under Mulan PSL v2.
+# You can use this software according to the terms and conditions of the Mulan PSL v2.
+# You may obtain a copy of Mulan PSL v2 at:
 #
-# http://www.apache.org/licenses/LICENSE-2.0
+#          http://license.coscl.org.cn/MulanPSL2
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+# EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+# MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+# See the Mulan PSL v2 for more details.
+# -------------------------------------------------------------------------
 
-import inspect
 import os
 import time
 from dataclasses import dataclass
@@ -27,36 +28,91 @@ from .logger import logger
 
 
 TIMER_BUCKETS = [
-    0.001, 0.002, 0.005, 0.01, 0.015, 0.02, 0.025, 0.03, 0.04, 0.05, 
-    0.06, 0.07, 0.08, 0.09, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35,
-    0.4, 0.45, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0,
+    0.001,
+    0.002,
+    0.005,
+    0.01,
+    0.015,
+    0.02,
+    0.025,
+    0.03,
+    0.04,
+    0.05,
+    0.06,
+    0.07,
+    0.08,
+    0.09,
+    0.1,
+    0.15,
+    0.2,
+    0.25,
+    0.3,
+    0.35,
+    0.4,
+    0.45,
+    0.5,
+    0.6,
+    0.7,
+    0.8,
+    0.9,
+    1.0,
     # 细化1-10秒区间
-    1.2, 1.4, 1.6, 1.8, 2.0,
-    2.2, 2.4, 2.6, 2.8, 3.0,
-    3.5, 4.0, 4.5, 5.0,
-    5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0,
+    1.2,
+    1.4,
+    1.6,
+    1.8,
+    2.0,
+    2.2,
+    2.4,
+    2.6,
+    2.8,
+    3.0,
+    3.5,
+    4.0,
+    4.5,
+    5.0,
+    5.5,
+    6.0,
+    6.5,
+    7.0,
+    7.5,
+    8.0,
+    8.5,
+    9.0,
+    9.5,
+    10.0,
     # 保持长尾分布
-    15.0, 20.0, 30.0, 40.0, 60.0, 90.0, 120.0, 180.0, 300.0
+    15.0,
+    20.0,
+    30.0,
+    40.0,
+    60.0,
+    90.0,
+    120.0,
+    180.0,
+    300.0,
 ]
 
 
 class MetricType(str, Enum):
     """指标类型枚举"""
-    TIMER = "timer"          # 耗时指标
+
+    TIMER = "timer"  # 耗时指标
     HISTOGRAM = "histogram"  # 直方图
-    COUNTER = "counter"      # 计数器
-    GAUGE = "gauge"          # 仪表盘
-    SUMMARY = "summary"      # 摘要
+    COUNTER = "counter"  # 计数器
+    GAUGE = "gauge"  # 仪表盘
+    SUMMARY = "summary"  # 摘要
 
 
 @dataclass
 class MetricConfig:
     """指标配置数据结构"""
-    name: str                     # 指标名称
-    type: MetricType              # 指标类型
-    expr: str = ""                # 表达式（对于非timer类型）
+
+    name: str  # 指标名称
+    type: MetricType  # 指标类型
+    expr: str = ""  # 表达式（对于非timer类型）
     buckets: Optional[List[float]] = None  # 直方图分桶（可选）
-    
+
     def __post_init__(self):
         """后初始化处理"""
         if self.type == MetricType.TIMER:
@@ -68,17 +124,17 @@ class HookMetrics:
     """
     Hook函数的Prometheus监测器
     """
-    
+
     def __init__(self):
         """初始化Hook监测器"""
         self.metrics = {}  # 存储指标对象，key为指标名称
         self.label_definitions = {}  # 存储标签定义，key为 metric_name
-        
+
         # 框架侧写入初始化变量
-        self.registry = None # 等指标开始注册时初始化，获取正确的registry
-        self.metric_prefix = "" # 给指标添加额外的前缀
-        self.meta_state = None # 框架线程独立储存信息，用于自定义的额外的标签信息，如dp域
-    
+        self.registry = None  # 等指标开始注册时初始化，获取正确的registry
+        self.metric_prefix = ""  # 给指标添加额外的前缀
+        self.meta_state = None  # 框架线程独立储存信息，用于自定义的额外的标签信息，如dp域
+
     @staticmethod
     def _get_appropriate_registry():
         """
@@ -91,7 +147,7 @@ class HookMetrics:
             registry = CollectorRegistry()
             multiprocess.MultiProcessCollector(registry)
             return registry
-        
+
         # 单进程环境，使用默认registry
         return REGISTRY
 
@@ -101,13 +157,13 @@ class HookMetrics:
             {'start': 0, 'end': 0.0001, 'step': 0.00001, 'precision': 5},
             {'start': 0, 'end': 0.00001, 'step': 0.000001, 'precision': 6},
             {'start': 0, 'end': 0.01, 'step': 0.001, 'precision': 3},
-            {'start': 0, 'end': 0.1, 'step': 0.01, 'precision': 2}, 
+            {'start': 0, 'end': 0.1, 'step': 0.01, 'precision': 2},
             {'start': 0, 'end': 1.0, 'step': 0.25, 'precision': 2},
-            {'start': 1, 'end': 5, 'step': 0.5, 'precision': 1}, 
+            {'start': 1, 'end': 5, 'step': 0.5, 'precision': 1},
             {'start': 5, 'end': 25, 'step': 1, 'precision': 0},
             {'start': 25, 'end': 100, 'step': 25, 'precision': 0},
             {'start': 100, 'end': 500, 'step': 100, 'precision': 0},
-            {'start': 500, 'end': 1000, 'step': 250, 'precision': 0}
+            {'start': 500, 'end': 1000, 'step': 250, 'precision': 0},
         ]
         buckets = [262144, float('inf')]
 
@@ -124,13 +180,13 @@ class HookMetrics:
 
         buckets = sorted(list(set(buckets)))
         return buckets
-    
+
     def _add_prefix(self, metric_name: str) -> str:
         """为metric名称添加前缀"""
         if self.metric_prefix:
             return f"{self.metric_prefix}_{metric_name}"
         return metric_name
-    
+
     def _add_dp_label_name(self, label_names: List[str] = None) -> List[str]:
         """为metric指标创建添加默认的dp域标签"""
         label_names = label_names or []
@@ -138,24 +194,24 @@ class HookMetrics:
         if "dp" not in label_names:
             label_names.append("dp")
         return label_names
-    
+
     def _add_dp_label_value(self, labels: Optional[Dict[str, str]] = None) -> Dict[str, str]:
         """为metric指标创建添加默认的dp域值（如果不存在则添加）"""
         labels = labels if labels is not None else {}
 
         if "dp" in labels:
             return labels
-        
+
         # 只在dp键不存在时才添加
         dp_value = "-1"
         try:
             dp_value = str(self.meta_state.dp_rank_id)
-        except Exception as e:
+        except Exception:
             dp_value = "-1"
-        
+
         labels["dp"] = dp_value
         return labels
-    
+
     def register_metric(self, metric_config: MetricConfig, label_names: List[str] = None) -> Any:
         """注册指标"""
         if self.registry is None:
@@ -176,7 +232,7 @@ class HookMetrics:
                     documentation=f"Execution duration of {metric_config.name}",
                     labelnames=labelnames,
                     buckets=metric_config.buckets or TIMER_BUCKETS,
-                    registry=self.registry
+                    registry=self.registry,
                 )
             elif metric_config.type == MetricType.HISTOGRAM:
                 metric_obj = Histogram(
@@ -184,14 +240,14 @@ class HookMetrics:
                     documentation=f"Histogram for {metric_config.name}",
                     labelnames=labelnames,
                     buckets=metric_config.buckets or self._generate_custom_buckets(),
-                    registry=self.registry
+                    registry=self.registry,
                 )
             elif metric_config.type == MetricType.COUNTER:
                 metric_obj = Counter(
                     name=full_name,
                     documentation=f"Counter for {metric_config.name}",
                     labelnames=labelnames,
-                    registry=self.registry
+                    registry=self.registry,
                 )
             elif metric_config.type == MetricType.GAUGE:
                 metric_obj = Gauge(
@@ -199,20 +255,20 @@ class HookMetrics:
                     documentation=f"Gauge for {metric_config.name}",
                     labelnames=labelnames,
                     registry=self.registry,
-                    multiprocess_mode="livemostrecent"
+                    multiprocess_mode="livemostrecent",
                 )
             elif metric_config.type == MetricType.SUMMARY:
                 metric_obj = Summary(
                     name=full_name,
                     documentation=f"Summary for {metric_config.name}",
                     labelnames=labelnames,
-                    registry=self.registry
+                    registry=self.registry,
                 )
-            
+
             if metric_obj:
                 self.metrics[full_name] = metric_obj
                 logger.debug(f"Registered metric: {full_name} ({metric_config.type})")
-        
+
         except ValueError as e:
             # 如果指标已经存在，从缓存中获取
             if full_name in self.metrics:
@@ -220,7 +276,7 @@ class HookMetrics:
                 metric_obj = self.metrics[full_name]
             else:
                 logger.warning(f"Failed to create metric {full_name}: {e}")
-        
+
         return metric_obj
 
     def add_label_definition(self, metric_name: str, label_name: str, expr: str):
@@ -230,17 +286,14 @@ class HookMetrics:
 
         if full_metric_name not in self.label_definitions:
             self.label_definitions[full_metric_name] = []
-        
-        self.label_definitions[full_metric_name].append({
-            "name": label_name,
-            "expr": expr
-        })
+
+        self.label_definitions[full_metric_name].append({"name": label_name, "expr": expr})
 
     def get_labels_for_metric_ex(self, metric_name: str, context: Dict[str, Any]) -> Dict[str, str]:
         labels = {}
         # 使用带前缀的metric名称
         full_metric_name = self._add_prefix(self._sanitize_metric_name(metric_name))
-        
+
         # 计算标签值
         if full_metric_name in self.label_definitions:
             for label_def in self.label_definitions[full_metric_name]:
@@ -254,7 +307,7 @@ class HookMetrics:
                 except Exception as e:
                     logger.warning(f"Failed to evaluate label expression '{expr}' for metric '{metric_name}': {e}")
                     continue
-        
+
         return labels
 
     def record_metric(self, metric_name: str, value, labels: Optional[Dict[str, str]] = None) -> None:
@@ -268,9 +321,9 @@ class HookMetrics:
         if full_metric_name not in self.metrics:
             logger.warning(f"Metric not found: {full_metric_name}")
             return
-        
+
         metric_obj = self.metrics[full_metric_name]
-        
+
         try:
             if isinstance(metric_obj, Histogram):
                 if labels:
@@ -303,11 +356,11 @@ class HookMetrics:
         if sanitized[0].isdigit():
             sanitized = f"fn_{sanitized}"
         return sanitized
-    
+
     def get_registry(self):
         """获取使用的registry"""
         return self.registry
-    
+
     def get_all_metrics(self) -> Dict[str, Any]:
         """获取所有已创建的Hook指标"""
         return self.metrics
@@ -316,6 +369,7 @@ class HookMetrics:
 # 全局HookMetrics实例
 _hook_metrics_instance = None
 
+
 def get_hook_metrics() -> HookMetrics:
     """获取全局VLLMHookMetrics实例（单例模式）"""
     global _hook_metrics_instance
@@ -323,7 +377,7 @@ def get_hook_metrics() -> HookMetrics:
         _hook_metrics_instance = HookMetrics()
     return _hook_metrics_instance
 
-    
+
 def parse_metrics_config(metrics_config: Any) -> Tuple[List[MetricConfig], List[Dict]]:
     """解析 metrics 配置。
 
@@ -372,11 +426,13 @@ def parse_metrics_config(metrics_config: Any) -> Tuple[List[MetricConfig], List[
                 label_name = label.get("name")
                 label_expr = label.get("expr")
                 if label_name and label_expr:
-                    labels.append({
-                        "metric_name": name,
-                        "label_name": label_name,
-                        "expr": label_expr,
-                    })
+                    labels.append(
+                        {
+                            "metric_name": name,
+                            "label_name": label_name,
+                            "expr": label_expr,
+                        }
+                    )
     return metrics, labels
 
 
@@ -410,20 +466,18 @@ class MetricsWrapper:
 
     def wrap(self) -> Callable:
         """创建包装后的 handler 函数。"""
+
         def wrapped_handler(ctx):
-            
             start_time = time.time()
             yield
             duration = time.time() - start_time
             self._record_metrics_in_handler_ex(ctx.local_values, ctx.return_value, duration)
-            
+
         return wrapped_handler
-    
-    def _record_metrics_in_handler_ex(
-        self, local_values: dict, return_value: Any, duration: float
-    ):
+
+    def _record_metrics_in_handler_ex(self, local_values: dict, return_value: Any, duration: float):
         expr_values = {**local_values, "ret": return_value}
-        
+
         for metric_name, metric_config in self.registered_metrics.items():
             labels = self.metrics_client.get_labels_for_metric_ex(metric_name, expr_values)
             if metric_config.type == MetricType.TIMER:

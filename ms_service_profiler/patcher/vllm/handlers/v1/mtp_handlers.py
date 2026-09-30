@@ -4,7 +4,14 @@
 #
 # MindStudio is licensed under Mulan PSL v2.
 # You can use this software according to the terms and conditions of the Mulan PSL v2.
-# See the Mulan PSL v2 at https://license.coscl.org.cn/MulanPSL2
+# You may obtain a copy of Mulan PSL v2 at:
+#
+#          http://license.coscl.org.cn/MulanPSL2
+#
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+# EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+# MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+# See the Mulan PSL v2 for more details.
 # -------------------------------------------------------------------------
 
 from ms_service_profiler import Profiler, Level
@@ -12,9 +19,11 @@ from ms_service_profiler.patcher.core.module_hook import patcher
 
 from .utils import classify_requests
 
+
 # 延迟导入避免循环依赖；model_handlers 不导入本模块
 def _get_state():
     from .model_handlers import _get_state as _get
+
     return _get()
 
 
@@ -56,16 +65,18 @@ def propose_draft_token_ids_npu(original_func, this, *args, **kwargs):
             continue
         rid_str = str(rid)
         spec_tokens = len(scheduled_spec.get(rid_str, scheduled_spec.get(rid, [])))
-        spec_res_list.append({
-            "rid": rid,
-            "iter": res.get("iter"),
-            "type": res.get("type"),
-            "num_scheduled_tokens": spec_tokens,
-            "num_prompt_tokens": res.get("num_prompt_tokens"),
-            "num_computed_tokens": spec_tokens,
-            "num_spec_output_tokens": spec_tokens,
-            "num_spec_accepted_tokens": 0,  # propose 时尚未执行 target，无法得知
-        })
+        spec_res_list.append(
+            {
+                "rid": rid,
+                "iter": res.get("iter"),
+                "type": res.get("type"),
+                "num_scheduled_tokens": spec_tokens,
+                "num_prompt_tokens": res.get("num_prompt_tokens"),
+                "num_computed_tokens": spec_tokens,
+                "num_spec_output_tokens": spec_tokens,
+                "num_spec_accepted_tokens": 0,  # propose 时尚未执行 target，无法得知
+            }
+        )
 
     prof_spec = Profiler(Level.INFO).domain("Execute")
     prof_spec.res(spec_res_list)
@@ -77,7 +88,6 @@ def propose_draft_token_ids_npu(original_func, this, *args, **kwargs):
         return original_func(this, *args, **kwargs)
     finally:
         prof_spec.span_end()
-    
 
 
 def _read_num_accepted_from_output_token_ids(output_token_ids, req_ids):
@@ -123,5 +133,5 @@ def capture_rejection_output(original_func, *args, **kwargs):
         if accepted_by_req:
             state.mtp_num_accepted_by_req = accepted_by_req
     except Exception:
-        pass
+        return ret
     return ret

@@ -13,8 +13,6 @@
 # MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 # See the Mulan PSL v2 for more details.
 # -------------------------------------------------------------------------
-# pylint: disable=too-many-lines,redefined-outer-name
-# pylint: disable=comparison-with-callable,use-implicit-booleaness-not-comparison
 
 from unittest.mock import Mock, patch, call
 from unittest.mock import ANY

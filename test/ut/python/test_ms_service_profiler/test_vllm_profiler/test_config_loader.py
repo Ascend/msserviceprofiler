@@ -13,7 +13,6 @@
 # MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 # See the Mulan PSL v2 for more details.
 # -------------------------------------------------------------------------
-# pylint: disable=no-member,unspecified-encoding,attribute-defined-outside-init
 
 import importlib
 import os
@@ -201,7 +200,7 @@ class TestConfigLoader:
             shutil.rmtree(self.temp_dir)
 
     def _create_test_config(self, content):
-        with open(self.config_path, 'w') as f:
+        with open(self.config_path, 'w', encoding='utf-8') as f:
             f.write(content)
 
     def test_config_loader_init_stores_path(self):

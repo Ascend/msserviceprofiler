@@ -13,7 +13,6 @@
 # MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 # See the Mulan PSL v2 for more details.
 # -------------------------------------------------------------------------
-# pylint: disable=eval-used,consider-using-generator
 from copy import deepcopy
 from pathlib import Path
 from multiprocessing import Pool

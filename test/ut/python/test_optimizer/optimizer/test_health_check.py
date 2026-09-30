@@ -1,9 +1,9 @@
 # -------------------------------------------------------------------------
-# This file is part of MindStudio project.
+# This file is part of the MindStudio project.
 # Copyright (c) 2025 Huawei Technologies Co.,Ltd.
 #
 # MindStudio is licensed under Mulan PSL v2.
-# You can use this software according to terms and conditions of the Mulan PSL v2.
+# You can use this software according to the terms and conditions of the Mulan PSL v2.
 # You may obtain a copy of Mulan PSL v2 at:
 #
 #          http://license.coscl.org.cn/MulanPSL2
@@ -68,7 +68,7 @@ class TestDataClasses(unittest.TestCase):
             scheduler=MagicMock(),
             current_time=100.0,
             elapsed_time=10.0,
-            startup=False
+            startup=False,
         )
         self.assertEqual(context.current_time, 100.0)
         self.assertEqual(context.elapsed_time, 10.0)
@@ -93,7 +93,10 @@ class TestHealthCheckHooks(unittest.TestCase):
         error_context = MagicMock()
         error_context.severity = ErrorSeverity.FATAL
         error_context.message = "Test error"
-        hook.register(ServiceHookPoint.STARTUP_POLLING, lambda ctx: HealthCheckResult(is_healthy=False, error_context=error_context))
+        hook.register(
+            ServiceHookPoint.STARTUP_POLLING,
+            lambda ctx: HealthCheckResult(is_healthy=False, error_context=error_context),
+        )
         result = hook.run(ServiceHookPoint.STARTUP_POLLING, MagicMock())
         self.assertFalse(result.is_healthy)
 
@@ -136,11 +139,7 @@ class TestServiceHealthChecks(unittest.TestCase):
         simulator = MagicMock()
         simulator.get_last_log.return_value = "INFO: Service started"
         context = HealthCheckContext(
-            simulator=simulator,
-            benchmark=MagicMock(),
-            scheduler=MagicMock(),
-            current_time=100.0,
-            elapsed_time=10.0
+            simulator=simulator, benchmark=MagicMock(), scheduler=MagicMock(), current_time=100.0, elapsed_time=10.0
         )
         result = ServiceHealthChecks.check_log_errors(context)
         self.assertTrue(result.is_healthy)
@@ -150,7 +149,7 @@ class TestServiceHealthChecks(unittest.TestCase):
         mock_config = MagicMock()
         mock_config.fatal_patterns = {
             ErrorType.OUT_OF_MEMORY: ["out of memory", "OOM"],
-            ErrorType.DEVICE_ERROR: ["device error", "NPU error"]
+            ErrorType.DEVICE_ERROR: ["device error", "NPU error"],
         }
         mock_config.retryable_patterns = {}
 
@@ -166,11 +165,7 @@ class TestServiceHealthChecks(unittest.TestCase):
         simulator.get_last_log.return_value = "ERROR: out of memory, cannot allocate 1GB"
 
         context = HealthCheckContext(
-            simulator=simulator,
-            benchmark=MagicMock(),
-            scheduler=MagicMock(),
-            current_time=100.0,
-            elapsed_time=10.0
+            simulator=simulator, benchmark=MagicMock(), scheduler=MagicMock(), current_time=100.0, elapsed_time=10.0
         )
 
         result = ServiceHealthChecks.check_log_errors(context)
@@ -184,7 +179,7 @@ class TestServiceHealthChecks(unittest.TestCase):
         mock_config.fatal_patterns = {}
         mock_config.retryable_patterns = {
             ErrorType.NETWORK_ERROR: ["connection reset", "network unreachable"],
-            ErrorType.IO_ERROR: ["file not found", "permission denied"]
+            ErrorType.IO_ERROR: ["file not found", "permission denied"],
         }
 
         mock_health_check = MagicMock()
@@ -199,11 +194,7 @@ class TestServiceHealthChecks(unittest.TestCase):
         simulator.get_last_log.return_value = "ERROR: connection reset, network unreachable"
 
         context = HealthCheckContext(
-            simulator=simulator,
-            benchmark=MagicMock(),
-            scheduler=MagicMock(),
-            current_time=100.0,
-            elapsed_time=10.0
+            simulator=simulator, benchmark=MagicMock(), scheduler=MagicMock(), current_time=100.0, elapsed_time=10.0
         )
 
         result = ServiceHealthChecks.check_log_errors(context)
@@ -214,11 +205,7 @@ class TestServiceHealthChecks(unittest.TestCase):
     def test_no_get_last_log_method(self):
         simulator = MagicMock(spec=[])
         context = HealthCheckContext(
-            simulator=simulator,
-            benchmark=MagicMock(),
-            scheduler=MagicMock(),
-            current_time=100.0,
-            elapsed_time=10.0
+            simulator=simulator, benchmark=MagicMock(), scheduler=MagicMock(), current_time=100.0, elapsed_time=10.0
         )
         result = ServiceHealthChecks.check_log_errors(context)
         self.assertTrue(result.is_healthy)
@@ -243,11 +230,7 @@ class TestBenchmarkHealthChecks(unittest.TestCase):
         benchmark.get_last_log.return_value = "INFO: Benchmark started"
 
         context = HealthCheckContext(
-            simulator=MagicMock(),
-            benchmark=benchmark,
-            scheduler=MagicMock(),
-            current_time=100.0,
-            elapsed_time=10.0
+            simulator=MagicMock(), benchmark=benchmark, scheduler=MagicMock(), current_time=100.0, elapsed_time=10.0
         )
 
         result = BenchmarkHealthChecks.check_log_errors(context)
@@ -257,9 +240,7 @@ class TestBenchmarkHealthChecks(unittest.TestCase):
     def test_detect_network_error(self, mock_get_settings):
         mock_config = MagicMock()
         mock_config.fatal_patterns = {}
-        mock_config.retryable_patterns = {
-            ErrorType.NETWORK_ERROR: ["connection refused", "timeout"]
-        }
+        mock_config.retryable_patterns = {ErrorType.NETWORK_ERROR: ["connection refused", "timeout"]}
 
         mock_health_check = MagicMock()
         mock_health_check.benchmark_errors = mock_config
@@ -273,11 +254,7 @@ class TestBenchmarkHealthChecks(unittest.TestCase):
         benchmark.get_last_log.return_value = "ERROR: connection refused"
 
         context = HealthCheckContext(
-            simulator=MagicMock(),
-            benchmark=benchmark,
-            scheduler=MagicMock(),
-            current_time=100.0,
-            elapsed_time=10.0
+            simulator=MagicMock(), benchmark=benchmark, scheduler=MagicMock(), current_time=100.0, elapsed_time=10.0
         )
 
         result = BenchmarkHealthChecks.check_log_errors(context)

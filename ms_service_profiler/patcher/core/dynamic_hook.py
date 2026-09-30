@@ -13,8 +13,6 @@
 # MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 # See the Mulan PSL v2 for more details.
 # -------------------------------------------------------------------------
-# pylint: disable=logging-fstring-interpolation,global-variable-not-assigned
-# pylint: disable=comparison-with-callable,ungrouped-imports
 
 import ast
 import importlib
