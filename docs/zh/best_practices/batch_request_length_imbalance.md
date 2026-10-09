@@ -2,7 +2,7 @@
 
 ## 【问题背景】
 
-某客户在昇腾A2集群上部署基于 MindIE-LLM 的 LLaMA2-70B 推理服务，上线后压测发现：在固定并发数（QPS=20）下，服务化吞吐量只有预期值的 **55%** 左右，P99 TTFT 高达 **820ms**（SLA 约束 300ms），P99 TPOT 高达 **85ms**（SLA 约束 30ms）。但通过 `npu-smi info` 观察，NPU 平均利用率（AI Core）显示为 **78%**，AIPower 正常，温度未触发限频。表面看"硬件没跑满，业务侧却慢"——这是典型的服务化层调度问题。
+某客户在昇腾A2集群上部署基于 MindIE LLM 的 LLaMA2-70B 推理服务，上线后压测发现：在固定并发数（QPS=20）下，服务化吞吐量只有预期值的 **55%** 左右，P99 TTFT 高达 **820ms**（SLA 约束 300ms），P99 TPOT 高达 **85ms**（SLA 约束 30ms）。但通过 `npu-smi info` 观察，NPU 平均利用率（AI Core）显示为 **78%**，AIPower 正常，温度未触发限频。表面看"硬件没跑满，业务侧却慢"——这是典型的服务化层调度问题。
 
 进一步压测数据如下：
 
@@ -116,7 +116,7 @@ python3 -m ms_service_profiler.parse \
 <div align="center"><img src="./figures/bad_batch_timeline.png" /></div>
 
 - 8 个序列同处一个 decode 步：1 个长请求（prompt=4096）正在做 Prefill（黄绿色长条带，跨度约 140ms），其余 7 个短请求被 stall
-- 整批 Decode step 的算子条带**全部被拉成 ~180ms**，所有算子（FlashAttention、MLP、RMSNorm 等）几乎"无边界"地首尾相连
+- 整批 Decode step 的算子条带**全部被拉成 ~180ms**，所有算子（Flash Attention、MLP、RMSNorm 等）几乎"无边界"地首尾相连
 - 没有任何一个 Decode step 落在 30ms 正常区间
 - 算子条带之间没有清晰的分隔，呈现"被压平"的形态
 

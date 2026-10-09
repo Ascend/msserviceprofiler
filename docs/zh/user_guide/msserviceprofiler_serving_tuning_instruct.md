@@ -698,7 +698,7 @@ cd grafana-v11.3.0/bin/
 |Batch_Size_curve|BatchSchedule过程中每个batch包含的请求数量折线图。根据时间排序，区分prefill和decode。|
 |Batch_Token_curve|BatchSchedule过程中的总Token数折线图。区分prefill和decode。|
 |Request_Status_curve|服务中处于不同状态下的队列大小随时间变化的折线图。|
-|Kvcache_usage_percent_curve|所有请求Kvcache使用率随时间变换折线图。包含所有请求的Kvcache使用率情况。|
+|Kvcache_usage_percent_curve|所有请求Kvcache使用率随时间变化折线图。包含所有请求的Kvcache使用率情况。|
 |First_Token_Latency_curve|所有请求首token时延随时间变化折线图。包含所有请求首token时延的平均值avg，分位值p99、p90、p50等。|
 |Prefill_Generate_Speed_Latency_curve|所有请求prefill阶段，不同时刻吞吐的token平均时延随时间变化折线图。包含所有请求不同时刻吞吐的token平均时延的平均值avg，分位值p99、p90、p50等。|
 |Decode_Generate_Speed_Latency_curve|所有请求decode阶段，不同时刻吞吐的token平均时延随时间变化折线图。包含所有请求不同时刻吞吐的token平均时延的平均值avg，分位值p99、p90、p50等。|

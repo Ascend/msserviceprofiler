@@ -287,7 +287,7 @@ def custom_handler(original_func, this, *args, **kwargs):
 |     `profiler.db`     | 用于生成可视化折线图的SQLite数据库文件，详细介绍请参考[profiler.db 说明](./msserviceprofiler_serving_tuning_instruct.md#profilerdb)                                 |
 |     `request.csv`     | 记录服务化推理请求为粒度的详细数据，详细介绍请参考[request.csv 说明](./msserviceprofiler_serving_tuning_instruct.md#requestcsv)                                      |
 | `request_summary.csv` | 请求总体统计指标                                                                                                                                   |
-| `forward.csv` | 记录服务化推理模型前向执行过程的详细数据，详情介绍请参考[forward.csv 说明](./msserviceprofiler_serving_tuning_instruct.md#forwardcsv)                                    |
+| `forward.csv` | 记录服务化推理模型前向执行过程的详细数据，详细介绍请参考[forward.csv 说明](./msserviceprofiler_serving_tuning_instruct.md#forwardcsv)                                    |
 |     `kvcache.csv`     | 记录推理过程的显存使用情况，详细介绍请参考[kvcache.csv 说明](./msserviceprofiler_serving_tuning_instruct.md#kvcachecsv)                                          |
 |      `batch.csv`      | 记录服务化推理batch为粒度的详细数据，详细介绍请参考[batch.csv 说明](./msserviceprofiler_serving_tuning_instruct.md#batchcsv)                                       |
 |   `spec_decode.csv`   | 投机推理场景下以每条请求为粒度的详细数据，详细介绍请参考[spec_decode.csv 说明](./msserviceprofiler_serving_tuning_instruct.md#spec_decodecsv) |

@@ -486,7 +486,7 @@ dtype_param = {
   priority = ["tp", "pp"]        # tp 高优先：尽量保留 tp，首先调整 pp
 }
 # 示例： tp=8、pp=3（非法）：
-#   stage1：固定 tp=8，在 pp 候选中找最近合法値 → pp=4， dp=1
+#   stage1：固定 tp=8，在 pp 候选中找最近合法值 → pp=4， dp=1
 #   stage1 失败时再 stage2：两个字段均可调整，按距离升序搜索
 ```
 
