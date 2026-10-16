@@ -61,7 +61,7 @@
 
 **注意事项<a name="section1725701319"></a>**
 
-- 服务化调优工具的acl\_task\_time开关与msprof工具的动态采集功能存在冲突，建议不要同时使用。msprof工具的动态采集功能相关介绍请参见《[动态采集性能数据](https://gitcode.com/cann/oam-tools/blob/master/docs/zh/profiling/msprof_cmd/dynamically.md)》。
+- 服务化调优工具的acl\_task\_time开关与msprof工具的动态采集功能存在冲突，建议不要同时使用。msprof工具的动态采集功能相关介绍请参见《[动态采集性能数据](https://gitcode.com/cann/oam-tools/blob/master/docs/zh/user_guide/profiling/msprof_cmd/dynamically.md)》。
 
 **使用示例<a name="section1541662513115"></a>**
 
