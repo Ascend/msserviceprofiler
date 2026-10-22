@@ -1,7 +1,25 @@
+# -------------------------------------------------------------------------
+# This file is part of the MindStudio project.
+# Copyright (c) 2025 Huawei Technologies Co.,Ltd.
+#
+# MindStudio is licensed under Mulan PSL v2.
+# You can use this software according to the terms and conditions of the Mulan PSL v2.
+# You may obtain a copy of Mulan PSL v2 at:
+#
+#          http://license.coscl.org.cn/MulanPSL2
+#
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+# EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+# MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+# See the Mulan PSL v2 for more details.
+# -------------------------------------------------------------------------
+
 from enum import Enum
 from dataclasses import dataclass, field
 from typing import Callable, Optional, Dict, Any, Tuple, List
-import subprocess
+
+# The subprocess module is used only for its SubprocessError exception base.
+import subprocess  # nosec B404
 
 from ..config.config import get_settings, ErrorSeverity, ErrorType
 
@@ -11,28 +29,33 @@ BENCHMARK_LOG_ERROR_MESSAGE = "Detected {error_type} in benchmark logs"
 
 class FatalError(subprocess.SubprocessError):
     """致命错误，不重试（OOM、设备故障等）"""
+
     pass
 
 
 class RetryableError(subprocess.SubprocessError):
     """可重试错误（网络抖动、IO错误等）"""
+
     pass
 
 
 class ServiceHookPoint(Enum):
     """服务化框架钩子点"""
+
     STARTUP_POLLING = "startup_polling"
     RUNTIME_MONITOR = "runtime_monitor"
 
 
 class BenchmarkHookPoint(Enum):
     """测评框架钩子点"""
+
     RUNTIME_MONITOR = "runtime_monitor"
 
 
 @dataclass
 class ErrorContext:
     """错误上下文信息"""
+
     error_type: Any
     severity: Any
     message: str
@@ -42,6 +65,7 @@ class ErrorContext:
 @dataclass
 class HealthCheckContext:
     """健康检查上下文"""
+
     simulator: Any
     benchmark: Any
     scheduler: Any
@@ -53,6 +77,7 @@ class HealthCheckContext:
 @dataclass
 class HealthCheckResult:
     """健康检查结果"""
+
     is_healthy: bool
     error_context: Optional[ErrorContext] = None
 
@@ -62,7 +87,7 @@ def _check_log_patterns(
     patterns_dict: Dict[ErrorType, List[str]],
     severity: ErrorSeverity,
     error_message_format: str,
-    log_snippet_length: int
+    log_snippet_length: int,
 ) -> Optional[HealthCheckResult]:
     """检查日志中的错误模式（公共函数）
 
@@ -86,8 +111,8 @@ def _check_log_patterns(
                         error_type=error_type,
                         severity=severity,
                         message=error_message_format.format(error_type=error_type.value),
-                        details={"log_snippet": log_content[-log_snippet_length:]}
-                    )
+                        details={"log_snippet": log_content[-log_snippet_length:]},
+                    ),
                 )
     return None
 
@@ -98,9 +123,11 @@ class HealthCheckHook:
     def __init__(self):
         self._hooks: Dict[Enum, List[Tuple[int, Callable, str]]] = {}
 
-    def register(self, hook_point: Enum, func: Optional[Callable] = None,
-                 *, priority: int = 0, name: Optional[str] = None):
+    def register(
+        self, hook_point: Enum, func: Optional[Callable] = None, *, priority: int = 0, name: Optional[str] = None
+    ):
         """注册钩子函数（在基类实现，子类直接继承）"""
+
         def decorator(f):
             hook_name = name or f.__name__
             if hook_point not in self._hooks:
@@ -127,8 +154,8 @@ class HealthCheckHook:
                     error_context=ErrorContext(
                         error_type=ErrorType.UNKNOWN,
                         severity=ErrorSeverity.FATAL,
-                        message=f"Hook {hook_name} raised unexpected exception: {type(e).__name__}: {str(e)}"
-                    )
+                        message=f"Hook {hook_name} raised unexpected exception: {type(e).__name__}: {str(e)}",
+                    ),
                 )
 
         return HealthCheckResult(is_healthy=True)
@@ -136,11 +163,13 @@ class HealthCheckHook:
 
 class ServiceHealthCheckHook(HealthCheckHook):
     """服务化框架健康检查钩子（只继承，无需重复实现register）"""
+
     pass
 
 
 class BenchmarkHealthCheckHook(HealthCheckHook):
     """测评框架健康检查钩子（只继承，无需重复实现register）"""
+
     pass
 
 
@@ -161,7 +190,7 @@ class ServiceHealthChecks:
             patterns_dict=config.fatal_patterns,
             severity=ErrorSeverity.FATAL,
             error_message_format=LOG_ERROR_MESSAGE,
-            log_snippet_length=settings.health_check.log_snippet_length
+            log_snippet_length=settings.health_check.log_snippet_length,
         )
         if result:
             return result
@@ -171,7 +200,7 @@ class ServiceHealthChecks:
             patterns_dict=config.retryable_patterns,
             severity=ErrorSeverity.RETRYABLE,
             error_message_format=LOG_ERROR_MESSAGE,
-            log_snippet_length=settings.health_check.log_snippet_length
+            log_snippet_length=settings.health_check.log_snippet_length,
         )
         if result:
             return result
@@ -195,7 +224,7 @@ class BenchmarkHealthChecks:
             patterns_dict=config.fatal_patterns,
             severity=ErrorSeverity.FATAL,
             error_message_format=BENCHMARK_LOG_ERROR_MESSAGE,
-            log_snippet_length=settings.health_check.log_snippet_length
+            log_snippet_length=settings.health_check.log_snippet_length,
         )
         if result:
             return result
@@ -205,7 +234,7 @@ class BenchmarkHealthChecks:
             patterns_dict=config.retryable_patterns,
             severity=ErrorSeverity.RETRYABLE,
             error_message_format=BENCHMARK_LOG_ERROR_MESSAGE,
-            log_snippet_length=settings.health_check.log_snippet_length
+            log_snippet_length=settings.health_check.log_snippet_length,
         )
         if result:
             return result
@@ -214,9 +243,7 @@ class BenchmarkHealthChecks:
 
 service_health_checks_hooks = [
     (ServiceHookPoint.STARTUP_POLLING, ServiceHealthChecks.check_log_errors, 10),
-    (ServiceHookPoint.RUNTIME_MONITOR, ServiceHealthChecks.check_log_errors, 10)
+    (ServiceHookPoint.RUNTIME_MONITOR, ServiceHealthChecks.check_log_errors, 10),
 ]
 
-benchmark_health_checks_hooks = [
-    (BenchmarkHookPoint.RUNTIME_MONITOR, BenchmarkHealthChecks.check_log_errors, 10)
-]
+benchmark_health_checks_hooks = [(BenchmarkHookPoint.RUNTIME_MONITOR, BenchmarkHealthChecks.check_log_errors, 10)]
