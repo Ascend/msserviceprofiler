@@ -2,39 +2,49 @@
 
 ## Overview
 
-vLLM Service Profiler monitors and collects performance data of the internal execution process of the vLLM-ascend inference service framework. It helps users quickly identify performance bottlenecks by tracing the execution flow. Specifically, it captures critical timing information (start/end timestamps), identifies key functions or iterations, records critical events, and captures diverse types of information throughout the inference pipeline.
+vLLM Service Profiler monitors and collects performance data of the internal execution process of the vLLM-Ascend inference service framework. It helps users quickly identify performance bottlenecks by tracing the execution flow. Specifically, it captures critical timing information (start/end timestamps), identifies key functions or iterations, records critical events, and captures diverse types of information throughout the inference pipeline.
 
-vLLM Service Profiler is used for performance profiling analysis when deploying vLLM-ascend inference services. It covers the end-to-end workflow, from preparation, data collection, data parsing, to result visualization.
+vLLM Service Profiler is used for performance profiling analysis when deploying vLLM-Ascend inference services. It covers the end-to-end workflow, from preparation, data collection, data parsing, to result visualization.
 
 ### Basic Concepts
 
 - **Profile data collection**: records critical time points and events in serving scenarios through event tracking to generate profile data.
-- **Event tracking/Symbol**: specifies a target for profile data collection. This is defined by an executable function in the vLLM or vLLM-ascend source code.
+- **Event tracking/Symbol**: specifies a target for profile data collection. This is defined by an executable function in the vLLM or vLLM-Ascend source code.
 - **Domain**: specifies functional categories for profile data collection, such as Request, KVCache, and ModelExecute.
 - **Symbol configuration**: configuration file, which defines the functions/methods to be collected and their attributes.
 
 ## Supported Products
 
->[!NOTE]
+> [!NOTE]
 >
 >For details about Ascend product models, see [Ascend Product Models](https://www.hiascend.com/document/detail/en/AscendFAQ/ProduTech/productform/hardwaredesc_0001.html).
 
-|Product Type| Supported (Yes/No)|
-|--|:----:|
-|Ascend 950 products|Yes|
-|Atlas A3 Training Products and Atlas A3 Inference Products|  Yes  |
-|Atlas A2 training products and Atlas A2 inference products|  Yes  |
-|Atlas 200I/500 A2 inference products|  Yes  |
-|Atlas inference products|  Yes  |
-|Atlas training products|  No  |
+<!-- npu="950" id1 -->
+- <term>950PR&950DT products</term>: Supported
+<!-- end id1 -->
+<!-- npu="A3" id2 -->
+- <term>Atlas A3 products</term>: Supported
+<!-- end id2 -->
+<!-- npu="910b" id3 -->
+- <term>Atlas A2 products</term>: Supported
+<!-- end id3 -->
+<!-- npu="310b" id4 -->
+- <term>Atlas 200I/500 A2 inference products</term>: Supported
+<!-- end id4 -->
+<!-- npu="310p" id5 -->
+- <term>Atlas inference products</term>: Supported
+<!-- end id5 -->
+<!-- npu="910" id6 -->
+- <term>Atlas training products</term>: Not supported
+<!-- end id6 -->
 
 ### Before You Start
 
 #### Environment Setup
 
 1. In the Ascend environment, install the matching CANN Toolkit and ops operator packages, and configure CANN environment variables. For details, see [CANN Installation Guide](https://www.hiascend.com/en/cann/download).
-2. Install vLLM and vLLM-Ascend. Verify that vLLM-ascend can run properly. For details, see [vLLM-Ascend installation](https://vllm-ascend.readthedocs.io/en/latest/installation.html).
-3. Upgrade msServiceProfiler. Build the `.run` file from the source code and upgrade the tool. For details, see the section *Upgrade* in [msServiceProfiler Installation Guide](./msserviceprofiler_install_guide.md#5-upgrade).
+2. Complete the installation and configuration of vLLM and vLLM-Ascend and confirm that vLLM-Ascend can run properly. For details, see *[vLLM-Ascend Installation Guide](https://docs.vllm.ai/projects/ascend/en/v0.13.0/installation.html)*.
+3. Upgrade msServiceProfiler. Build the `.run` file from the source code and upgrade the tool. For details, see the section *Upgrade* in [msServiceProfiler Installation Guide](../install_guide/msserviceprofiler_install_guide.md#5-upgrade).
 
 #### Constraints
 
@@ -63,6 +73,8 @@ vllm serve Qwen/Qwen2.5-0.5B-Instruct &
 `ms_service_profiler_config.json` indicates the collection configuration file. If the file does not exist, a default configuration is automatically generated. For custom configurations, see [Profiling Configuration Usage Guide](#profiling-configuration-usage-guide).
 
 `service_profiling_symbols.yaml` is the instrumentation configuration file. If you do not set the `PROFILING_SYMBOLS_PATH` environment variable, the default configuration file is used. If the file does not exist at the specified path, the system generates a default configuration file at that location for subsequent modification. For custom configurations, see [Symbol Configuration User Guide](#symbol-configuration-user-guide).
+
+To create custom trace spans through hooks and export the data to Jaeger or Perfetto, see [vLLM Hook Tracing User Guide](./vLLM_hook_tracing_instruct.md).
 
 **2. Starting Data Collection**
 
@@ -111,9 +123,9 @@ The symbol configuration file defines the functions/methods to be monitored, and
 
 #### Built-in/Customized Symbol Configuration File
 
-The symbol configuration file has been built in vLLM-ascend and the tool.
+The symbol configuration file has been built in vLLM-Ascend and the tool.
 
-- Default loading path: `~/.config/vllm_ascend/service_profiling_symbols.MAJOR.MINOR.PATCH.yaml` (applicable to the vLLM-ascend framework and the file name varies with the installed vllm version)
+- Default loading path: `~/.config/vllm_ascend/service_profiling_symbols.MAJOR.MINOR.PATCH.yaml` (applicable to the vLLM-Ascend framework and the file name varies with the installed vllm version)
 - Backup loading path: `*tool installation path*/ms_service_profiler/patcher/vllm/config/service_profiling_symbols.yaml`
 
 To customize profiling symbols, you are advised to set the environment variable PROFILING_SYMBOLS_PATH and copy a symbol configuration file to the working directory for modification.
@@ -127,12 +139,12 @@ If a profiling symbol is updated, restart the vLLM service to load the updated c
 |     Field     | Description               | Example                                                   |
 |:-----------:|:------------------|:------------------------------------------------------|
 |   symbol    | Python import path + attribute chain| `"vllm.v1.core.kv_cache_manager:KVCacheManager.free"` |
-|   handler   | Handler function           | `timer` or `pkg.mod:func` (customized)                |
+|   handler   | Handler type            | `"timer"` (timer) or `"pkg.mod:func"` (custom)                 |
 |   domain    | Domain ID            | `"KVCache"` and `"ModelExecute"`                         |
 |    name     | Event name             | `"EngineCoreExecute"`                                 |
 | min_version | Earliest compatible version           | `"0.9.1"`                                             |
 | max_version | Latest compatible version           | `"0.11.0"`                                            |
-| attributes  | Custom attribute collection          | Only the `timer` handler is supported. For details, see the following custom attribute collection mechanism.                  |
+| attributes  | Custom attribute collection           | Supported only for the `"timer"` handler. See the custom attribute collection mechanism below.                   |
 
 #### Configuration Example
 
@@ -201,15 +213,15 @@ attributes:
   # Obtains the tensor shape
   - name: tensor_shape
     expr: input_tensor | attr shape | str
-  
+
   # Obtaining a specific value from a dictionary
   - name: batch_size
     expr: kwargs['batch_size']
-  
+
   # Condition expression (custom processing function required)
   - name: is_training_mode
     expr: training | bool
-  
+
   # Complex data processing
   - name: processed_data_len
     expr: data | attr items | len | str
@@ -222,18 +234,18 @@ When the `handler` field specifies a custom handler function, the function must 
 ```python
 def custom_handler(original_func, this, *args, **kwargs):
     """
-    Customize handler functions
+    Custom handler function
 
     Args:
-        original_func: original function object
-        this: calling object (for method calling)
-        *args: position parameter
+        original_func: Original function object
+        this: Calling object (for method calls)
+        *args: Positional arguments
         **kwargs: keyword arguments
 
     Returns:
-        Handling result
+        Processing result
     """
-    # Custom handling logic
+    # Custom processing logic
     pass
 ```
 
@@ -263,7 +275,7 @@ Symbol configuration file:
 
 The following figure shows the timeline of `chrome_tracing.json`.
 
-![](figures/vllm_profiler_custom_symbol_timeline_display.PNG)
+![](../figures/vllm_profiler_custom_symbol_timeline_display.PNG)
 
 ## Output File Description
 
@@ -291,7 +303,7 @@ After parsing is complete, the deliverables listed in the following table are ge
 
 ### vLLM versions and supported frameworks
 
-| CANN| vLLM-ascend V0 | vLLM-ascend V1 |
+| CANN| vLLM-Ascend V0 | vLLM-Ascend V1 |
 |:--------:|:--------------:|:--------------:|
 | 8.3.RC1  |       /        |  v0.11.0.RC3   |
 | 8.3.RC1  |       /        |  v0.11.0.RC2   |
@@ -313,4 +325,4 @@ For details about the profiling configuration, see the instructions for creating
 >[!NOTE]
 >
 > - When `acl_task_time` is set to `1`, vLLM Service Profiler does not support the configuration of the `VLLM_TORCH_PROFILER_DIR` environment variable of the native vLLM Torch Profiler for profile data collection.
-> - When configuring the Torch Profiler, set `enable` to `0` (disabling profiling) first. After the vLLM-ascend inference service framework starts, set `enable` to `1` (enabling profiling). To avoid collecting too much profile data, you can disable profiling after the corresponding data is collected. If the initial value of `enable` is `1`, a large amount of framework data is collected, which can easily generate trace files of several gigabytes.
+> - When configuring the Torch Profiler, set `enable` to `0` (disabling profiling) first. After the vLLM-Ascend inference service framework starts, set `enable` to `1` (enabling profiling). To avoid collecting too much profile data, you can disable profiling after the corresponding data is collected. If the initial value of `enable` is `1`, a large amount of framework data is collected, which can easily generate trace files of several gigabytes.

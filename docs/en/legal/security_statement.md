@@ -13,8 +13,10 @@ You are advised to enable the `address space layout randomization` (ASLR) (level
  2. Before installing or using the tool, ensure the executing user's `umask` is 0027 or stricter. ` Otherwise, you may encounter compilation errors, configuration file read failures, or overly permissive permissions on generated directories and files.
 
  3. All tools in this repository are designed to run with minimal permissions. For security reasons, do not use `root` or other privileged accounts. Always install and execute tools as a regular user.
- 
+
  4. If a tool depends on CANN, install the CANN package under the same non-privileged user. After running the `source` command, do not modify the environment variables in `set_env.sh`.
+
+ 5. This repository provides VS Code and devcontainer reference configurations to facilitate development and debugging. They are only for developing and debugging this repository in a secure debugging environment. In addition, check the security of the configurations yourself and adjust them based on actual requirements.
 
 ## File Permission Control
 

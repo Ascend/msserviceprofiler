@@ -1,54 +1,57 @@
-# msServiceProfiler Trace for Data Monitoring <a name="ZH-CN_TOPIC_0000002486322046"></a>
+# msServiceProfiler Trace for Data Monitoring <a name="EN-US_TOPIC_0000002486322046"></a>
 
-## Overview <a name="ZH-CN_TOPIC_0000002518641903"></a>
+## Overview <a name="EN-US_TOPIC_0000002518641903"></a>
 
 msServiceProfiler Trace receives, processes, and forwards distributed trace data using the OpenTelemetry Protocol (OTLP). It helps users monitor and analyze the performance of microservices.
 
 It collects data from the MindIE Motor service, including request response time, response status, client IP/port, and server IP/port. Then, it pushes the collected data to OTLP-compliant open-source monitoring platforms such as Jaeger for visualization.
 
 - The current version primarily targets the MindIE inference framework and supports single-node deployment and multi-node Prefill-Decode (PD) competition deployment.
-- Trace monitoring is currently supported only for core inference endpoints [/v1/chat](https://www.hiascend.com/document/detail/en/mindie/230/LLMframe/llmdev/mindie_service0078.html) and [/v1/completions](https://www.hiascend.com/document/detail/en/mindie/230/LLMframe/llmdev/mindie_service0323.html) of MindIE.
-- For details about data monitoring APIs of msServiceProfiler Trace, see "msServiceProfiler API Reference (C++) \>  [Trace Data Monitoring](./cpp_api/trace_data_monitoring/README.md).
-- For details about MindIE Motor, see [MindIE Motor Developer Guide](https://gitcode.com/Ascend/MindIE-Motor-CPP/blob/v3.0.0/docs/en/user_guide/README.md).
+- Trace monitoring is currently supported only for core inference endpoints [/v1/chat](https://www.hiascend.com/document/detail/en/mindie/latest/mindiellm/llmdev/mindie_service0078.html) and [/v1/completions](https://www.hiascend.com/document/detail/en/mindie/latest/mindiellm/llmdev/mindie_service0323.html) of MindIE.
+- For details about data monitoring APIs of msServiceProfiler Trace, see "msServiceProfiler API Reference (C++) \>  [Trace Data Monitoring](../cpp_api/trace_data_monitoring/README.md).
+- For details about MindIE Motor, see [MindIE Motor Developer Guide](https://gitcode.com/Ascend/MindIE-Motor/blob/26.2.0/docs/en/user_guide/README.md).
 
-## Supported Products<a name="ZH-CN_TOPIC_0000002489576470"></a>
+## Supported Products<a name="EN-US_TOPIC_0000002489576470"></a>
 
->[!NOTE]
+> [!NOTE]
 >
 >For details about Ascend product models, see [Ascend Product Models](https://www.hiascend.com/document/detail/en/AscendFAQ/ProduTech/productform/hardwaredesc_0001.html).
 
-|Product Type| Supported (Yes/No)|
-|--|:----:|
-|Ascend 950 products|No|
-|Atlas A3 Training Products and Atlas A3 Inference Products|  Yes  |
-|Atlas A2 Training Products and Atlas A2 Inference Products|  Yes  |
-|Atlas 200I/500 A2 inference products|  Yes  |
-|Atlas Inference Products|  Yes  |
-|Atlas training products|  No  |
+<!-- npu="950" id1 -->
+- <term>950PR&950DT products</term>: Not supported
+<!-- end id1 -->
+<!-- npu="A3" id2 -->
+- <term>Atlas A3 products</term>: Supported
+<!-- end id2 -->
+<!-- npu="910b" id3 -->
+- <term>Atlas A2 products</term>: Supported
+<!-- end id3 -->
+<!-- npu="310b" id4 -->
+- <term>Atlas 200I/500 A2 inference products</term>: Supported
+<!-- end id4 -->
+<!-- npu="310p" id5 -->
+- <term>Atlas inference products</term>: Supported
+<!-- end id5 -->
+<!-- npu="910" id6 -->
+- <term>Atlas training products</term>: Not supported
+<!-- end id6 -->
 
->[!NOTE]
+> [!NOTE]
 >
->For Atlas A2 training products/Atlas A2 inference products, only the Atlas 800I A2 inference server is supported.
->For Atlas inference products, only the Atlas 300I Duo inference card and Atlas 800 inference server (model 3000) are supported.
+>For Atlas A2 training products/Atlas A2 inference products, only the Atlas 800I A2 in this series is supported.
+>For Atlas inference products, only the Atlas 300I Duo inference card and Atlas 800 inference server (model 3000) in this series are supported.
 
-## Preparations<a name="ZH-CN_TOPIC_0000002486482024"></a>
+## Preparations<a name="EN-US_TOPIC_0000002486482024"></a>
 
 **Environment Setup<a name="section151144214396"></a>**
 
 1. In the Ascend environment, install the matching CANN Toolkit and ops operator packages, and configure CANN environment variables. For details, see [CANN Installation Guide](https://www.hiascend.com/en/cann/download).
 
-2. Install [msServiceProfiler](msserviceprofiler_install_guide.md).
+2. Install [msServiceProfiler](../install_guide/msserviceprofiler_install_guide.md).
 
-3. Install and configure MindIE and ensure that MindIE Motor can run properly. For details, see [MindIE Installation Guide](https://gitcode.com/Ascend/MindIE-Motor/blob/v3.1.0/docs/en/user_guide/maintenance/build_motor_image_from_vllm_ascend.md).
+3. Install and configure MindIE and ensure that MindIE Motor can run properly. For details, see [MindIE Installation Guide](https://gitcode.com/Ascend/MindIE-Motor/blob/26.2.0/docs/en/user_guide/maintenance/build_motor_image_from_vllm_ascend.md).
 
-   ```bash
-   pip install opentelemetry-exporter-otlp-proto-grpc==1.33.1
-   pip install opentelemetry-exporter-otlp-proto-http==1.33.1
-   ```
-
-4. Install and configure MindIE and ensure that MindIE Motor can run properly. For details, see [MindIE Installation Guide](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/deployment/README.md).
-
-5. Establish a stable network connection between the Ascend environment hosting the MindIE Motor service and the OTLP collector (such as Jaeger).
+4. The Ascend environment where the MindIE Motor service resides must have a stable network connection to the OTLP collector (such as Jaeger).
 
 **Constraint<a name="section12833144412392"></a>.**
 
@@ -57,15 +60,15 @@ msServiceProfiler Trace can forward a maximum of 400 concurrent requests. Exceed
 Related log messages (the following logs are reported only once per hour):
 
 ```ColdFusion
-# An alarm is generated when the number of backlogged requests exceeds 100,000.
+# A backlog warning is reported when the number of backlogged requests exceeds 100000
 2025-11-26 15:45:59,038 - 4059906 - msServiceProfiler - WARNING - Trace data is being stacked: {backlog size}
-# A data loss alarm is generated when the number of backlogged requests exceeds 1 million.
+# A data loss warning is reported when the number of backlogged requests exceeds 1000000
 2025-11-26 15:45:59,522 - 4059906 - msServiceProfiler - WARNING - Trace data queue is full, discarding the oldest data.
 ```
 
-## Data Collection <a name="ZH-CN_TOPIC_0000002518521923"></a>
+## Data Collection <a name="EN-US_TOPIC_0000002518521923"></a>
 
-### Enabling Data Collection<a name="ZH-CN_TOPIC_0000002486322048"></a>
+### Enabling Data Collection<a name="EN-US_TOPIC_0000002486322048"></a>
 
 1. Enable trace collection by configuring the environment variable `MS_TRACE_ENABLE`.
 
@@ -78,15 +81,15 @@ Related log messages (the following logs are reported only once per hour):
 
 2. Flexibly control sampling by configuring the following environment variables.
 
-    | Environment Variable| Description| 
+    | Environment Variable| Description|
     |------------|------|
-    | `MS_PROFILER_AUTO_TRACE` | Specifies whether to automatically generate a `trace_id` when the request header does not contain one. Setting this variable to `1` enables auto-generation. If this variable is not set or is set to any other value, auto-generation is disabled.| 
-    | `MS_PROFILER_SAMPLE_RATE` | Sets the sampling rate. This applies only to a request with automatically generated `trace_id`. The value is a positive integer N, indicating that one sample is collected every N requests. If this variable is not set or is set to any other value, no sampling is performed.| 
-    | `MS_PROFILER_SAMPLE_ERROR` | Specifies whether to report only failed requests (applicable to all requests). Setting this variable to `1` reports only error spans. If this variable is not set or is set to any other value, all requests are reported.| 
+    | `MS_PROFILER_AUTO_TRACE` | Specifies whether to automatically generate a `trace_id` when the request header does not contain one. Setting this variable to `1` enables auto-generation. If this variable is not set or is set to any other value, auto-generation is disabled.|
+    | `MS_PROFILER_SAMPLE_RATE` | Sets the sampling rate. This applies only to a request with automatically generated `trace_id`. The value is a positive integer N, indicating that one sample is collected every N requests. If this variable is not set or is set to any other value, no sampling is performed.|
+    | `MS_PROFILER_SAMPLE_ERROR` | Specifies whether to report only failed requests (applicable to all requests). Setting this variable to `1` reports only error spans. If this variable is not set or is set to any other value, all requests are reported.|
 
     ```bash
     # Example of setting environment variables
-    
+
     # Enable auto-generation of trace_id (when missing from request headers).
     export MS_PROFILER_AUTO_TRACE=1
 
@@ -99,7 +102,7 @@ Related log messages (the following logs are reported only once per hour):
 
 3. Run the MindIE Motor service.
 
-### Configuring a Target Server for Collection<a name="ZH-CN_TOPIC_0000002518641905"></a>
+### Configuring a Target Server for Collection<a name="EN-US_TOPIC_0000002518641905"></a>
 
 >[!NOTE]
 >
@@ -163,25 +166,32 @@ Retry mechanism: If a single request fails to be sent (six retries by default), 
 **Syntax<a name="section10872103414491"></a>**
 
 ```bash
-python -m ms_service_profiler.trace [--log-level]
+python -m ms_service_profiler.trace [--log-level] [--perfetto-output]
 ```
+
+> For vLLM Hook Tracing, data must be exported directly to Jaeger by the native OpenTelemetry provider of vLLM. `--perfetto-output` only starts the additional file exporter for hook spans and cannot be used independently of the native tracing of vLLM. MindIE Motor still uses the original forwarder described in this chapter. For details, see *vLLM Hook Tracing User Guide*.
 
 For details about the `option` parameter, see [Parameter Description](#section379581401015).
 
 **Parameter Description<a name="section379581401015"></a>**
 
-**Table 1** Parameters
-
-|Option|Description|**Mandatory (Yes/No)**|
+|**Parameter**|Description|**Required**|
 |--|--|--|
-|--log-level|Sets the log level. The options are as follows:<br>`debug`: debug level. Logs at this level record the debugging information for R&D or maintenance personnel to locate faults.<br>`info`: normal level (default). Logs normal tool operation information.  <br>`warning`: warning level. Logs at this level record information when the tool does not run in an expected state, but the running of the process is not affected.<br>`error`: minor error level. `fatal`: major error level. `critical`: critical error level.|No|
+|--log-level|Sets the log level. The options are as follows:<br>&#8226; debug: debug level. Logs at this level record the debugging information for developers or maintainers to locate issues.<br>&#8226; info: normal level. Logs at this level record normal tool operation information. This is the default value.<br>&#8226; warning: warning level. Logs at this level record unexpected states that do not affect process execution.<br>&#8226; error: minor error level.<br>&#8226; critical: critical error level.<br>&#8226; fatal: fatal error level.|No|
+|--perfetto-output|Optional Perfetto/Chrome Trace JSON output path for vLLM Hook Tracing. When this parameter is used, native tracing must also be enabled in vLLM through `--otlp-traces-endpoint`; this parameter does not change the original OTLP forwarder of MindIE Motor.|No|
 
-**Examples<a name="section192337387165"></a>**
+**Examples<a name="section246434914919"></a>**
 
-Start the trace forward process with the default configuration. The command is as follows:
+Start the trace forwarding process with the default configuration. The command is as follows:
 
 ```bash
 python -m ms_service_profiler.trace
+```
+
+After native tracing has been enabled in vLLM through `--otlp-traces-endpoint`, run the following command to additionally generate a Chrome Trace JSON that Perfetto can open directly:
+
+```bash
+python -m ms_service_profiler.trace --perfetto-output /path/to/hook_tracing.json
 ```
 
 The user starting the trace forward process must match the user starting the MindIE Motor service, and both processes must be in the same network namespace (that is, the same Docker or host).
@@ -279,12 +289,12 @@ curl http://127.0.0.1:1025/v1/chat/completions \
 "stream": false }'
 ```
 
-## Output Description<a name="ZH-CN_TOPIC_0000002486322050"></a>
+## Output Description<a name="EN-US_TOPIC_0000002486322050"></a>
 
 After [sending a request](#sending-requests), you can view the visualization result on an OTLP-compatible open-source monitoring platform such as Jaeger (the Jaeger service must be started beforehand). See the following example for details.
 
-**Figure 1** Visualization result<a name="fig485163113451"></a> 
-![](figures/visualization-result.png "Visualized result")
+**Figure 1** Visualization result<a name="fig485163113451"></a>
+![](../figures/visualization-result.png "Visualized result")
 
 The fields are described as follows:
 

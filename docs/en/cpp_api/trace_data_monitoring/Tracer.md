@@ -1,5 +1,5 @@
-# Tracer Class <a name="ZH-CN_TOPIC_0000002519000169"></a>
+# Tracer Class <a name="EN-US_TOPIC_0000002519000169"></a>
 
-- **[StartSpanAsActive](StartSpanAsActive.md)**  
+- **[StartSpanAsActive](StartSpanAsActive.md)**
 
-- **[IsEnable](IsEnable.md)**  
+- **[IsEnable](IsEnable.md)**

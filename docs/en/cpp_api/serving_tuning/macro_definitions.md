@@ -1,4 +1,4 @@
-# Macro Definition <a name="ZH-CN_TOPIC_0000002184676765"></a>
+# Macro Definition <a name="EN-US_TOPIC_0000002184676765"></a>
 
 - `PROF`: encapsulates profiling statements. Use the `ENABLE\_PROF` macro to control whether profiling is enabled during compilation. `PROF` supports one or two parameters.
     - One parameter: profiling statement.

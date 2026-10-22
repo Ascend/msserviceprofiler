@@ -15,28 +15,38 @@ msServiceProfiler Compare Tool is designed for comparative analysis of performan
 > **Note:**<br>
 >For details about Ascend product models, see [Ascend Product Models](https://www.hiascend.com/document/detail/en/AscendFAQ/ProduTech/productform/hardwaredesc_0001.html).
 
-|Product Type| Supported (Yes/No)|
-|--|:----:|
-|Ascend 950 products|No|
-|Atlas A3 Training Products and Atlas A3 Inference Products|  Yes  |
-|Atlas A2 training products and Atlas A2 inference products|  Yes  |
-|Atlas 200I/500 A2 inference products|  Yes  |
-|Atlas inference products|  Yes  |
-|Atlas training products|  No  |
+<!-- npu="950" id1 -->
+- <term>950PR&950DT products</term>: Not supported
+<!-- end id1 -->
+<!-- npu="A3" id2 -->
+- <term>Atlas A3 products</term>: Supported
+<!-- end id2 -->
+<!-- npu="910b" id3 -->
+- <term>Atlas A2 products</term>: Supported
+<!-- end id3 -->
+<!-- npu="310b" id4 -->
+- <term>Atlas 200I/500 A2 inference products</term>: Supported
+<!-- end id4 -->
+<!-- npu="310p" id5 -->
+- <term>Atlas inference products</term>: Supported
+<!-- end id5 -->
+<!-- npu="910" id6 -->
+- <term>Atlas training products</term>: Not supported
+<!-- end id6 -->
 
 > **Notice:**<br>
->For Atlas A2 training products/Atlas A2 inference products, only the Atlas 800I A2 inference server is supported.<br>
->For Atlas inference products, only the Atlas 300I Duo inference card and Atlas 800 inference server (model 3000) are supported.
+>For Atlas A2 products, only the Atlas 800I A2 in this series is supported.<br>
+>For Atlas inference products, only the Atlas 300I Duo inference card and Atlas 800 inference server (model 3000) in this series are supported.
 
 ## Preparations
 
-- Install [msServiceProfiler](msserviceprofiler_install_guide.md). 
+- Install [msServiceProfiler](../install_guide/msserviceprofiler_install_guide.md).
 - If operator-level comparison is required, ensure that [msprof-analyze](https://gitcode.com/Ascend/msprof-analyze) is installed.
 
 **Data Preparation**
 
-- Collect service profile data to obtain two sets of data for comparison. For detailed collection methods, see [msServiceProfiler](https://gitcode.com/Ascend/msserviceprofiler/blob/master/docs/en/msserviceprofiler_serving_tuning_instruct.md). 
-- In operator comparison scenarios, use [msServiceProfiler](https://gitcode.com/Ascend/msserviceprofiler/blob/master/docs/en/msserviceprofiler_serving_tuning_instruct.md) to collect profile data. Set `acl_task_time` to `3` to ensure that the directory of the collected profile data contains the operator data file suffixed with `_ascend_pt`.
+- Collect service profile data to obtain two sets of data for comparison. For detailed collection methods, see [msServiceProfiler](./msserviceprofiler_serving_tuning_instruct.md).
+- In operator comparison scenarios, use [msServiceProfiler](./msserviceprofiler_serving_tuning_instruct.md) to collect profile data. Set `acl_task_time` to `3` to ensure that the directory of the collected profile data contains the operator data file suffixed with `_ascend_pt`.
 
 **Constraints**
 
@@ -84,10 +94,10 @@ The output directory structure is as follows:
 ```ColdFusion
 |- output_path
     |- span_comparation_result.csv
-    
+
 ```
 
-**Field Description** 
+**Field Description**
 
 **Table 1** span_comparation_result.csv
 

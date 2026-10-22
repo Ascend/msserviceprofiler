@@ -1,7 +1,5 @@
 # msServiceProfiler Development Guide
 
-<!-- md-trans-meta sourceCommit=baa00b57bba45e0e150679d059c55e5cc1b52b22 translatedAt=2026-08-18T06:08:19.182Z pushedAt=2026-08-18T06:12:18.181Z -->
-
 ## 1. Project Overview
 
 ### 1.1 Project Overview
@@ -20,66 +18,9 @@ msServiceProfiler is a performance data collection, parsing, and analysis tool f
 
 ## 2. Development Environment Configuration
 
-### 2.1 Recommended Development Software
+Complete the setup of the build and test environment as described in *[msServiceProfiler Installation Guide - Source Installation](../install_guide/msserviceprofiler_install_guide.md#231-environment-setup)*.
 
-| Software | Purpose |
-| :------ | :----------- |
-| VSCode  | Python/C++ development |
-| CLion   | C++ development (recommended) |
-| PyCharm | Python development (recommended) |
-
-### 2.2 Environment Dependencies
-
-#### 2.2.1 System Requirements
-
-- **Operating System**: Linux (CentOS, Ubuntu, and other mainstream distributions)
-
-- **Hardware Platform**: Ascend NPU
-
-#### 2.2.2 Software Dependencies
-
-| Software Name | Version Requirement | Purpose |
-| :------ | :------- | :------ |
-| Python | >= 3.10 | Runtime environment |
-| cmake | >= 3.11 | C++ project build |
-| gcc/g++ | Supports C++14 | C++ compiler |
-| git | None | Code management |
-| sqlite3 | None | Database dependency |
-
-#### 2.2.3 Python Dependencies
-
-**Runtime dependencies**:
-
-```text
-pandas~=2.2
-openpyxl
-numpy
-pydantic
-psutil
-scipy
-pyyaml
-matplotlib
-msguard
-loguru
-opentelemetry-exporter-otlp-proto-grpc==1.33.1
-opentelemetry-exporter-otlp-proto-http==1.33.1
-bytecode>=0.17.0
-```
-
-**Development and test dependencies**:
-
-```text
-coverage
-pytest
-pytest-mock
-pytest_check
-jsonschema
-pytest-asyncio
-```
-
-#### 2.2.4 CANN Environment
-
-You need to install the matching CANN Toolkit development package and configure the CANN environment variables. For details, see [CANN Quick Installation](https://www.hiascend.com/en/cann/download).
+> **Note:** The build method of the environment image and the versions of the supporting software are maintained by the MindStudio unified image creation guide and are not repeated in this repository.
 
 ## 3. Code Download and Project Structure
 
@@ -101,7 +42,7 @@ For the detailed directory structure, see [Directory Structure Description](../d
 
 ### 4.1 One-click Installation
 
-For detailed installation instructions, see [msServiceProfiler Tool Installation Guide](../msserviceprofiler_install_guide.md).
+For detailed installation instructions, see [msServiceProfiler Tool Installation Guide](../install_guide/msserviceprofiler_install_guide.md).
 
 ### 4.2 Script-based Build
 
@@ -119,9 +60,7 @@ The build artifacts are located in the `output/` directory.
 The script performs the following steps:
 
 1. Download third-party files
-
 2. Build the run package
-
 3. Perform the upgrade
 
 ```bash
@@ -191,9 +130,7 @@ make -j$(nproc)
 #### 5.1.2 CLion Debugging Configuration
 
 1. Open the project root directory with CLion.
-
 2. Configure the CMake option: `-Dms_service_profiler_BUILD_TESTS=ON`
-
 3. Set breakpoints and start debugging.
 
 ### 5.2 Python Module Debugging
@@ -293,7 +230,6 @@ pip install -e .
 **Verification steps** (select based on the modified content):
 
 - Modify collection-related code: start the service to perform collection verification.
-
 - Modify parsing-related code: directly parse the data for verification (see [5.3 Joint Debugging Guide](#53-joint-debugging-guide-end-to-end-verification)).
 
 ```bash
@@ -317,17 +253,13 @@ MindIE uses intrusive instrumentation for collection, which requires directly ca
 **Development Guide**:
 
 - C++ API: See [Serving Tuning C++ API](../cpp_api/serving_tuning/README.md)
-
 - Python API: See [Serving Tuning Python API](../python_api/README.md)
-
-- Usage Instructions: See [Serving Tuning Tool User Guide](../msserviceprofiler_serving_tuning_instruct.md)
+- Usage Instructions: See [Serving Tuning Tool User Guide](../user_guide/msserviceprofiler_serving_tuning_instruct.md)
 
 **Development Process**:
 
 1. Add collection interface calls (span\_start/span\_end, etc.) at the target code locations.
-
 2. Compile and replace the dynamic library (if C++ code is modified).
-
 3. Start the service to verify the collection effect.
 
 #### 5.5.2 vLLM Framework (Dynamic Hook)
@@ -336,20 +268,15 @@ vLLM adopts dynamic hook for collection. Collection points are defined by config
 
 **Development Guide**:
 
-- Usage Instructions: See [vLLM Service-oriented Performance Collection Tool User Guide](../vLLM_service_oriented_performance_collection_tool.md)
-
-- Point Configuration: See [vLLM Point Configuration User Guide](../vLLM_service_oriented_performance_collection_tool.md#symbol-configuration-user-guide)
-
+- Usage Instructions: See [vLLM Service-oriented Performance Collection Tool User Guide](../user_guide/vLLM_service_oriented_performance_collection_tool.md)
+- Point Configuration: See [vLLM Point Configuration User Guide](../user_guide/vLLM_service_oriented_performance_collection_tool.md#symbol-configuration-user-guide)
 - Configuration File: `ms_service_profiler/patcher/vllm/config/service_profiling_symbols.yaml`
-
 - Hook Implementation: `ms_service_profiler/patcher/vllm/handlers/`
 
 **Development Process**:
 
 1. Modify the YAML configuration file to add new collection points, or modify the hook logic in handlers.
-
 2. Set the environment variable `PROFILING_SYMBOLS_PATH` to point to the configuration file.
-
 3. Start the vLLM service to verify the collection effect.
 
 #### 5.5.3 SGLang Framework (Dynamic Hook)
@@ -358,20 +285,16 @@ SGLang uses dynamic hook for collection, similar to vLLM.
 
 **Development Guide**:
 
-- Usage Instructions: See [SGLang Service-oriented Performance Collection Tool User Guide](../SGLang_service_oriented_performance_collection_tool.md)
-
+- Usage Instructions: See [SGLang Service-oriented Performance Collection Tool User Guide](../user_guide/SGLang_service_oriented_performance_collection_tool.md)
 - Configuration File: `ms_service_profiler/patcher/sglang/config/service_profiling_symbols.yaml`
-
 - Hook implementation: `ms_service_profiler/patcher/sglang/handlers/`
 
-**Configuration description**: The YAML configuration format of SGLang is the same as that of vLLM. For details, see [vLLM Symbol Configuration User Guide](../vLLM_service_oriented_performance_collection_tool.md#symbol-configuration-user-guide).
+**Configuration description**: The YAML configuration format of SGLang is the same as that of vLLM. For details, see [vLLM Symbol Configuration User Guide](../user_guide/vLLM_service_oriented_performance_collection_tool.md#symbol-configuration-user-guide).
 
 **Development process**:
 
 1. Import the collection module in the SGLang entry file.
-
 2. Modify the YAML configuration file or hook logic.
-
 3. Start the SGLang service to verify the collection effect.
 
 ### 5.6 Parsing Development Guide
@@ -406,15 +329,15 @@ from .base import ExporterBase
 
 class ExporterXxx(ExporterBase):
     name = 'xxx'  # Exporter name
-    
+
     @classmethod
     def initialize(cls, args):
         cls.args = args
-    
+
     @classmethod
     def is_provide(cls, formats):
         return 'xxx' in formats  # Any combination of 'csv', 'json', and 'db'
-    
+
     def do_export(self):
         # Implement the export logic.
         data = self.load_data()
@@ -433,7 +356,7 @@ class ExporterFactory:
     ]
 ```
 
-#### 5.6.4 Example of Adding a Plugin 
+#### 5.6.4 Example of Adding a Plugin
 
 Create a new plugin in the `ms_service_profiler/plugins/` directory.
 
@@ -450,20 +373,18 @@ class PluginXxx(PluginBase):
 #### 5.6.5 Data Flow Description
 
 1. **Data loading**: `DataSource` loads data from the raw data directory.
-
 2. **Pipeline processing**: `Pipeline` orchestrates the processing flow and invokes each `Plugin` in sequence.
-
 3. **Data export**: `Exporter` exports the processed data in the specified format.
 
 ```text
 ┌─────────────┐     ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
 │  DataSource │ ──→ │  Pipeline   │ ──→ │   Plugin    │ ──→ │  Exporter   │
-│             │     │             │     │             │     │             │
+│Data loading │ │Orchestration│ │ Processing  │ │ Data export │
 └─────────────┘     └─────────────┘     └─────────────┘     └─────────────┘
                                                               ↓
                                                         ┌─────────────┐
                                                         │ CSV/JSON/DB │
-                                                        │             │
+                                                        │Deliverables │
                                                         └─────────────┘
 ```
 
@@ -472,13 +393,11 @@ class PluginXxx(PluginBase):
 ### 6.1 Test Framework
 
 - **C++ Tests**: GoogleTest
-
 - **Python Tests**: pytest + coverage
 
 ### 6.2 Coverage Requirements
 
 - **Line coverage**: ≥ 80%
-
 - **Branch coverage**: ≥ 60%
 
 ### 6.3 UT Execution
@@ -535,7 +454,6 @@ bash test/run_st.sh
 When adding new feature code, you are required to supplement  developer tests (DTs) at the same time:
 
 - **C++ DT**: Add test files in the `test/ut/cpp/` directory.
-
 - **Python DT**: Add test files in the `test/ut/python/` directory.
 
 ## 7. New Feature Development Guide
@@ -563,11 +481,11 @@ from .base_data_source import BaseDataSource
 class XxxDataSource(BaseDataSource):
     def __init__(self, config):
         super().__init__(config)
-        
+
     def load(self):
         # // Implement the data loading logic
         pass
-        
+
     def parse(self):
         # // Implement the data parsing logic
         pass
@@ -586,15 +504,15 @@ from .base import ExporterBase
 
 class ExporterXxx(ExporterBase):
     name = 'xxx'  # Exporter name
-    
+
     @classmethod
     def initialize(cls, args):
         cls.args = args
-    
+
     @classmethod
     def is_provide(cls, formats):
         return 'xxx' in formats  # Supported formats
-    
+
     def do_export(self):
         # Implement the export logic
         data = self.load_data()
@@ -641,13 +559,13 @@ Add a new hook handler in the `ms_service_profiler/patcher/` directory:
 def xxx_handler(original_func, this, *args, **kwargs):
     """
     Custom hook handler function
-    
+
     Args:
         original_func: Original function object
         this: Calling object (for method calls)
         *args: Positional arguments
         **kwargs: Keyword arguments
-    
+
     Returns:
         Processing result
     """
@@ -679,7 +597,7 @@ The msServiceProfiler tool consists of two parts: **collection** and **parsing**
 │  C++ collection                 │  Python collection        │
 │  (cpp/include/msServiceProfiler)│  (ms_service_profiler/)   │
 ├─────────────────────────────────────────────────────────────┤
-│  MindIE        │  vLLM         │  SGLang                    │
+│  MindIE framework  │  vLLM framework  │  SGLang framework   │
 └─────────────────────────────────────────────────────────────┘
                               ↓ Raw data
 ┌─────────────────────────────────────────────────────────────┐
@@ -693,7 +611,7 @@ The msServiceProfiler tool consists of two parts: **collection** and **parsing**
 └─────────────────────────────────────────────────────────────┘
                               ↓ Deliverables
 ┌─────────────────────────────────────────────────────────────┐
-│  CSV      │  JSON    │  DB   │  other formats               │
+│  CSV file  │  JSON file  │  DB file  │  other formats       │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -764,17 +682,13 @@ The format of the deliverables after parsing:
 ### 8.1 C++ Coding Standards
 
 - Use the C++14 standard.
-
 - Follow the Google C++ Style Guide.
-
 - Compilation options: `-fvisibility=hidden -fPIC -fstack-protector-all`
 
 ### 8.2 Python Coding Standards
 
 - Follow the PEP 8 specification.
-
 - Use type hints.
-
 - Docstrings follow the Google style.
 
 ### 8.3 Commit Conventions
@@ -792,24 +706,18 @@ Commit message format:
 Type:
 
 - `feat`: new feature
-
 - `fix`: bug fix
-
 - `docs`: documentation updates
-
 - `style`: code formatting adjustments
-
 - `refactor`: code refactoring
-
 - `test`: test-related changes
-
 - `chore`: build/tool-related changes
 
 ## 9. Packaging and Release
 
 ### 9.1 Version Number Specification
 
-Version number format: `major.minor.revision`
+Version number format: `major.minor.patch`
 
 Example: `26.0.0`
 
@@ -856,9 +764,7 @@ ls output/
 The `--upgrade` command will overwrite the following files in the target path:
 
 - `ms_service_profiler/`: Python package
-
 - `libms_service_profiler.so`: dynamic library
-
 - `include/msServiceProfiler/`: header files
 
 During the upgrade, the files to be overwritten will be listed and confirmation will be awaited:
@@ -924,20 +830,12 @@ A: Check whether the log contains output similar to the following:
 
 ## 11. Related Documents
 
-- [msServiceProfiler Tool Installation Guide](../msserviceprofiler_install_guide.md)
-
-- [Quick Start](../quick_start.md)
-
-- [Serving Tuning Tool User Guide](../msserviceprofiler_serving_tuning_instruct.md)
-
-- [vLLM Serving Performance Collection Tool](../vLLM_service_oriented_performance_collection_tool.md)
-
-- [SGLang Serving Performance Collection Tool](../SGLang_service_oriented_performance_collection_tool.md)
-
-- [Trace Data Monitoring Tool](../msserviceprofiler_trace_data_monitoring_instruct.md)
-
-- [Serving Auto-tuning Tool](../serviceparam_optimizer_instruct.md)
-
-- [Serving Expert Advice Tool](../service_profiling_advisor_instruct.md)
-
+- [msServiceProfiler Tool Installation Guide](../install_guide/msserviceprofiler_install_guide.md)
+- [Quick Start](../quick_start/quick_start.md)
+- [Serving Tuning Tool User Guide](../user_guide/msserviceprofiler_serving_tuning_instruct.md)
+- [vLLM Serving Performance Collection Tool](../user_guide/vLLM_service_oriented_performance_collection_tool.md)
+- [SGLang Serving Performance Collection Tool](../user_guide/SGLang_service_oriented_performance_collection_tool.md)
+- [Trace Data Monitoring Tool](../user_guide/msserviceprofiler_trace_data_monitoring_instruct.md)
+- [Serving Auto-tuning Tool](../user_guide/serviceparam_optimizer_instruct.md)
+- [Serving Expert Advice Tool](../user_guide/service_profiling_advisor_instruct.md)
 - [Contribution Guide](../../../CONTRIBUTING.md)

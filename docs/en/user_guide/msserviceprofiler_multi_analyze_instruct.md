@@ -4,31 +4,41 @@
 
 msServiceProfiler Multi Analyze parses the profile data collected by the msServiceProfiler from multiple dimensions, including request-level, batch-level, and overall service-level dimensions.
 
-### Supported Products<a name="ZH-CN_TOPIC_0000002479925980"></a>
+### Supported Products<a name="EN-US_TOPIC_0000002479925980"></a>
 
->[!NOTE]
+> [!NOTE]
 >
 >For details about Ascend product models, see [Ascend Product Models](https://www.hiascend.com/document/detail/en/AscendFAQ/ProduTech/productform/hardwaredesc_0001.html).
 
-|Product Type| Supported (Yes/No)|
-|--|:----:|
-|Ascend 950 products|No|
-|Atlas A3 Training Products and Atlas A3 Inference Products|  Yes  |
-|Atlas A2 Training Products and Atlas A2 Inference Products|  Yes  |
-|Atlas 200I/500 A2 inference products|  Yes  |
-|Atlas Inference Products|  Yes  |
-|Atlas training products|  No  |
+<!-- npu="950" id1 -->
+- <term>950PR&950DT products</term>: Not supported
+<!-- end id1 -->
+<!-- npu="A3" id2 -->
+- <term>Atlas A3 products</term>: Supported
+<!-- end id2 -->
+<!-- npu="910b" id3 -->
+- <term>Atlas A2 products</term>: Supported
+<!-- end id3 -->
+<!-- npu="310b" id4 -->
+- <term>Atlas 200I/500 A2 inference products</term>: Supported
+<!-- end id4 -->
+<!-- npu="310p" id5 -->
+- <term>Atlas inference products</term>: Supported
+<!-- end id5 -->
+<!-- npu="910" id6 -->
+- <term>Atlas training products</term>: Not supported
+<!-- end id6 -->
 
->[!NOTE]
+> [!NOTE]
 >
->For Atlas A2 training products/Atlas A2 inference products, only the Atlas 800I A2 inference server is supported.
->For Atlas inference products, only the Atlas 300I Duo inference card and Atlas 800 inference server (model 3000) are supported.
+>For Atlas A2 products, only the Atlas 800I A2 in this series is supported.
+>For Atlas inference products, only the Atlas 300I Duo inference card and Atlas 800 inference server (model 3000) in this series are supported.
 
 ## Preparations
 
 **Environment Setup**
 
-Install [msServiceProfiler](msserviceprofiler_install_guide.md).
+Install [msServiceProfiler](../install_guide/msserviceprofiler_install_guide.md).
 
 **Version Compatibility**
 
@@ -51,8 +61,8 @@ None
 ### Syntax
 
     ```bash
-    msserviceprofiler analyze 
-    --input-path=/path/to/input 
+    msserviceprofiler analyze
+    --input-path=/path/to/input
     [--output-path=/path/to/output/]
     [--log-level level]
     [--format format]
@@ -64,8 +74,8 @@ None
 |------------------|-----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | --input-path     | Yes     | Specifies the path to the profile data.                                                                                                                                       |
 | --output-path    | No     | Specifies the output directory where the parsing result files will be saved. It defaults to the `output` folder in the current directory.                                                                                                     |
-| --log-level      | No     | Sets the log level. The options are as follows:<br>- `debug`: debug level. Logs debugging information for issue diagnosis.<br>- `info`: informational level. Logs the normal tool operation information.<br>- `warning`: warning level. Indicates unexpected but non-critical states that do not interrupt execution.<br>- `error`: minor error level.<br>- `fatal`: major error level.<br>- `critical`: critical error level.|
-| --format        | No     | Sets the export format for the profile data output files. The options are `json`, `csv`, and `db`.                                                                                                       |
+| --log-level   | No     | Sets the log level. The options are as follows:<br>- `debug`: debug level. Logs debugging information for issue diagnosis.<br>- `info`: informational level. Logs the normal tool operation information. This is the default value.<br>- `warning`: warning level. Indicates unexpected but non-critical states that do not interrupt execution.<br>- `error`: minor error level.<br>- `critical`: critical error level.<br>- `fatal`: fatal error level. |
+| --format      | No     | Sets the export format of the profiling data output file. The value can be json, csv, or db.       |
 
 ### **Output File Description**
 
@@ -119,7 +129,7 @@ None
   | generate_token_speed(token/s)  | Tokens output per second (token/s).|
   | generate_all_token_speed(token/s) | Tokens processed per second (token/s) (total number of input and output tokens).|
   | Metrics (row header) |-|
-  | Value | Value|
+  | Value | The actual value. |
 
 - Mapping between domains and parsed results
 
