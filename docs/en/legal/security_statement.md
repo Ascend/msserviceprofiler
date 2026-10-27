@@ -10,7 +10,7 @@ You are advised to enable the `address space layout randomization` (ASLR) (level
 
  1. Use the principle of least privilege. For example, prevent other users from writing data by disabling permissions like `666` and `777`.
 
- 2. Before installing or using the tool, ensure the executing user's `umask` is 0027 or stricter. ` Otherwise, you may encounter compilation errors, configuration file read failures, or overly permissive permissions on generated directories and files.
+ 2. Before installing or using the tool, ensure the executing user's `umask` is 0027 or stricter. Otherwise, you may encounter compilation errors, configuration file read failures, or overly permissive permissions on generated directories and files.
 
  3. All tools in this repository are designed to run with minimal permissions. For security reasons, do not use `root` or other privileged accounts. Always install and execute tools as a regular user.
 

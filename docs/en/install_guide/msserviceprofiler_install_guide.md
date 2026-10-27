@@ -85,7 +85,7 @@ Copy the run package to the runtime environment and run the following command to
 
 The software package is installed successfully when the output contains the following information.
 
-```text
+```ColdFusion
 mindstudio-msserviceprofiler package install success, the path is: '<install_path>'.
 ```
 
@@ -132,7 +132,7 @@ You can uninstall the tool by following these steps:
 
    If the uninstallation is successful, the following information is printed:
 
-   ```text
+   ```ColdFusion
    Successfully uninstalled 1 tool ({tools_name})
    ```
 

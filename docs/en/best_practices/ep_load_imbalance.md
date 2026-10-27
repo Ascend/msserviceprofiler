@@ -2,7 +2,7 @@
 
 ## Background
 
-During mixture of expert (MoE) model inference, expert parallelism (EP) distributes experts across different ranks or devices. After requests are routed, if a small number of experts are continuously selected, the corresponding ranks will handle more operations such as `GroupedMatmul` computation and `dispatch` or `combine` communication. As a result, these ranks have longer execution durations, consequently increasing the execution duration of the entire MoE layer.
+During mixture of experts (MoE) model inference, expert parallelism (EP) distributes experts across different ranks or devices. After requests are routed, if a small number of experts are continuously selected, the corresponding ranks will handle more operations such as `GroupedMatmul` computation and `dispatch` or `combine` communication. As a result, these ranks have longer execution durations, consequently increasing the execution duration of the entire MoE layer.
 
 ## Source
 

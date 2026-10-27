@@ -99,7 +99,7 @@ make -j$(nproc)
 #### 4.3.2 Python环境配置
 
 ```bash
-# 安装开发模式（支持代码修改后即时生效） 
+# 安装开发模式（支持代码修改后即时生效）
 pip install -e .
 
 # 安装测试依赖
@@ -165,7 +165,7 @@ export SERVICE_PROF_CONFIG_PATH="./ms_service_profiler_config.json"
 
 启动目标服务（MindIE/vLLM/SGLang），检查日志确认msServiceProfiler已启动：
 
-```text
+```ColdFusion
 [msservice_profiler] [PID:225] [INFO] [ParseEnable:179] profile enable_: false
 ```
 
@@ -329,15 +329,15 @@ from .base import ExporterBase
 
 class ExporterXxx(ExporterBase):
     name = 'xxx'  # 导出器名称
-    
+
     @classmethod
     def initialize(cls, args):
         cls.args = args
-    
+
     @classmethod
     def is_provide(cls, formats):
         return 'xxx' in formats  # 'csv', 'json', 'db' 任意组合
-    
+
     def do_export(self):
         # 实现导出逻辑
         data = self.load_data()
@@ -481,11 +481,11 @@ from .base_data_source import BaseDataSource
 class XxxDataSource(BaseDataSource):
     def __init__(self, config):
         super().__init__(config)
-        
+
     def load(self):
         # 实现数据加载逻辑
         pass
-        
+
     def parse(self):
         # 实现数据解析逻辑
         pass
@@ -504,15 +504,15 @@ from .base import ExporterBase
 
 class ExporterXxx(ExporterBase):
     name = 'xxx'  # 导出器名称
-    
+
     @classmethod
     def initialize(cls, args):
         cls.args = args
-    
+
     @classmethod
     def is_provide(cls, formats):
         return 'xxx' in formats  # 支持的格式
-    
+
     def do_export(self):
         # 实现导出逻辑
         data = self.load_data()
@@ -559,13 +559,13 @@ class PluginXxx:
 def xxx_handler(original_func, this, *args, **kwargs):
     """
     自定义Hook处理函数
-    
+
     Args:
         original_func: 原始函数对象
         this: 调用对象（对于方法调用）
         *args: 位置参数
         **kwargs: 关键字参数
-    
+
     Returns:
         处理结果
     """

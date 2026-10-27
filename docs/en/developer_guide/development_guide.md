@@ -165,7 +165,7 @@ export SERVICE_PROF_CONFIG_PATH="./ms_service_profiler_config.json"
 
 Start the target service (MindIE/vLLM/SGLang) and check the logs to confirm that msServiceProfiler has started.
 
-```text
+```ColdFusion
 [msservice_profiler] [PID:225] [INFO] [ParseEnable:179] profile enable_: false
 ```
 
@@ -769,7 +769,7 @@ The `--upgrade` command will overwrite the following files in the target path:
 
 During the upgrade, the files to be overwritten will be listed and confirmation will be awaited:
 
-```text
+```ColdFusion
 [mindstudio-msserviceprofiler] [INFO]: Upgrade target path: /usr/local/Ascend/cann-x.x.x
 [mindstudio-msserviceprofiler] [INFO]: The following files will be overwritten.
   - /usr/local/Ascend/cann-x.x.x/python/site-packages/ms_service_profiler

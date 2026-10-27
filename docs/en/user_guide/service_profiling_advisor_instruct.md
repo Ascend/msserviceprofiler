@@ -69,7 +69,7 @@ pip uninstall msservice_advisor
 ### Functions
 
 - **Scenario 1: Recommend `maxBatchSize` for the decode phase based on the NPU memory, input/output lengths, and model size.**
-  - You need to provide the `instance` folder, or manually specify the input/output token lengths using `-in, --input_token_num` and `-out, --output_token_num``.
+  - You need to provide the `instance` folder, or manually specify the input/output token lengths using `-in, --input_token_num` and `-out, --output_token_num`.
   - To obtain the model path, you need to provide the MindIE Service `config.json` file.
   - The NPU memory usage corresponding to `npuDeviceIds` specified in the MindIE Service `config.json` file should reflect the actual memory usage before MindIE Service startup. Alternatively, `npuMemSize` in the MindIE Service `config.json` file must be explicitly specified.
 - **Scenario 2: Fit a model to the `instance` output data from benchmark tests and recommend `maxBatchSize` and `maxPrefillBatchSize` values.**

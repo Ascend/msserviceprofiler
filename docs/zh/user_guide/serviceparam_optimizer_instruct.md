@@ -331,7 +331,6 @@ msserviceprofiler optimizer -e vllm -b vllm_benchmark -c ../configs/vllm_config.
 |datasets| 指定数据集任务，可根据[数据集准备指南](https://github.com/AISBench/benchmark/blob/master/docs/source_zh_cn/get_started/datasets.md)进行配置 |
 |mode| 运行模式。可根据[运行模式说明](https://github.com/AISBench/benchmark/blob/master/docs/source_zh_cn/base_tutorials/all_params/mode.md)进行配置。|
 |num_prompts| 控制运行数据集的条数，`mode`为`perf`时有效。|
-|num_prompts| 控制运行数据集的条数，`mode`为`perf`时有效。|
 
 若使用`vllm_benchmark`测评，需修改以下参数：
 
@@ -349,7 +348,7 @@ msserviceprofiler optimizer -e vllm -b vllm_benchmark -c ../configs/vllm_config.
 **服务化参数**： 可以参考[MindIE server 配置参数说明](https://gitcode.com/Ascend/MindIE-LLM/blob/master/docs/zh/user_guide/user_manual/service_parameter_configuration.md)进行修改。
 服务化参数可直接指定参数的范围，如配置服务化参数 `max_batch_size` 的寻优搜索空间为 10 ~ 400，则可设置：
 
-```shell
+```toml
 [[mindie.target_field]]
 name = "max_batch_size"    # 服务化参数名称
 config_position = "BackendConfig.ScheduleConfig.maxBatchSize"    # 服务化参数在MindIE Server中的位置
@@ -360,13 +359,13 @@ dtype = "int"    # 数据类型
 
 此外，也可设置参数与另一参数相关，如 `max_prefill_batch_size` 与 `max_batch_size` 相关，`max_prefill_batch_size = ratio * max_batch_size (0 < ratio < 1)`则可设置：
 
-```shell
+```toml
 [[mindie.target_field]]
 name = "max_prefill_batch_size"
 config_position = "BackendConfig.ScheduleConfig.maxPrefillBatchSize"
 min = 0
 max = 1
-dtype = "ratio" 
+dtype = "ratio"
 dtype_param = "max_batch_size"    # 表明该参数与max_batch_size相关
 ```
 
@@ -402,7 +401,7 @@ dtype_param = "max_batch_size"    # 表明该参数与max_batch_size相关
 > - **显式设置范围**：在 `dtype_param` 中配置 `min_value` / `max_value` 可覆盖上下界。
 > - **最佳实践**：限制 `tp`、`pp` 的枚举候选使乘积可整除 `product`，避免依赖降级处理。
 
-```shell
+```toml
 # 方式一（最佳实践）：限制 tp 和 pp 的枚举候选值，保证 tp × pp ≤ 16
 [[mindie.target_field]]
 name = "tp"
@@ -431,7 +430,7 @@ dtype_param = {target_names = ["tp", "pp"], product = 16, dtype = "int"}
 #        tp=8, pp=2 → dp = 16 ÷ (8 × 2) = 1
 ```
 
-```shell
+```toml
 # 方式二：配置 min_value 作为修复失败后的下界保护，并输出警告
 [[mindie.target_field]]
 name = "dp"
@@ -452,7 +451,7 @@ dtype_param = {target_names = ["tp", "pp"], product = 16, dtype = "int", min_val
 | `balanced`（默认） | 将粒子均分两组：前半用 `target_names` 顺序修复，后半用反序修复，降低单一解码顺序带来的结构性偏置 | 用户没有明确字段优先偏好，默认使用 |
 | `fixed` | 用户显式指定修复顺序：高优先级字段尽量保持不动，优先调整低优先级字段 | 用户明确知道哪个字段更应该稳定 |
 
-```shell
+```toml
 # balanced（默认）策略示例
 # 适用：用户没有指定哪个字段更重要，系统自动均衡分配修复方向
 [[mindie.target_field]]
@@ -469,7 +468,7 @@ dtype_param = {
 }
 ```
 
-```shell
+```toml
 # fixed 策略示例
 # 适用：用户明确知道 tp 应保持稳定，优先调整 pp
 [[mindie.target_field]]
@@ -500,7 +499,7 @@ dtype_param = {
 
 场景二：`seq_len`、`prefill_batch_size` 为可调参数，`max_prefill_tokens` 自动设为二者之积的 2 倍（`max_prefill_tokens = 2 × seq_len × prefill_batch_size`）：
 
-```shell
+```toml
 [[mindie.target_field]]
 name = "seq_len"
 config_position = "BackendConfig.ModelConfig.seqLen"
@@ -528,7 +527,7 @@ dtype_param = {target_names = ["seq_len", "prefill_batch_size"], product = 2, dt
 
 使用vllm框架时，需修改`config.toml`中的`[vllm.command]`参数，如：
 
-```shell
+```toml
 [vllm.command]
 host = "127.0.0.1"
 port = "8000"
@@ -671,13 +670,13 @@ K8s_v1.23_MindCluster.7.1.RC1.B098.aarch/
 
 即配置
 
-```shell
+```toml
 kubectl_default_path = "K8s_v1.23_MindCluster.7.1.RC1.B098.aarch/kubernetes_deploy_scripts_latest" #使用绝对路径
 ```
 
 如果需要配置pd配比的参数寻优只需在config.toml的mindie配置中添加如下参数：
 
-```shell
+```toml
 [[mindie.target_field]]
 name = "default_p_rate"
 config_position = "default_p_rate"

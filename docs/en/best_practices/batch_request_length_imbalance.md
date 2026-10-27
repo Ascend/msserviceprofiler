@@ -2,7 +2,7 @@
 
 ## Background
 
-A customer deployed an inference service based on MindIE-LLM for LLaMA2-70B on an Ascend A2 cluster. After deployment, stress testing showed that at a fixed concurrency level (QPS = 20), the serving throughput was only about **55%** of the expected value. 99th-percentile (P99) time to first token (TTFT) reached **820 ms** (SLA target: **300 ms**), and P99 time per output token (TPOT) reached **85 ms** (SLA target: **30 ms**). However, `npu-smi info` showed that the average NPU utilization (AICore) was **78%**, while AIPower was normal and the temperature did not trigger frequency throttling. On the surface, the hardware did not appear to be fully utilized, yet the service was slow. This is a typical serving-layer scheduling issue.
+A customer deployed an inference service based on MindIE-LLM for LLaMA2-70B on an Ascend A2 cluster. After deployment, stress testing showed that at a fixed concurrency level (QPS = 20), the serving throughput was only about **55%** of the expected value. 99th-percentile (P99) time to first token (TTFT) reached **820 ms** (SLA target: **300 ms**), and P99 time per output token (TPOT) reached **85 ms** (SLA target: **30 ms**). However, `npu-smi info` showed that the average NPU utilization (AI Core) was **78%**, while AIPower was normal and the temperature did not trigger frequency throttling. On the surface, the hardware did not appear to be fully utilized, yet the service was slow. This is a typical serving-layer scheduling issue.
 
 Further stress testing produced the following results.
 
@@ -23,7 +23,7 @@ In Continuous Batching mode of the serving-layer scheduler, a long request that 
 
 * **Short requests are slowed down:** A short request that would normally generate one token in approximately 25 ms may have to wait 80–100 ms because it is blocked by the long request prefill, causing TPOT to increase by 3–4 times.
 * **Decode step duration shows periodic spikes:** On the timeline, decode operator duration fluctuates in a "short-long-short-long" sawtooth pattern.
-* **AICore utilization is "artificially high":** The NPU remains busy computing, particularly during the compute-intensive prefill stage, but the computation does not translate into effective token output.
+* **AI Core utilization is "artificially high":** The NPU remains busy computing, particularly during the compute-intensive prefill stage, but the computation does not translate into effective token output.
 * **KV cache allocation fluctuates:** When a long request enters the prefill stage, the framework needs to urgently allocate a large amount of KV cache, causing the scheduler to stall and delaying subsequent requests from entering the queue.
 
 **Core contradiction:** Although the 78% hardware utilization appears relatively high, the **effective token output per unit of time** (output tokens/s) is far below the expected level.
@@ -116,7 +116,7 @@ Zoom in on an approximately 500 ms window for each of the two batches to compare
 <div align="center"><img src="./figures/bad_batch_timeline.png" /></div>
 
 * All eight sequences are in the same decode step: one long request (`prompt` = `4096`) is undergoing prefill, represented by a long yellow-green bar spanning approximately 140 ms, while the other seven short requests are stalled.
-* The operator bars for the entire decode step are **extended to approximately 180 ms**, with operators such as `FlashAttention`, `MLP`, and `RMSNorm` appearing almost continuously from one to the next.
+* The operator bars for the entire decode step are **extended to approximately 180 ms**, with operators such as `Flash Attention`, `MLP`, and `RMSNorm` appearing almost continuously from one to the next.
 * None of the decode steps falls within the normal 30 ms range.
 * There are no clear boundaries between operator bars, resulting in a "flattened" appearance.
 

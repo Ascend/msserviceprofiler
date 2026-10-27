@@ -128,7 +128,7 @@ msserviceprofiler advisor -i /your/path/instance/
   - 若maxBatchSize值设置过大，则会导致模型拉起失败，此时应当将该值向range中的最小值靠近，直到模型能成功拉起。
   - maxPrefillBatchSize通常都设置为maxBatchSize的一半。
 
-```text
+```ColdFusion
 # msservice_advisor_logger - INFO - </think>
 # msservice_advisor_logger - INFO -
 # msservice_advisor_logger - INFO - <advice>
@@ -143,7 +143,7 @@ msserviceprofiler advisor -i /your/path/instance/
   - **可尝试将该推荐值应用到 `config.json` 中，并重新验证性能查看是否有所提升，如果结果不理想，可尝试只应用其中一个值，并验证推理性能。**
   - 该方式下同时会生成拟合数据图像，用于查看拟合数据是否合理。
 
-```text
+```ColdFusion
 # msservice_advisor_logger - INFO - 拟合画图路径：func_curv_031734.png
 # msservice_advisor_logger - INFO - <think>
 # ...

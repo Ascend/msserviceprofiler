@@ -8,7 +8,7 @@ It collects data from the MindIE Motor service, including request response time,
 
 - The current version primarily targets the MindIE inference framework and supports single-node deployment and multi-node Prefill-Decode (PD) competition deployment.
 - Trace monitoring is currently supported only for core inference endpoints [/v1/chat](https://www.hiascend.com/document/detail/en/mindie/latest/mindiellm/llmdev/mindie_service0078.html) and [/v1/completions](https://www.hiascend.com/document/detail/en/mindie/latest/mindiellm/llmdev/mindie_service0323.html) of MindIE.
-- For details about data monitoring APIs of msServiceProfiler Trace, see "msServiceProfiler API Reference (C++) \>  [Trace Data Monitoring](../cpp_api/trace_data_monitoring/README.md).
+- For details about data monitoring APIs of msServiceProfiler Trace, see "msServiceProfiler API Reference (C++) \>  [Trace Data Monitoring](../cpp_api/trace_data_monitoring/README.md)".
 - For details about MindIE Motor, see [MindIE Motor Developer Guide](https://gitcode.com/Ascend/MindIE-Motor/blob/26.2.0/docs/en/user_guide/README.md).
 
 ## Supported Products<a name="EN-US_TOPIC_0000002489576470"></a>
