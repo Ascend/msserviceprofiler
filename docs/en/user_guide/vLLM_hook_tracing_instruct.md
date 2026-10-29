@@ -18,7 +18,7 @@ vLLM Hook Tracing uses the existing Hook/YAML mechanism of msServiceProfiler to 
 >For details about Ascend product models, see [Ascend Product Models](https://www.hiascend.com/document/detail/en/AscendFAQ/ProduTech/productform/hardwaredesc_0001.html).
 
 <!-- npu="950" id1 -->
-- <term>950PR&950DT products</term>: Not supported
+- <term>Ascend 950PR&950DT products</term>: Not supported
 <!-- end id1 -->
 <!-- npu="A3" id2 -->
 - <term>Atlas A3 products</term>: Supported
