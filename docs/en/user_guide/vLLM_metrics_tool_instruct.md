@@ -10,25 +10,35 @@ This metric monitoring tool enhances the native monitoring capability of the vLL
 
 ## Supported Products
 
->[!NOTE]
+> [!NOTE]
 >
 >For details about Ascend product models, see [Ascend Product Models](https://www.hiascend.com/document/detail/en/AscendFAQ/ProduTech/productform/hardwaredesc_0001.html).
 
-|Product Type| Supported (Yes/No)|
-|--|:----:|
-|Ascend 950 products|Yes|
-|Atlas A3 Training Products and Atlas A3 Inference Products|  Yes  |
-|Atlas A2 training products and Atlas A2 inference products|  Yes  |
-|Atlas 200I/500 A2 inference products|  Yes  |
-|Atlas inference products|  Yes  |
-|Atlas training products|  No   |
+<!-- npu="950" id1 -->
+- <term>Ascend 950PR&950DT products</term>: Supported
+<!-- end id1 -->
+<!-- npu="A3" id2 -->
+- <term>Atlas A3 products</term>: Supported
+<!-- end id2 -->
+<!-- npu="910b" id3 -->
+- <term>Atlas A2 products</term>: Supported
+<!-- end id3 -->
+<!-- npu="310b" id4 -->
+- <term>Atlas 200I/500 A2 inference products</term>: Supported
+<!-- end id4 -->
+<!-- npu="310p" id5 -->
+- <term>Atlas inference products</term>: Supported
+<!-- end id5 -->
+<!-- npu="910" id6 -->
+- <term>Atlas training products</term>: Not supported
+<!-- end id6 -->
 
 ## Preparations
 
 ### Environment Setup
 
 1. In the Ascend environment, install the matching CANN Toolkit and ops operator packages, and configure CANN environment variables. For details, see [CANN Installation Guide](https://www.hiascend.com/en/cann/download).
-2. Install vLLM and vLLM-Ascend. Verify that vLLM-ascend can run properly and the metrics endpoint is accessible. For details, see [vLLM-Ascend Installation Guide](https://vllm-ascend.readthedocs.io/en/latest/installation.html).
+2. Install vLLM and vLLM-Ascend. Verify that vLLM-Ascend can run properly and the metrics endpoint is accessible. For details, see [vLLM-Ascend Installation Guide](https://vllm-ascend.readthedocs.io/en/latest/installation.html).
 
 ### Restrictions
 
@@ -68,7 +78,7 @@ Follow these steps to complete the metric monitoring process:
 
 ### Step 1: Environment Variable Setup and Service Startup
 
-Before starting the inference service, set the following environment variables:
+Before starting the inference service, set the following environment variables.
 
 | Environment Variable| Description|
 |----------|------|
@@ -141,7 +151,7 @@ The symbol configuration file defines the functions/methods to be monitored, and
 
 ### Precautions
 
-- When the collection symbols are updated, you need to **restart the vLLM service** to load the new configuration.
+- When the collection points are updated, you can reload the configuration with `ms-service-metric restart`.
 - All custom metric names are automatically prefixed with `vllm_profiling_` and must comply with [Prometheus Metric and label naming](https://prometheus.io/docs/practices/naming/).
 
 ### Configuration Fields
@@ -241,11 +251,11 @@ The following are default metric symbols built into the tool. All metric names a
 | `engine:memory:non_torch_gb` | Gauge | — | Memory occupied by non-PyTorch components (GiB) |
 | `engine:memory:activation_gb` | Gauge | — | Peak activation memory during profiling (GiB) |
 | `engine:memory:graph_gb` | Gauge | — | Memory occupied by NPU Graph (GiB) |
-| `engine:memory:torch_reserved_gb` | Gauge | — | PyTorch reserved memory at runtime in vllm-ascend (GiB) |
-| `engine:memory:torch_allocated_gb` | Gauge | — | PyTorch allocated memory at runtime in vllm-ascend (GiB) |
+| `engine:memory:torch_reserved_gb` | Gauge | — | PyTorch reserved memory at runtime in vLLM-Ascend (GiB) |
+| `engine:memory:torch_allocated_gb` | Gauge | — | PyTorch allocated memory at runtime in vLLM-Ascend (GiB) |
 
 >[!NOTE]
-> 
+>
 > KVCache utilization can be approximated as `(1 - free_kvcache_blocks / total_kvcache_blocks) * 100%`, which is useful for monitoring memory usage and load balancing. `engine:memory:torch_reserved_gb` and `engine:memory:torch_allocated_gb` are runtime memory metrics, while all other `engine:memory:*` metrics are static memory snapshots taken after worker initialization and are typically recorded only once per process.
 
 #### Engine and End-to-End Latency Metrics
@@ -303,5 +313,126 @@ The following are default metric symbols built into the tool. All metric names a
 
 ## Relevant Documents
 
+### Analysis Order
+
+Performance analysis proceeds in the order of service SLO, scheduling and capacity, model execution, and abnormal states:
+
+1. Use `fine_grained_ttft`, `fine_grained_tpot`, and `engine:generate:duration` to determine whether the anomaly affects the first token, subsequent tokens, or the engine generation process. Record the end-to-end latency of the load test client separately; do not mix it with the server-side engine duration.
+2. Use `waiting_batch_size`, `batch_size`, and `scheduler:duration` to determine whether requests are blocked in the scheduling phase.
+3. Use `free_kvcache_blocks`, `allocated_kvcache_blocks`, `block_allocate_failures`, and `running_to_waiting_count` to determine whether the KVCache is limiting requests from entering the execution phase.
+4. Use `executor:execute_model:duration`, `executor:model_runner_execute_model:duration`, and `npu:forward_duration` to determine whether model execution has become slower.
+5. Use `output_processor_duration`, `rpc_errors`, and `health_check_failed` to troubleshoot output processing and abnormal paths.
+6. Break the results down by `instance`, `dp`, `phase`, and `rank` to distinguish global problems from local hotspots.
+
+All comparisons must use the same model, version, input/output token distribution, concurrency, and service parameters. Judge anomalies against a normal window under the same load; only trends formed by consecutive collection points count as diagnostic evidence.
+
+### Querying by Metric Type
+
+| Type | Correct Usage | Description |
+|---|---|---|
+| Gauge | View the current value, range, and instance differences directly | Applies to state values such as KVCache blocks and device memory |
+| Counter | Use `rate()` for the rate and `increase()` for the window increment | A process restart resets the counter to zero |
+| Histogram | Use `_bucket` to calculate quantiles and `_sum/_count` to calculate the average | The `le` label must be kept when calculating quantiles |
+
+The following PromQL uses the actual exported `vllm_profiling_` prefix. Adjust the query window according to the scrape interval and the load test duration.
+
+Scheduling duration P99:
+
+```promql
+histogram_quantile(
+  0.99,
+  sum by (le, instance, dp) (
+    rate(vllm_profiling_scheduler:duration_bucket[5m])
+  )
+)
+```
+
+Average model execution duration:
+
+```promql
+sum by (instance, dp, phase) (
+  rate(vllm_profiling_executor:execute_model:duration_sum[5m])
+)
+/
+sum by (instance, dp, phase) (
+  rate(vllm_profiling_executor:execute_model:duration_count[5m])
+)
+```
+
+KVCache utilization:
+
+```promql
+100 * (
+  1 -
+  vllm_profiling_free_kvcache_blocks
+  /
+  vllm_profiling_total_kvcache_blocks
+)
+```
+
+KVCache allocation failure increment:
+
+```promql
+sum by (instance, dp) (
+  increase(vllm_profiling_block_allocate_failures_total[5m])
+)
+```
+
+Scheduling recomputation increment:
+
+```promql
+sum by (instance, dp) (
+  increase(vllm_profiling_scheduler:recompute_events_total[5m])
+)
+```
+
+Speculative inference acceptance rate:
+
+```promql
+sum by (instance, role) (
+  rate(vllm:spec_decode_num_accepted_tokens_total[5m])
+)
+/
+clamp_min(
+  sum by (instance, role) (
+    rate(vllm:spec_decode_num_draft_tokens_total[5m])
+  ),
+  1e-9
+)
+```
+
+The speculative inference acceptance rate uses the native counters of vLLM and equals the number of accepted draft tokens in the window divided by the total number of draft tokens. Keep the instance dimension; windows in which the denominator has no increment do not take part in the comparison.
+
+### Metric Combinations and Determination Conclusions
+
+| Metric Combination | Determination Conclusion | Tracing Checks |
+|---|---|---|
+| TTFT rises; waiting rises; model execution duration is stable | The extra duration occurs before model execution | Scheduling spans, the gap between scheduling and model execution |
+| waiting rises; scheduler P99 rises; NPU utilization is low; model duration is stable | The scheduling or host path is the bottleneck | The difference between `vllm.scheduler.schedule` and the model span |
+| Free blocks stay low; allocation failures increase; waiting and TTFT rise together | KVCache capacity limits request scheduling | Request association, the wait interval after scheduling, and a control trace with the same token scale |
+| Speculative inference acceptance rate drops; TPOT or output token throughput degrades; draft token scale is stable | The effective output of draft tokens decreases | Tracing is used only to rule out the scheduling, execution, and output phases; the acceptance rate is confirmed with counters or the Profiler |
+| TPOT rises; execute model and forward rise together; scheduler is stable | The model execution phase has become slower | `vllm.model.execute`, `vllm_ascend.model_runner.execute` |
+| execute model rises; model runner is stable | The overhead around the executor increases | IPC, synchronization, data preparation, and the gaps between spans |
+| output processor rises; model is stable | The output processing phase has become slower | `vllm.output.process` |
+| Only some dp/rank are abnormal | Local load or resource imbalance | Compare the request and token scale of abnormal and normal dp/rank |
+
+A single metric is not a direct root cause. A conclusion must contain at least one SLO metric, one phase metric, and one capacity or execution metric, and these metrics must change consistently in the same time window.
+
+### Optional: Drilling Down from Metrics to Tracing
+
+If the metrics already support a phase or capacity conclusion, you can proceed directly to handling and re-testing. When you need to inspect a specific request path, associate Tracing as follows:
+
+1. In Grafana, record the anomaly start time, end time, instance, DP domain, and request phase.
+2. In Jaeger, select a lookback that covers this time window and limit it to the same service.
+3. Select normal and abnormal observation groups with the same token scale and request phase.
+4. Use `request.id`, `request.ids`, trace IDs, and span links to confirm the association between requests and batches.
+5. Compare the scheduler, model, model runner, and output spans; calculate the gap between spans only for the same trace ID or a unified Perfetto timeline.
+
+For the complete flow, see *[vLLM-Ascend Observability Performance Diagnostics Guide](../best_practices/vllm_ascend_observability_analysis_guide.md)*.
+
+## Related Documents
+
 - [vLLM Service Profiler](./vLLM_service_oriented_performance_collection_tool.md): Performance Profiling and Trace Analysis
+- [vLLM Hook Tracing User Guide](./vLLM_hook_tracing_instruct.md): request link analysis
+- [vLLM-Ascend Observability Performance Diagnostics Guide](../best_practices/vllm_ascend_observability_analysis_guide.md): joint Metrics and Tracing analysis
 - [Data Collection Configuration Description](./msserviceprofiler_serving_tuning_instruct.md#data-collection): `ms_service_profiler_config.json` Configuration Description

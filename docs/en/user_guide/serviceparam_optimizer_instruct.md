@@ -13,7 +13,7 @@ The tool supports simulation and lightweight modes and consists of three core fu
 - **Parameter verification module**: automatically starts the serving process and benchmark tool to test parameters and obtain performance results. Currently, the supported benchmark tools include `AISBench` and `vllm_benchmark`.
 
 >[!NOTE]
-> 
+>
 > The benchmark tool is about to be replaced by AISBench and is no longer supported by Serviceparam Optimizer.
 
 Based on the modules above, Serviceparam Optimizer can automatically recommend serving parameter combinations that deliver high throughput. It can be used in the following modes:
@@ -28,34 +28,44 @@ The tool has been validated on LLaMA3-8B and Qwen3-8B. In principle, it does not
 - `MindIE` and `vLLM`: serving frameworks, which support model deployment in serving scenarios.
 - `AISBench` and `vLLM_Benchmark`: inference performance benchmark tools for serving frameworks.
 
-## Supported Products<a name="ZH-CN_TOPIC_0000002479925980"></a>
+## Supported Products<a name="EN-US_TOPIC_0000002479925980"></a>
 
->[!NOTE]
+> [!NOTE]
 >
 >For details about Ascend product models, see [Ascend Product Models](https://www.hiascend.com/document/detail/en/AscendFAQ/ProduTech/productform/hardwaredesc_0001.html).
 
-|Product Type| Supported (Yes/No)|
-|--|:----:|
-|Ascend 950 products|No|
-|Atlas A3 Training Products and Atlas A3 Inference Products|  Yes  |
-|Atlas A2 training products and Atlas A2 inference products|  Yes  |
-|Atlas 200I/500 A2 inference products|  Yes  |
-|Atlas inference products|  Yes  |
-|Atlas training products|  No  |
+<!-- npu="950" id1 -->
+- <term>Ascend 950PR&950DT products</term>: Not supported
+<!-- end id1 -->
+<!-- npu="A3" id2 -->
+- <term>Atlas A3 products</term>: Supported
+<!-- end id2 -->
+<!-- npu="910b" id3 -->
+- <term>Atlas A2 products</term>: Supported
+<!-- end id3 -->
+<!-- npu="310b" id4 -->
+- <term>Atlas 200I/500 A2 inference products</term>: Supported
+<!-- end id4 -->
+<!-- npu="310p" id5 -->
+- <term>Atlas inference products</term>: Supported
+<!-- end id5 -->
+<!-- npu="910" id6 -->
+- <term>Atlas training products</term>: Not supported
+<!-- end id6 -->
 
->[!NOTE]
+> [!NOTE]
 >
->For Atlas A2 training products/Atlas A2 inference products, only the Atlas 800I A2 inference server is supported.
->For Atlas inference products, only the Atlas 300I Duo inference card and Atlas 800 inference server (model 3000) are supported.
+>For Atlas A2 products, only the Atlas 800I A2 in this series is supported.
+>For Atlas inference products, only the Atlas 300I Duo inference card and Atlas 800 inference server (model 3000) in this series are supported.
 
 ## Preparations
 
 **Environment Setup**
-Set up an environment where serving tools (such as [MindIE Service](https://gitcode.com/Ascend/MindIE-Motor/blob/v3.1.0/docs/en/user_guide/quick_start.md)/[vLLM Server](https://docs.vllm.ai/projects/ascend/en/latest/quick_start.html)) and benchmark tools (such as `vllm_benchmark`/`ais_bench`, see [Benchmark Tool Deployment](https://github.com/AISBench/benchmark/blob/master/docs/source_en/get_started/install.md)) can run properly.
+Set up an environment where serving tools (such as [MindIE Service](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/en/user_guide/deployment/README.md)/[vLLM Server](https://docs.vllm.ai/projects/ascend/en/latest/quick_start.html)) and benchmark tools (such as `vllm_benchmark`/`ais_bench`, see [Benchmark Tool Deployment](https://github.com/AISBench/benchmark/blob/master/docs/source_en/get_started/install.md)) can run properly.
 
 ## Tool Installation
 
-Serviceparam Optimizer requires msServiceProfiler as its entry point. If msServiceProfiler is not installed, install it first. For details, see [msServiceProfiler](msserviceprofiler_install_guide.md). The command is as follows:
+Serviceparam Optimizer requires msServiceProfiler as its entry point. If msServiceProfiler is not installed, install it first. For details, see [msServiceProfiler](../install_guide/msserviceprofiler_install_guide.md). The command is as follows:
 
  ```bash
  git clone https://gitcode.com/Ascend/msserviceprofiler.git # Skip this if the repository is already cloned.
@@ -97,7 +107,7 @@ The tool uses MindIE images and must follow their startup instructions. In Prefi
 
 1. Complete the operations described in [Preparations](#preparations).
 
-2. Modify the configuration file. Before starting optimization, configure [`config.toml`](../../ms_serviceparam_optimizer/ms_serviceparam_optimizer/config.toml) according to your environment, including optimization parameters, benchmark tool parameters, and serving parameters. See [Configuration File Description](#configuration-file-description) for details. You can also specify a custom path for the configuration file using  `-c`. For more details, see [Command-line Arguments](#lightweight-mode).
+2. Modify the configuration file. Before starting optimization, configure [`config.toml`](https://gitcode.com/Ascend/msserviceprofiler/blob/master/ms_serviceparam_optimizer/ms_serviceparam_optimizer/config.toml) according to your environment, including optimization parameters, benchmark tool parameters, and serving parameters. See [Configuration File Description](#configuration-file-description) for details. You can also specify a custom path for the configuration file using `-c`. For more details, see [Command-line Arguments](#lightweight-mode).
 
 3. Start optimization. After the preceding steps are complete, start lightweight automatic optimization with a single command:
 
@@ -135,11 +145,11 @@ msserviceprofiler optimizer [options]
 |-b or --benchmark_policy|No|Specifies a benchmark tool. The options are as follows:<br>&#8226;`vllm_benchmark`: vllm_benchmark is used as the benchmark tool.<br>&#8226;`ais_bench`: ais_bench is used as the benchmark tool.<br>The default value is `ais_bench`.<br>You need to select a benchmark tool compatible with your inference framework.|
 |-e or --engine|No|Specifies an inference framework. The options are as follows:<br>&#8226;`mindie`: MindIE is used as the inference framework.<br>&#8226;`vllm`: vLLM is used as the inference framework.<br>The default value is `mindie`.|
 |--pd|No|Specifies an inference framework mode. The options are as follows:<br>&#8226;`competition`: PD competition mode<br>&#8226;`disaggregation`: PD disaggregation mode<br>The default value is `competition`.|
-| `-c` or `--config` | Optional | Path to a custom configuration file (TOML format). Supports: <br> • Absolute path – used as given. <br> • Relative path (with directory separator) – resolved relative to the current working directory. <br> • Filename only – searched for in the current working directory. <br> If not specified, the tool automatically searches for a configuration file in a predefined order. If provided, the file must be valid TOML and takes the highest precedence. |
+|-c or --config|Optional|Specifies the path of a custom configuration file (TOML format). The following three forms are supported:<br>&#8226;Absolute path: the specified path is used as is.<br>&#8226;Relative path (with directory separators): resolved relative to the current working directory.<br>&#8226;File name only: searched for in the current working directory.<br/>By default it is not specified, and the tool automatically searches for configuration files in the preset path order.<br/>The specified file must be valid TOML and takes the highest configuration priority.|
 
 **Example (MindIE Serving Parameter Optimization)**
 
-1. Modify the configuration file. Before starting optimization, configure [<idp:inline displayname="code" id="code151415418558">config.toml</idp:inline>](../../ms_serviceparam_optimizer/ms_serviceparam_optimizer/config.toml) according to your environment, including optimization parameters, benchmark tool parameters, and serving parameters. See [Configuration File Description](#configuration-file-description) for details.
+1. Modify the configuration file. Before starting optimization, configure [`config.toml`](https://gitcode.com/Ascend/msserviceprofiler/blob/master/ms_serviceparam_optimizer/ms_serviceparam_optimizer/config.toml) according to your environment, including optimization parameters, benchmark tool parameters, and serving parameters. See [Configuration File Description](#configuration-file-description) for details.
 
 2. To set environment variables for the MindIE/vLLM services, configure them before running the tool. For example:
 
@@ -157,7 +167,7 @@ msserviceprofiler optimizer [options]
 
 **Example (vLLM Service Parameter Optimization)**
 
-1. Modify the configuration file. Before starting optimization, configure [<idp:inline displayname="code" id="code121419465514">config.toml</idp:inline>](../../ms_serviceparam_optimizer/ms_serviceparam_optimizer/config.toml) according to your environment, including optimization parameters, benchmark tool parameters, and serving parameters. See [Configuration File Description](#configuration-file-description) for details.
+1. Modify the configuration file. Before starting optimization, configure [`config.toml`](https://gitcode.com/Ascend/msserviceprofiler/blob/master/ms_serviceparam_optimizer/ms_serviceparam_optimizer/config.toml) according to your environment, including optimization parameters, benchmark tool parameters, and serving parameters. See [Configuration File Description](#configuration-file-description) for details.
 2. To set environment variables for the MindIE/vLLM services, configure them before running the tool. For example:
 
     ```bash
@@ -178,7 +188,7 @@ msserviceprofiler optimizer [options]
     msserviceprofiler optimizer -e vllm -b vllm_benchmark
     ```
 
-### Usage Example (Custom Config File)
+**Example (Specifying a Custom Configuration File)**
 
 If your config file is not in the default search paths, specify it explicitly with `-c`:
 
@@ -207,7 +217,7 @@ The simulation mode prioritizes speed and resource efficiency. It invokes all mo
 
 **Precautions**
 
-The simulation mode requires training on collected serving data. Run the MindIE inference service test script with the profiling feature enabled. See [Service Profiler Quick Start](https://gitcode.com/Ascend/msserviceprofiler/blob/master/docs/en/quick_start.md) for details. Then, parse the collected profile data for model training. The profile data to be collected must include `batch_type`, `batch_size`, `forward_time`, `batch_end_time(ms)`, `request_recv_token_size`, `request_reply_token_size`, `need_blocks`, `request_execution_time(ms)` and `first_token_latency(ms)`.
+The simulation mode requires training on the collected serving data first. See [Service Tuning Quick Start](../quick_start/quick_start.md) and run the MindIE inference service test script once with profiling enabled, then parse the collected profile data and use it to train the model. The profile data to be collected must include `batch_type`, `batch_size`, `forward_time`, `batch_end_time(ms)`, `request_recv_token_size`, `request_reply_token_size`, `need_blocks`, `request_execution_time(ms)`, and `first_token_latency(ms)`.
 
 **Syntax**
 
@@ -244,7 +254,7 @@ The simulation mode requires training on collected serving data. Run the MindIE 
 
 **Example**
 
-1. Modify the configuration file. Before starting optimization, configure [<idp:inline displayname="code" id="code915343552">config.toml</idp:inline>](../../ms_serviceparam_optimizer/ms_serviceparam_optimizer/config.toml) according to your environment, including optimization parameters, benchmark tool parameters, and serving parameters. See [Configuration File Description](#configuration-file-description) for details.
+1. Modify the configuration file. Before starting optimization, configure [`config.toml`](https://gitcode.com/Ascend/msserviceprofiler/blob/master/ms_serviceparam_optimizer/ms_serviceparam_optimizer/config.toml) according to your environment, including optimization parameters, benchmark tool parameters, and serving parameters. See [Configuration File Description](#configuration-file-description) for details.
 
 2. Train a model:
 
@@ -320,9 +330,9 @@ If `AISBench` is used for the test, modify the following parameters. For details
 |models| Specifies a model task. You can configure it as described in [Model Configuration Description](https://github.com/AISBench/benchmark/blob/master/docs/source_en/base_tutorials/all_params/models.md).|
 |datasets| Specifies a dataset task. For details, see [Dataset Preparation Guide](https://github.com/AISBench/benchmark/blob/master/docs/source_en/get_started/datasets.md).|
 |mode| Specifies the operation mode. For details, see [Operation Mode Description](https://github.com/AISBench/benchmark/blob/master/docs/source_en/base_tutorials/all_params/mode.md).|
-|num_prompts| Specifies the number of prompts to run from the dataset. This parameter is valid only when `mode` is set to `perf`.|
+|num_prompts| Controls the number of entries in the running dataset. Valid when `mode` is `perf`.|
 
-If `vllm_benchmark` is used for the test, modify the following parameters:
+If `vllm_benchmark` is used for the test, modify the following parameters.
 
 |Parameter|Mandatory (Yes/No)|Description|
 |---|---|---|
@@ -335,10 +345,10 @@ If `vllm_benchmark` is used for the test, modify the following parameters:
 |num_prompts|Yes| Specifies the number of prompts to run from the dataset.<br>The value is an integer ranging from 1 to 10000.|
 |others|No| Additional parameters. Use spaces to separate them, and no space is allowed within the parameters, for example, `--ignore-eos --custom-output-len 1500`. This parameter is left empty by default.|
 
-**Serving parameters**: Modify these parameters as described in [MindIE Server Configuration Parameter Description](https://gitcode.com/Ascend/MindIE-LLM/blob/v3.1.0/docs/en/user_guide/user_manual/service_parameter_configuration.md).
+**Serving parameters**: Modify these parameters as described in [MindIE Server Configuration Parameter Description](https://gitcode.com/Ascend/MindIE-LLM/blob/master/docs/en/user_guide/user_manual/service_parameter_configuration.md).
 You can define search ranges directly using these parameters. For example, to set the optimization search space for `max_batch_size` to 10 to 400:
 
-```shell
+```toml
 [[mindie.target_field]]
 name = "max_batch_size"     # Serving parameter name
 config_position = "BackendConfig.ScheduleConfig.maxBatchSize"   # Path to the serving parameters in MindIE Server config
@@ -349,7 +359,7 @@ dtype = "int"    # Data type
 
 You can also define parameters relative to others. For example, to set `max_prefill_batch_size` as a ratio of `max_batch_size`, that is, `max_prefill_batch_size = ratio * max_batch_size (0 < ratio < 1)`:
 
-```shell
+```toml
 [[mindie.target_field]]
 name = "max_prefill_batch_size"
 config_position = "BackendConfig.ScheduleConfig.maxPrefillBatchSize"
@@ -359,7 +369,7 @@ dtype = "ratio"
 dtype_param = "max_batch_size" # Indicates that max_prefill_batch_size is proportional to max_batch_size.
 ```
 
-In addition, all `dtype` types supported by `target_field` are as follows:
+In addition, all `dtype` types supported by `target_field` are as follows.
 
 | Category | dtype | Meaning | dtype_param Format |
 |---|---|---|---|
@@ -391,7 +401,7 @@ Scenario 1: `tp` and `pp` are tunable parameters, and `dp` is automatically deri
 > - **Explicit range setting**: Configure `min_value` / `max_value` in `dtype_param` to override the upper and lower bounds.
 > - **Best practice**: Restrict the enumeration candidates of `tp` and `pp` so that the product is divisible by `product`, avoiding reliance on degraded handling.
 
-```shell
+```toml
 # Method 1 (best practice): Restrict the enumeration candidates of tp and pp to ensure tp × pp ≤ 16
 [[mindie.target_field]]
 name = "tp"
@@ -420,7 +430,7 @@ dtype_param = {target_names = ["tp", "pp"], product = 16, dtype = "int"}
 #        tp=8, pp=2 → dp = 16 ÷ (8 × 2) = 1
 ```
 
-```shell
+```toml
 # Method 2: Configure min_value as the lower-bound protection after repair fails, and output a warning
 [[mindie.target_field]]
 name = "dp"
@@ -434,14 +444,14 @@ dtype_param = {target_names = ["tp", "pp"], product = 16, dtype = "int", min_val
 
 **Priority Repair Policy (`priority_policy`)**
 
-When the `tp` and `pp` combination generated by PSO cannot derive `dp` (for example, it is not divisible or exceeds the bound), the system attempts a repair. The repair policy is controlled by `priority_policy`:
+When the `tp` and `pp` combination generated by PSO cannot derive `dp` (for example, it is not divisible or exceeds the bound), the system attempts a repair. The repair policy is controlled by `priority_policy`.
 
 | Policy Name | Semantics | Applicable Scenario |
 |--------|------|----------|
 | `balanced` (default) | Divides particles evenly into two groups: the first half is repaired in the order of `target_names`, and the second half is repaired in reverse order, reducing the structural bias introduced by a single decoding order. | The user has no explicit field priority preference; used by default |
 | `fixed` | The user explicitly specifies the repair order: high-priority fields are kept unchanged as much as possible, and low-priority fields are adjusted first | The user clearly knows which field should be more stable |
 
-```shell
+```toml
 # Example of the balanced (default) policy
 # Applicable when the user does not specify which field is more important; the system automatically balances the repair direction
 [[mindie.target_field]]
@@ -458,7 +468,7 @@ dtype_param = {
 }
 ```
 
-```shell
+```toml
 # Example of the fixed policy
 # Applicable when the user explicitly knows that tp should remain stable and pp should be adjusted first
 [[mindie.target_field]]
@@ -489,7 +499,7 @@ dtype_param = {
 
 Scenario 2: `seq_len` and `prefill_batch_size` are adjustable parameters, and `max_prefill_tokens` is automatically set to twice the product of the two (`max_prefill_tokens = 2 × seq_len × prefill_batch_size`):
 
-```shell
+```toml
 [[mindie.target_field]]
 name = "seq_len"
 config_position = "BackendConfig.ModelConfig.seqLen"
@@ -517,7 +527,7 @@ dtype_param = {target_names = ["seq_len", "prefill_batch_size"], product = 2, dt
 
 When the vLLM framework is used, you need to modify the `[vllm.command]` parameter in the `config.toml` file. For example:
 
-```shell
+```toml
 [vllm.command]
 host = "127.0.0.1"
 port = "8000"
@@ -660,13 +670,13 @@ K8s_v1.23_MindCluster.7.1.RC1.B098.aarch/
 
 Configuration example:
 
-```shell
+```toml
 kubectl_default_path = "K8s_v1.23_MindCluster.7.1.RC1.B098.aarch/kubernetes_deploy_scripts_latest" # Use an absolute path.
 ```
 
 To optimize PD ratio parameters, add the following to the `mindie` section in `config.toml`:
 
-```shell
+```toml
 [[mindie.target_field]]
 name = "default_p_rate"
 config_position = "default_p_rate"

@@ -165,7 +165,7 @@ export SERVICE_PROF_CONFIG_PATH="./ms_service_profiler_config.json"
 
 启动目标服务（MindIE/vLLM/SGLang），检查日志确认msServiceProfiler已启动：
 
-```text
+```ColdFusion
 [msservice_profiler] [PID:225] [INFO] [ParseEnable:179] profile enable_: false
 ```
 

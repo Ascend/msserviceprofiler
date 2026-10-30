@@ -80,6 +80,7 @@ The process of developing a custom plugin is as follows:
 ### Customizing a Performance Benchmark Tool
 
 1. Inherit from `ms_serviceparam_optimizer.optimizer.benchmark.BenchmarkInterface` and implement the `data_field property` and `get_performance_index` methods. Example:
+For example:
 
     ```python
     class ms_serviceparam_optimizer.optimizer.benchmark.BenchmarkInterface():
@@ -87,27 +88,27 @@ The process of developing a custom plugin is as follows:
         property num_prompts: Tuple[OptimizerConfigField] | None
             #Obtain the number of data retrieval requests.
             Returns: Optional[Tuple[OptimizerConfigField]]
-            
+
         property setter num_prompts: Tuple[OptimizerConfigField] | None
             #Set the number of data retrieval requests.
             Returns: None
-            
+
         property data_field: Tuple[OptimizerConfigField] | None
             #Obtain the data field attribute.
             Returns: Optional[Tuple[OptimizerConfigField]]
-            
+
         abstract property setter data_field: Tuple[OptimizerConfigField] | None
             #Set the data field attribute.
             Returns: None
-        
+
         abstract get_performance_index() → PerformanceIndex
             #Retrieve performance metrics.
             #Returns: metric data
-        
+
         abstract stop()
             #Perform any other necessary preparation during runtime.
             Returns: None
-        
+
         abstract update_command() → None
             #Update the service startup command based on data_field before service startup. Update the self.command attribute.
             Returns: None

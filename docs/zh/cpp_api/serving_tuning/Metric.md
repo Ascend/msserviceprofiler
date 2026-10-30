@@ -26,7 +26,7 @@
 <!-- end id6 -->
 
 > [!NOTE]
-> 
+>
 >针对Atlas A2系列产品，当前仅支持该系列产品中的Atlas 800I A2推理服务器。
 >针对Atlas推理系列产品，当前仅支持该系列产品中的Atlas 300I Duo推理卡 + Atlas 800推理服务器（型号：3000）。
 
@@ -47,7 +47,7 @@ inline Profiler &Metric(const char *metricName, T value)
 
 |参数名|输入/输出|说明|
 |--|--|--|
-|metricName|输入|指标名字。|
+|metricName|输入|指标名。|
 |value|输入|数值。|
 
 ## 返回值说明<a name="section8800235121218"></a>

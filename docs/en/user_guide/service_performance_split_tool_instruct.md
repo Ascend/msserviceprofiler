@@ -9,31 +9,41 @@ Based on performance data collected by msServiceProfiler, Service Performance Sp
 - `prefill batch`: The prefill phase is the initial stage where the model processes the entire input prompt to compute and generate the first output token. The batch processed in this phase is called a prefill batch.
 - `decode batch`: In the decode phase, the model generates subsequent output tokens one by one. Each iteration in this phase involves less computation compared to the prefill phase, but the decode phase may consist of many iterations due to the sequential token generation. The batch processed in this phase is called a decode batch.
 
-## Product Support<a name="ZH-CN_TOPIC_0000002479925980"></a>
+## Supported Products<a name="EN-US_TOPIC_0000002479925980"></a>
 
->[!NOTE]
+> [!NOTE]
 >
 >For details about Ascend product models, see [Ascend Product Models](https://www.hiascend.com/document/detail/en/AscendFAQ/ProduTech/productform/hardwaredesc_0001.html).
 
-|Product Type| Supported (Yes/No)|
-|--|:----:|
-|Ascend 950 products|No|
-|Atlas A3 Training Products and Atlas A3 Inference Products|  Yes  |
-|Atlas A2 training products and Atlas A2 inference products|  Yes  |
-|Atlas 200I/500 A2 inference products|  Yes  |
-|Atlas inference products|  Yes  |
-|Atlas training products|  No   |
+<!-- npu="950" id1 -->
+- <term>Ascend 950PR&950DT products</term>: Not supported
+<!-- end id1 -->
+<!-- npu="A3" id2 -->
+- <term>Atlas A3 products</term>: Supported
+<!-- end id2 -->
+<!-- npu="910b" id3 -->
+- <term>Atlas A2 products</term>: Supported
+<!-- end id3 -->
+<!-- npu="310b" id4 -->
+- <term>Atlas 200I/500 A2 inference products</term>: Supported
+<!-- end id4 -->
+<!-- npu="310p" id5 -->
+- <term>Atlas inference products</term>: Supported
+<!-- end id5 -->
+<!-- npu="910" id6 -->
+- <term>Atlas training products</term>: Not supported
+<!-- end id6 -->
 
->[!NOTE]
+> [!NOTE]
 >
->For Atlas A2 training products/Atlas A2 inference products, only the Atlas 800I A2 inference server is supported.
->For Atlas inference products, only the Atlas 300I Duo inference card and Atlas 800 inference server (model 3000) are supported.
+>For Atlas A2 products, only the Atlas 800I A2 in this series is supported.
+>For Atlas inference products, only the Atlas 300I Duo inference card and Atlas 800 inference server (model 3000) in this series are supported.
 
 ## Preparations
 
 **Environment Setup**
 
-Install [msServiceProfiler](msserviceprofiler_install_guide.md).
+Install [msServiceProfiler](../install_guide/msserviceprofiler_install_guide.md).
 
 **Version Mapping**
 
@@ -54,16 +64,16 @@ None
 ### Syntax
 
 ```bash
-msserviceprofiler split 
---input-path /path/to/input 
-[--output-path path/to/output] 
-[--log-level level] 
-[--prefill-number prefill_number] 
+msserviceprofiler split
+--input-path /path/to/input
+[--output-path path/to/output]
+[--log-level level]
+[--prefill-number prefill_number]
 [--decode-number decode_number]
 {
-  --prefill-batch-size prefill_batch_size 
+  --prefill-batch-size prefill_batch_size
   --prefill-rid prefill_rid
-  --decode-batch-size decode_batch_size 
+  --decode-batch-size decode_batch_size
   --decode-rid decode_rid
 }
 ```
@@ -86,18 +96,18 @@ Optional fields are enclosed in square brackets ([]), and mandatory fields are e
 
 ### Examples
 
-- **Scenario 1: Specify the `batch size` value for breakdown.**
+- **Scenario 1: Breaking Down by the Specified `batch_size`**
   - To break down 100 `prefill batch` data records with `batch_size` set to `1`:
 
     ```sh
-    msserviceprofiler split --input-path=/path/to/input --output-path=/path/to/output/ --prefill-batch-size=1 --prefill-number=100
+    msserviceprofiler split --input-path /path/to/input --output-path /path/to/output/ --prefill-batch-size 1 --prefill-number 100
     ```
 
     After the execution is complete, the output file `prefill.csv` is generated in the result path.
   - To break down 50 `decode batch` data records with `batch_size` set to `10`:
 
     ```sh
-    msserviceprofiler split --input-path=/path/to/input --output-path=/path/to/output/ --decode-batch-size=10 --decode-number=50
+    msserviceprofiler split --input-path /path/to/input --output-path /path/to/output/ --decode-batch-size 10 --decode-number 50
     ```
 
     After the execution is complete, the output file `decode.csv` is generated in the result path.
@@ -105,14 +115,14 @@ Optional fields are enclosed in square brackets ([]), and mandatory fields are e
   - To break down data for the prefill phase:
 
     ```sh
-    msserviceprofiler split --input-path=/path/to/input --output-path=/path/to/output/ --prefill-rid=efcas2d
+    msserviceprofiler split --input-path /path/to/input --output-path /path/to/output/ --prefill-rid efcas2d
     ```
 
     After the execution is complete, the output file `prefill.csv` is generated in the result path.
   - To break down data for the decode phase:
 
     ```sh
-    msserviceprofiler split --input-path=/path/to/input --output-path=/path/to/output/ --decode-rid=efcas2d
+    msserviceprofiler split --input-path /path/to/input --output-path /path/to/output/ --decode-rid efcas2d
     ```
 
     After the execution is complete, the output file `decode.csv` is generated in the result path.

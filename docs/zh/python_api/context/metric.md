@@ -26,7 +26,7 @@
 <!-- end id6 -->
 
 > [!NOTE]
-> 
+>
 >针对Atlas A2系列产品，当前仅支持该系列产品中的Atlas 800I A2推理服务器。
 >针对Atlas推理系列产品，当前仅支持该系列产品中的Atlas 300I Duo推理卡 + Atlas 800推理服务器（型号：3000）。
 
@@ -44,7 +44,7 @@ def metric(self, metric_name, metric_value):
 
 |参数名|输入/输出|说明|
 |--|--|--|
-|metric_name|输入|指标名字。|
+|metric_name|输入|指标名。|
 |metric_value|输入|数值。|
 
 ## 返回值说明<a name="section776014535188"></a>

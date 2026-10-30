@@ -1,6 +1,6 @@
 # Project Directory
 
-The msServiceprofiler project directory is described as follows:
+The msServiceProfiler project directory is described as follows:
 
 ```ColdFusion
 3rdparty/                                                    # Directory for third-party dependencies
@@ -37,12 +37,12 @@ The msServiceprofiler project directory is described as follows:
 docs/                                                        # Document directory
 └── zh/                                                      # Chinese document directory
     ├── cpp_api/                                             # C++ API documents
-    │     ├── serving_tuning/                                # Serving tuning API
-    │     ├── ${api_name}.md                                 # API description, where ${api_name} indicates the API name.
-    │     ├── macro_definitions.md                           # Macro definitions
-    │     ├── public_sys-resources/                          # Public system resources
-    │     └── serving_tuning.md                              # C++ API documents
-    │ └── trace_data_monitoring/                             # Trace monitoring API
+    │   ├── serving_tuning/                                  # Serving tuning API
+    │   │   ├── ${api_name}.md                               # API description, where ${api_name} indicates the API name.
+    │   │   ├── macro_definitions.md                         # Macro definitions
+    │   │   ├── public_sys-resources/                        # Public system resources
+    │   │   └── serving_tuning.md                            # C++ API documents
+    │   └── trace_data_monitoring/                           # Trace monitoring API
     │       ├── ${api_name}.md                               # API description, where ${api_name} indicates the API name.
     │       ├── public_sys-resources/                        # Public system resources
     │       └── sample_code.md                               # Sample code
@@ -55,9 +55,9 @@ docs/                                                        # Document director
 ms_service_profiler/                                         # Directory of core functionalities (such as parsing and data comparison)
     ├── config/                                              # Directory of configuration files
     ├── data_source/                                         # Directory for the data source import module
-    ├──── ${name}_source.py                                  # ${name} data source import module, where *name* indicates the data source name.
+    │   └── ${name}_source.py                                # ${name} data source import module, where *name* indicates the data source name.
     └── exporters/                                           # Directory for the data exporter module
-    ├──── exporter_${name}.py                                # ${name} data exporter, where *name* indicates the data name.
+    │    └── exporter_${name}.py                             # ${name} data exporter, where *name* indicates the data name.
     ├── mstx.py                                              # Python profiling module
     ├── parse.py                                             # Main module for data parsing
     ├── profiler.py                                          # Python profiling API
@@ -67,9 +67,9 @@ ms_service_profiler/                                         # Directory of core
     ├── split.py                                         # Main module for data breakdown
     ├── parse_helper/                                        # Auxiliary parsing module
     ├── pipeline/                                            # Data processing pipeline modules
-    ├── pipeline_${name}.py                                  # ${name} data processing pipeline, where *name* indicates the data name.
+    │   └── pipeline_${name}.py                              # ${name} data processing pipeline, where *name* indicates the data name.
     ├── plugins/                                             # System plugins
-    ├── plugin_${name}.py                                    # ${name} data processing plugin, where *name* indicates the data name.
+    │   ├── plugin_${name}.py                                # ${name} data processing plugin, where *name* indicates the data name.
     │   └── sort_plugins.py                                  # Plugin sorter
     ├── processor/                                           # Data processor modules
     │   └── processor_${name}.py                             # ${name} data processor, where *name* indicates the data name.
@@ -78,18 +78,18 @@ ms_service_profiler/                                         # Directory of core
     ├── utils/                                               # Tool modules
     │   ├── check/                                           # Check tool
     │   ├── secur/                                           # Security module
-    │   ├── constraints/                                     # Security constraints
-    │   └── utils/                                           # Security constant
+    │   │   ├── constraints/                                 # Security constraints
+    │   │   └── utils/                                       # Security constant
     │   └── trace_to_db.py                                   # Module for converting trace data from JSON format to DB format
     └── patcher/                                             # Hook-based profiling module
         ├── config/                                          # Configuration examples
-        ├── custom_handler_example.py                        # Custom handler example
+        │   ├── custom_handler_example.py                    # Custom handler example
         │   ├── hooks_example.yaml                           # Hook configuration example
         ├── vllm/                                            # vLLM data collection module
         │   ├── config/                                      # Directory for vLLM profiling configuration files
         │   ├── handlers/                                    # vLLM function hooks for data collection
-        |   ├── v0/                                          # vLLM v0 version function hook
-        |   └── v1/                                          # vLLM v1 version function hook
+        |   |   ├── v0/                                      # vLLM v0 version function hook
+        |   |   └── v1/                                      # vLLM v1 version function hook
         |   └── service_profiler.py                          # vLLM data collection entry
         ├── sglang/                                          # SGLang data collection module
         │   ├── config/                                      # Directory for SGLang profiling configuration files

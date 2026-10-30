@@ -1,11 +1,11 @@
-# msServiceProfiler<a name="ZH-CN_TOPIC_0000002518521921"></a>
+# Serving Performance Tuning Tool<a name="EN-US_TOPIC_0000002518521921"></a>
 
 ## Introduction<a name="EN-US_TOPIC_0000002171752224"></a>
 
 This document describes the profiling tool (msServiceProfiler) for inference serving. The msServiceProfiler APIs collect start and end times for key processes, identify main functions or iterations, and record important events during the MindIE Motor inference serving. msServiceProfiler profiles various data and helps pinpoint performance issues quickly.
 
-- msServiceProfiler includes [C++ APIs](./cpp_api/serving_tuning/README.md) and [Python APIs](./python_api/README.md) .
-- For details about MindIE Motor, see [MindIE Motor Developer Guide](https://gitcode.com/Ascend/MindIE-Motor-CPP/blob/v3.0.0/docs/en/user_guide/README.md).
+- msServiceProfiler includes [C++ APIs](../cpp_api/serving_tuning/README.md) and [Python APIs](../python_api/README.md) .
+- For details about MindIE Motor, see [MindIE Motor Developer Guide](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/en/user_guide/README.md).
 
 The tool usage process is as follows:
 
@@ -14,33 +14,43 @@ The tool usage process is as follows:
 3. [Data Parsing](#data-parsing)
 4. [Data Visualization](#data-visualization)
 
-## Supported Products<a name="ZH-CN_TOPIC_0000002479925980"></a>
+## Supported Products<a name="EN-US_TOPIC_0000002479925980"></a>
 
->[!NOTE]
+> [!NOTE]
 >
 >For details about Ascend product models, see [Ascend Product Models](https://www.hiascend.com/document/detail/en/AscendFAQ/ProduTech/productform/hardwaredesc_0001.html).
 
-|Product Type| Supported (Yes/No)|
-|--|:----:|
-|Ascend 950 products|No|
-|Atlas A3 Training Products and Atlas A3 Inference Products|  Yes  |
-|Atlas A2 training products and Atlas A2 inference products|  Yes  |
-|Atlas 200I/500 A2 inference products|  No  |
-|Atlas inference products|  Yes  |
-|Atlas training products|  No  |
+<!-- npu="950" id1 -->
+- <term>Ascend 950PR&950DT products</term>: Not supported
+<!-- end id1 -->
+<!-- npu="A3" id2 -->
+- <term>Atlas A3 products</term>: Supported
+<!-- end id2 -->
+<!-- npu="910b" id3 -->
+- <term>Atlas A2 products</term>: Supported
+<!-- end id3 -->
+<!-- npu="310b" id4 -->
+- <term>Atlas 200I/500 A2 inference products</term>: Not supported
+<!-- end id4 -->
+<!-- npu="310p" id5 -->
+- <term>Atlas inference products</term>: Supported
+<!-- end id5 -->
+<!-- npu="910" id6 -->
+- <term>Atlas training products</term>: Not supported
+<!-- end id6 -->
 
->[!NOTE]
+> [!NOTE]
 >
->For Atlas A2 training products/Atlas A2 inference products, only the Atlas 800I A2 inference server is supported.
->For Atlas inference products, only the Atlas 300I Duo inference card and Atlas 800 inference server (model 3000) are supported.
+>For Atlas A2 products, only the Atlas 800I A2 in this series is supported.
+>For Atlas inference products, only the Atlas 300I Duo inference card and Atlas 800 inference server (model 3000) in this series are supported.
 
 ## Preparations
 
-The hardware environment supported by the tool is the same as that supported by MindIE. For details, see "Installing MindIE" in [MindIE Installation Guide](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/deployment/README.md).
+The hardware environment supported by the tool is the same as that supported by MindIE. For details, see *[MindIE Environment Preparation](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/en/user_guide/environment_preparation.md)*.
 
 1. Install the matching CANN Toolkit and ops operator packages, and configure CANN environment variables. For details, see [CANN Installation Guide](https://www.hiascend.com/en/cann/download).
-2. Install [msServiceProfiler](msserviceprofiler_install_guide.md).
-3. Install and configure MindIE and ensure that MindIE Motor can run properly. For details, see [MindIE Installation Guide](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/deployment/README.md).
+2. Install [msServiceProfiler](../install_guide/msserviceprofiler_install_guide.md).
+3. Install and configure MindIE and ensure that MindIE Motor can run properly. For details, see [MindIE Installation Guide](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/en/user_guide/maintenance/build_motor_image_from_vllm_ascend.md).
 4. After the preceding environment is prepared, you can use [msprechecker](https://gitcode.com/Ascend/msit/tree/master/msprechecker) to check environment variables and serving configurations.
 
 ## Data Collection
@@ -49,9 +59,9 @@ The hardware environment supported by the tool is the same as that supported by 
 
 Collects serving profile data.
 
-**Precautions<a name="section7961133411551"></a>**
+**Precautions<a name="section1725701319"></a>**
 
-- Enabling the `acl\_task\_time` feature in msServiceProfiler simultaneously with the msProf dynamic collection feature may cause conflicts. It is advised to use them separately. For details about the msProf dynamic collection feature, see [Dynamic Profiling](https://www.hiascend.com/document/detail/en/CANNCommunityEdition/latest/devaids/Profiling/atlasprofiling_16_0016.html).
+- The acl\_task\_time switch of the serving tuning tool conflicts with the dynamic collection function of the msprof tool, so it is recommended not to use them at the same time. For details about the dynamic collection function of the msprof tool, see *[Dynamically Collecting Performance Data](https://gitcode.com/cann/oam-tools/blob/master/docs/en/user_guide/profiling/msprof_cmd/dynamically.md)*.
 
 **Examples<a name="section1541662513115"></a>**
 
@@ -99,8 +109,8 @@ Collects serving profile data.
         export SERVICE_PROF_CONFIG_PATH="./ms_service_profiler_config.json"
         ```
 
-        - If the JSON file does not exist: A default configuration file is automatically created with `enable` set to `0` (collection disabled). After starting MindIE Motor, follow [2.c](#li58961338154210) to set `enable` to `1` and start collection.
-        - If the file already exists: No file is created—the existing configuration is used.
+        - If the JSON configuration file does not exist in the path specified by the environment variable, a JSON file with the default configuration is automatically created in that path, and the `enable` switch is `0` (collection disabled). After starting the MindIE Motor service, set the `enable` switch to `1` to start the collection task.
+        - If a JSON file with the same name already exists in the path specified by the environment variable, no JSON file is created.
 
     2. Run MindIE Motor.
     3. <a name="li58961338154210"></a>Start the collection task.
@@ -115,15 +125,15 @@ Collects serving profile data.
     >Serving profiling supports dynamic start and stop at runtime. The dynamic start and stop function allows you to start or stop profiling whenever needed.
     >There are three main scenarios as follows:
     >- <a name="li0321112752816"></a>Enable the function: Before starting MindIE Motor, the `enable` field is set to `0` in the JSON configuration file. After MindIE Motor starts, change `enable` to `1`. The log confirms profiling is enabled.
-    > ![](figures/1_zh-cn_image_0000002450063397.png)
+    > ![](../figures/1_en-us_image_0000002450063397.png)
     >- Disable the function: Before starting MindIE Motor, the `enable` field is set to `1` in the JSON configuration file. After MindIE Motor starts, change `enable` to `0`. The log confirms profiling is disabled.
-    > ![](figures/zh-cn_image_0000002512312449.png)
+    > ![](../figures/en-us_image_0000002512312449.png)
     >- The JSON configuration file is updated but the `enable` field remains unchanged. In this case, the profiling function status remains unchanged and the log prints the following message:
-    > ![](figures/zh-cn_image_0000002480352568.png)
+    > ![](../figures/en-us_image_0000002480352568.png)
 
 **Output Description<a name="section3518349616"></a>**
 
-During serving profile data collection, logs are generated to indicate the status of the collection process. You can control logging using the `PROF_LOG_LEVEL` environment variable as described below.  
+During serving profile data collection, logs are generated to indicate the status of the collection process. You can control logging using the `PROF_LOG_LEVEL` environment variable as described below.
 
 The `PROF\_LOG\_LEVEL` environment variable configures the log level for data collection. The following is an example:
 
@@ -179,7 +189,7 @@ Parses serving profile data.
 
 **Precautions<a name="section20819721134913"></a>**
 
-- During data collection, files that have been written to disk are locked. Parsing can only be started after collection is complete; otherwise, the error "db is locked" will be displayed.
+- During data collection, files that have been written to disk are locked. Parsing can only be started after collection is complete; otherwise, the error "db is lock" will be displayed.
 - Do not enable dynamic collection again before data parsing is complete, as this may degrade collection performance.
 - The following versions are required for data parsing:
     - python \>= 3.10
@@ -205,11 +215,11 @@ For details about the options parameter, see [Parameter description](#section379
 |---------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--|
 | --input-path  | Specifies the path for storing profile data. All databases named `msproftx.db`, `ascend_service_profiler_.db`, and `ms_service_.db` in the path will be traversed and read.                                                                                                                                                                                                                                                                                                                                                                         |Yes|
 | --output-path | Specifies the output path for parsed files. It defaults to the `output` directory in the current path.                                                                                                                                                                                                                                                                                                                                                                                                                                |No|
-| --log-level   | Sets the log level. The options are as follows:<br>`debug`: debug level. Logs at this level record the debugging information for R&D or maintenance personnel to locate faults.<br>`info`: normal level (default). Logs at this level record normal tool operation information.  <br>`warning`: warning level. Logs at this level record unexpected states that do not affect process execution.<br>`error`: minor error level. `fatal`: major error level. `critical`: critical error level.                                                                                                                                                                                                                                                                         |No|
+| --log-level   | Sets the log level. The options are as follows:<br>`debug`: debug level. Logs at this level record the debugging information for R&D or maintenance personnel to locate faults.<br>`info`: normal level (default). Logs at this level record normal tool operation information.  <br>`warning`: warning level. Logs at this level record unexpected states that do not affect process execution.<br>`error`: minor error level. `critical`: critical error level. `fatal`: fatal error level.                                                                                                                                                                                                                                                                         |No|
 | --format      | Sets the export format for the profile data output files. The options are as follows:<br>`csv`: Only result files in .csv format are exported. Generally, this format is used for large raw data (>10 GB). Exporting result files in this format reduces parsing time. The .csv file contains request scheduling time, model execution time, KVCache memory usage, and more.<br>`json`: Only result files in .json format are exported. Generally, this format is used when only trace data is used for analysis. Exporting result files in this format reduces parsing time. The .json file contains the timeline diagram of the full serving inference process.<br>`db`: Only result files in .db format are exported. Generally, this format is used only when result data is analyzed exclusively with MindStudio Insight. The .db file contains the complete parsed results, which can be fully visualized directly in MindStudio Insight.<br>If `format` is not specified, all formats are exported by default. You can specify one or more formats, for example, `--format db` and `--format db csv`.<br>If `acl_task_time` is set to `2` during data collection, the file containing parsed results can be exported only in .json or .db format.|No|
 | --span        | Exports specified span data to the `output/span_info` directory.<br>1. If `span` is not specified, span data is not exported by default.<br>2. Using `--span` to export the `forward.csv` and `BatchSchedule.csv` files by default.<br>3.`--span` accepts one or more parameters. For example, if `--span sample Execute` is used, the `sample.csv` and `Execute.csv` files are exported in addition to the `forward.csv` and `BatchSchedule.csv` files. For available values, open the profile data output file with MindStudio Insight and check the span information in the Timeline chart.<br>For details, see [span_info Directory Description](#span_info-directory).                                                                                                                                                  |No|
 
-**Examples<a name="section192337387165"></a>**
+**Examples<a name="section246434914919"></a>**
 
 Run the following command to perform basic parsing on profile data.
 
@@ -225,7 +235,7 @@ After the parsing command is executed, the [parsed results](#parsed-results) are
 
 ## Parsed Results
 
-The results of `ms\_service\_profiler.parse` are as follows:
+The results of `ms\_service\_profiler.parse` are as follows.
 
 **Table 1** Mapping between collection domains and parsed results<a name="section269581401015"></a>
 
@@ -255,7 +265,7 @@ These files include:
 
 It is an SQLite database file for generating visualized line charts.
 
-It contains the following database tables, with their specific purposes described below:
+It contains the following database tables, with their specific purposes described below.
 
 **Table 2** profiler.db
 
@@ -283,7 +293,7 @@ It contains the following database tables, with their specific purposes describe
 |moe_analysis|Records fast/slow rank analysis results for the MoeDistributeCombine and MoeDistributeDispatch operators, collected via MSPTI during DeepSeek expert model serving inference.|
 |data_link|When viewing forward traces, supports clicking `rid` to display request input length information.|
 
-For details about PD disaggregation deployment and related concepts, see "Cluster Service Deployment > PD Disaggregation Service Deployment" in [MindIE Motor Developer Guide](https://gitcode.com/Ascend/MindIE-Motor/blob/v3.1.0/docs/en/user_guide/deployment/k8s/pd_disaggregation_deployment.md). The file connects to Grafana for image display during visualization. It does not include detailed descriptions of its entries. Grafana is a third-party open-source tool and is not included in the MindStudio release package. Users may opt for other compatible visualization systems based on their specific environment.
+For details about PD disaggregation deployment and related concepts, see [PD Disaggregation Service Deployment](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/en/user_guide/deployment/k8s/pd_disaggregation_deployment.md). The file connects to Grafana for image display during visualization. It does not include detailed descriptions of its entries. Grafana is a third-party open-source tool and is not included in the MindStudio release package. Users may opt for other compatible visualization systems based on their specific environment.
 
 ### **chrome\_tracing.json**
 
@@ -307,12 +317,12 @@ Table 3 batch.csv
 |batch_size|Records the total batch size during the batching phase.|
 |prefill_batch_size|Records the batch size during the prefill phase in scheduling.|
 |decode_batch_size|Records the batch size during the decode phase in scheduling.|
-|total_blocks|Records the total number of KV cache memory blocks, obtained from the original `TotalBlocks` field. This is currently supported only in vLLM scenarios.|
-|used_blocks|Records the number of memory blocks actually occupied after scheduling, calculated as `total_blocks - free_blocks`. This is currently supported only in vLLM scenarios.|
-|free_blocks|Records the number of available memory blocks remaining after scheduling, obtained from the original `FreeBlocksAfter` field. This is currently supported only in vLLM scenarios.|
-|blocks_allocated|Records the KV cache resources consumed by this scheduling operation, calculated as `FreeBlocksBefore - FreeBlocksAfter`. This is currently supported only in vLLM scenarios.|
-|blocks_freed|Records the KV cache resources released from this scheduling operation, calculated as `FreeBlocksAfter - FreeBlocksBefore`. This is currently supported only in vLLM scenarios.|
-|kvcache_usage_rate|Calculates the KV cache memory usage percentage during scheduling, calculated as `used_blocks / total_blocks`. This is currently supported only in vLLM scenarios.|
+|total_blocks|Records the total number of KV cache memory blocks, obtained from the original `TotalBlocks` field. Currently, this is supported only in vLLM scenarios.|
+|used_blocks|Records the number of memory blocks actually occupied after scheduling, calculated as `total_blocks - free_blocks`. Currently, this is supported only in vLLM scenarios.|
+|free_blocks|Records the number of available memory blocks remaining after scheduling, obtained from the original `FreeBlocksAfter` field. Currently, this is supported only in vLLM scenarios.|
+|blocks_allocated|Records the KV cache resources consumed by this scheduling operation, calculated as `FreeBlocksBefore - FreeBlocksAfter`. Currently, this is supported only in vLLM scenarios.|
+|blocks_freed|Records the KV cache resources released from this scheduling operation, calculated as `FreeBlocksAfter - FreeBlocksBefore`. Currently, this is supported only in vLLM scenarios.|
+|kvcache_usage_rate|Calculates the KV cache memory usage percentage during scheduling, calculated as `used_blocks / total_blocks`. Currently, this is supported only in vLLM scenarios.|
 |prefill_scheduled_tokens|Records the number of tokens occupied by prefill during scheduling|
 |decode_scheduled_tokens|Records the number of tokens occupied by decode during scheduling.|
 |total_scheduled_tokens|Records the total number of tokens during scheduling.|
@@ -324,7 +334,7 @@ Table 3 batch.csv
 
 >[!NOTE]
 >
->Parsed data for speculative inference scenarios is currently supported only with the vLLM framework. For data collection, see the [vLLM Service Profiler User Guide](./vLLM_service_oriented_performance_collection_tool.md).
+>Currently, parsed data for speculative inference scenarios is supported only with the vLLM framework. For data collection, see the [vLLM Service Profiler User Guide](./vLLM_service_oriented_performance_collection_tool.md).
 
 ### **spec_decode.csv**
 
@@ -347,7 +357,7 @@ It is automatically generated in the speculative inference scenario and records 
 
 >[!NOTE]
 >
->Parsed data for speculative inference scenarios is currently supported only with the vLLM framework. For data collection, see the [vLLM Service Profiler User Guide](./vLLM_service_oriented_performance_collection_tool.md).
+>Currently, parsed data for speculative inference scenarios is supported only with the vLLM framework. For data collection, see the [vLLM Service Profiler User Guide](./vLLM_service_oriented_performance_collection_tool.md).
 
 ### **kvcache.csv**
 
@@ -360,11 +370,11 @@ Records memory usage during inference.
 |rid|ID of a request associated with a KV cache event. Valid only for the MindIE scenario.|
 |name|Method that changes memory usage.|
 |start_time|Time when the memory usage changes.|
-|total_blocks|Records the total number of KV cache memory blocks, obtained from the original `TotalBlocks` field. This is currently supported only in vLLM scenarios.|
-|used_blocks|Records the number of memory blocks actually occupied after scheduling, calculated as `total_blocks - free_blocks`. This is currently supported only in vLLM scenarios.|
-|free_blocks|Records the number of available memory blocks remaining after scheduling, obtained from the original `FreeBlocksAfter` field. This is currently supported only in vLLM scenarios.|
-|blocks_allocated|Records the KV cache resources consumed by this scheduling operation, calculated as `FreeBlocksBefore - FreeBlocksAfter`. This is currently supported only in vLLM scenarios.|
-|blocks_freed|Records the KV cache resources released from this scheduling operation, calculated as `FreeBlocksAfter - FreeBlocksBefore`. This is currently supported only in vLLM scenarios.|
+|total_blocks|Records the total number of KV cache memory blocks, obtained from the original `TotalBlocks` field. Currently, this is supported only in vLLM scenarios.|
+|used_blocks|Records the number of memory blocks actually occupied after scheduling, calculated as `total_blocks - free_blocks`. Currently, this is supported only in vLLM scenarios.|
+|free_blocks|Records the number of available memory blocks remaining after scheduling, obtained from the original `FreeBlocksAfter` field. Currently, this is supported only in vLLM scenarios.|
+|blocks_allocated|Records the KV cache resources consumed by this scheduling operation, calculated as `FreeBlocksBefore - FreeBlocksAfter`. Currently, this is supported only in vLLM scenarios.|
+|blocks_freed|Records the KV cache resources released from this scheduling operation, calculated as `FreeBlocksAfter - FreeBlocksBefore`. Currently, this is supported only in vLLM scenarios.|
 |device_kvcache_left|Calculates the remaining KVCache after this memory operation. Exclusive to the MindIE framework.|
 |kvcache_usage_rate|Calculates the KV cache memory usage percentage during scheduling, calculated as `used_blocks / total_blocks`.|
 
@@ -413,7 +423,7 @@ Records detailed data during the model forward execution in serving inference.
 
 Contains communication data for PD disaggregation scenarios. PD disaggregation is a multi-node, multi-device (cluster) deployment that requires a shared configuration file during [data collection](#li177905365245).
 
-For details about PD disaggregation deployment and related concepts, see "Cluster Service Deployment \> PD Disaggregation Service Deployment" in [MindIE Motor Developer Guide](https://gitcode.com/Ascend/MindIE-Motor/blob/v3.1.0/docs/en/user_guide/deployment/k8s/pd_disaggregation_deployment.md).
+For details about PD disaggregation deployment and related concepts, see [PD Disaggregation Service Deployment](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/en/user_guide/deployment/k8s/pd_disaggregation_deployment.md).
 
 **Table 7** pd\_split\_communication.csv
 
@@ -430,7 +440,7 @@ For details about PD disaggregation deployment and related concepts, see "Cluste
 
 Records KV cache transfer between P-nodes and D-nodes during PD disaggregation inference. PD disaggregation is a multi-node, multi-device (cluster) deployment that requires a shared configuration file during [data collection](#li177905365245).
 
-For details about PD disaggregation deployment and related concepts, see "Cluster Service Deployment \> PD Disaggregation Service Deployment" in [MindIE Motor Developer Guide](https://gitcode.com/Ascend/MindIE-Motor/blob/v3.1.0/docs/en/user_guide/deployment/k8s/pd_disaggregation_deployment.md).
+For details about PD disaggregation deployment and related concepts, see [PD Disaggregation Service Deployment](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/en/user_guide/deployment/k8s/pd_disaggregation_deployment.md).
 
 **Table 8** pd\_split\_kvcache.csv
 
@@ -451,7 +461,7 @@ For details about PD disaggregation deployment and related concepts, see "Cluste
 
 Records changes in the number of requests distributed to each node during PD disaggregation inference. PD disaggregation is a multi-node, multi-device (cluster) deployment that requires a shared configuration file during [data collection](#li177905365245).
 
-For details about PD disaggregation deployment and related concepts, see "Cluster Service Deployment \> PD Disaggregation Service Deployment" in [MindIE Motor Developer Guide](https://gitcode.com/Ascend/MindIE-Motor/blob/v3.1.0/docs/en/user_guide/deployment/k8s/pd_disaggregation_deployment.md).
+For details about PD disaggregation deployment and related concepts, see [PD Disaggregation Service Deployment](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/en/user_guide/deployment/k8s/pd_disaggregation_deployment.md).
 
 **Table 9** coordinator.csv
 
@@ -510,8 +520,7 @@ If data for `ep\_balance` analysis exists, running the parsing command will gene
 |{Decoder Layer} (column value)|Indicates the decoder layer index of the model running on each device.|
 
 **Figure 1** ep\_balance.png<a name="fig86411261854"></a>
-
-![](figures/ep_balance-png.png "ep_balance-png")
+![](../figures/ep_balance-png.png "ep_balance-png")
 
 ### **moe\_analysis.csv**
 
@@ -529,8 +538,7 @@ If data for `moe_analysis` exists, running the parsing command will generate a b
 |CI Upper|97.5th percentile of the total duration for the MoeDistributeCombine and MoeDistributeDispatch operators on this device.|
 
 **Figure 2** moe\_analysis.png<a name="fig106051734569"></a>
-
-![](figures/moe_analysis-png.png "moe_analysis-png")
+![](../figures/moe_analysis-png.png "moe_analysis-png")
 
 ### **\{host\_name\}\_eplb\_\{i\}\_summed\_hot\_map\_by\_expert.png**
 
@@ -540,8 +548,7 @@ This is an expert hotspot heatmap. In [Figure 3](#fig732654205612), pixel bright
 - `i` indicates the number of load balancing table updates during the serving profiling period when dynamic load balancing is enabled on MindIE. If disabled, `i = 0`.
 
 **Figure 3** Heatmap<a name="fig732654205612"></a>
-
-![](figures/heatmap.png "heatmap")
+![](../figures/heatmap.png "heatmap")
 
 The x-axis represents expert ID, and the y-axis represents the model's MoE layer.
 
@@ -555,8 +562,7 @@ This is an expert hotspot heatmap. In [Figure 4](#fig455912215212), pixel bright
 - `i` indicates the number of load balancing table updates during the serving profiling period when dynamic load balancing is enabled on MindIE. If disabled, `i = 0`.
 
 **Figure 4** Heatmap<a name="fig455912215212"></a>
-
-![](figures/heatmap-0.png "heatmap-0")
+![](../figures/heatmap-0.png "heatmap-0")
 
 The x-axis represents `Rank\_ID`, and the y-axis represents the model's MoE layer.
 
@@ -569,8 +575,7 @@ This is an expert hotspot heatmap. In [Figure 5](#fig1161912109318), pixel brigh
 - This figure is generated only when the dynamic load balancing feature of MindIE is enabled.
 
 **Figure 5** Heatmap<a name="fig1161912109318"></a>
-
-![](figures/heatmap-1.png "heatmap-1")
+![](../figures/heatmap-1.png "heatmap-1")
 
 The x-axis represents the model expert IDs, where the shared experts are listed at the end. The y-axis represents the model's MoE layer.
 
@@ -579,8 +584,7 @@ The x-axis represents the model expert IDs, where the shared experts are listed 
 This is an expert load imbalance line chart. [Figure 6](#fig3559155015275) shows the degree of expert load imbalance over time.
 
 **Figure 6** Expert load imbalance line chart<a name="fig3559155015275"></a>
-
-![](figures/average-of-expert-balance-ratio.png "expert load imbalance line chart")
+![](../figures/average-of-expert-balance-ratio.png "expert load imbalance line chart")
 
 The horizontal coordinate tokens num indicates the number of model inference rounds, and the vertical coordinate balance ratio indicates the model load imbalance degree, which is calculated based on the standard deviation of expert heat.
 
@@ -635,28 +639,24 @@ cd grafana-v11.3.0/bin/
 When configuring the Windows proxy, you need to add the Linux device IP prefix (for example, `90.90.*;90.91.*`). Access Grafana at `<http://<Linux-Device-IP>:3000/`. Default username and password are both `admin`.
 
 **Figure 1** Grafana<a name="fig133211037409"></a>
-
-![](figures/Grafana.png "Grafana")
+![](../figures/Grafana.png "Grafana")
 
 **Example<a name="section20198154975911"></a>**
 
 1. Create a data source, as shown in [Figure 2 Data source](#fig119691547124112).
 
     **Figure 2** Data source<a name="fig119691547124112"></a>
-
-    ![](figures/Data-source.png "Data_source")
+    ![](../figures/Data-source.png "Data_source")
 
     Set the data source type to `SQLite`, as shown in [Figure 3 Add data source](#fig17555112919480).
 
     **Figure 3** Add data source<a name="fig17555112919480"></a>
-
-    ![](figures/Add-data-source.png "Add_data_source")
+    ![](../figures/Add-data-source.png "Add_data_source")
 
     Connect the generated SQLite database file `profiler.db` to Grafana and record the `datasource uid`, as shown in [Figure 4 Data sources](#fig15266174254917).
 
     **Figure 4** Data sources<a name="fig15266174254917"></a>
-
-    ![](figures/Data-sources.png "Data-sources")
+    ![](../figures/Data-sources.png "Data-sources")
 
 2. Create a dashboard and import the line chart.
 
@@ -667,34 +667,29 @@ When configuring the Windows proxy, you need to add the Linux device IP prefix (
     >{version} indicates the CANN software package version. CANN 8.1.RC1 and later versions are supported.
 
     **Figure 5** uid<a name="fig51134371917"></a>
-
-    ![](figures/uid.png "uid")
+    ![](../figures/uid.png "uid")
 
     >[!NOTE]
     >
     >The UID in the JSON file identifies the dashboard uniquely and remains unchanged here. The **title** field names the dashboard, which is defaulted to **Profiler Visualization**.
 
     **Figure 6**  json<a name="fig761123319212"></a>
-
-    ![](figures/json.png "json")
+    ![](../figures/json.png "json")
 
 3. Create a new dashboard, paste the modified JSON content, and import it. Find the dashboard under `Dashboards` with the specified name.
 
-    **Figure 7** Dashboards<a name="fig94901561348"></a> 
-
-    ![](figures/Dashboards.png "Dashboards")
+    **Figure 7** Dashboards<a name="fig94901561348"></a>
+    ![](../figures/Dashboards.png "Dashboards")
 
     **Figure 8** Import dashboard<a name="fig944016531767"></a>
-
-    ![](figures/Import-dashboard.png "Import-dashboard")
+    ![](../figures/Import-dashboard.png "Import-dashboard")
 
     **Figure 9** Setting parameters<a name="fig82151013079"></a>
-
-    ![](figures/setting-parameters.png "Setting_parameters")
+    ![](../figures/setting-parameters.png "Setting_parameters")
 
 **Visualization Results<a name="section16851525949"></a>**
 
-The generated Grafana dashboard contains the following visualized charts:
+The generated Grafana dashboard contains the following visualized charts.
 
 **Table 1** Visualized charts
 
@@ -718,8 +713,7 @@ The generated Grafana dashboard contains the following visualized charts:
     y-axis: records the batch sizes for both prefill and decode batches separately.
 
     **Figure 10** Batch_Size_curve<a name="fig11458160171513"></a>
-
-    ![](figures/Batch-Size-by-Batch-ID.png "Batch_Size_by_Batch_ID")
+    ![](../figures/Batch-Size-by-Batch-ID.png "Batch_Size_by_Batch_ID")
 
 - Request_Status_curve
 
@@ -730,8 +724,7 @@ The generated Grafana dashboard contains the following visualized charts:
     Vertical axis: size of the queue in the current state.
 
     **Figure 11** Request_Status_curve<a name="fig332101019263"></a>
-
-    ![](figures/Request-Status.png "Request_Status")
+    ![](../figures/Request-Status.png "Request_Status")
 
 - Kvcache_usage_percent_curve
 
@@ -742,8 +735,7 @@ The generated Grafana dashboard contains the following visualized charts:
     y-axis: KV cache usage of all requests Unit: %
 
     **Figure 12** Kvcache_usage_percent_curve<a name="fig248583622618"></a>
-
-    ![](figures/Kvcache-usage-percent.png "Kvcache_usage_percent")
+    ![](../figures/Kvcache-usage-percent.png "Kvcache_usage_percent")
 
 - First_Token_Latency_curve
 
@@ -754,8 +746,7 @@ The generated Grafana dashboard contains the following visualized charts:
     y-axis: average TTFT across all requests, along with its 99th, 90th, and 50th percentiles, and the minimum value (min), in μs.
 
     **Figure 13** First\_Token\_Latency\_curve<a name="fig51649142712"></a>
-
-    ![](figures/first_token_latency.png "first_token_latency")
+    ![](../figures/first_token_latency.png "first_token_latency")
 
 - Prefill\_Generate\_Speed\_Latency\_curve
 
@@ -766,8 +757,7 @@ The generated Grafana dashboard contains the following visualized charts:
     y-axis: the average per-token latency during the prefill phase across all requests at each moment, along with its 99th, 90th, and 50th percentiles. Unit: tokens/s
 
     **Figure 14** Prefill\_Generate\_Speed\_Latency\_curve<a name="fig162756333277"></a>
-
-    ![](figures/prefill_generate_speed_latency.png "prefill_generate_speed_latency")
+    ![](../figures/prefill_generate_speed_latency.png "prefill_generate_speed_latency")
 
 - Decode\_Generate\_Speed\_Latency\_curve
 
@@ -778,8 +768,7 @@ The generated Grafana dashboard contains the following visualized charts:
     y-axis: the average per-token latency during the decode phase across all requests at each moment, along with its 99th, 90th, and 50th percentiles. Unit: tokens/s
 
     **Figure 15** Decode\_Generate\_Speed\_Latency\_curve<a name="fig413355815278"></a>
-
-    ![](figures/decode_generate_speed_latency.png "decode_generate_speed_latency")
+    ![](../figures/decode_generate_speed_latency.png "decode_generate_speed_latency")
 
 - Request\_Latency\_curve
 
@@ -790,16 +779,15 @@ The generated Grafana dashboard contains the following visualized charts:
     Vertical axis: the average value of end-to-end latency across all requests, along with its 99th, 90th, and 50th percentiles, in μs.
 
     **Figure 16** Request\_Latency\_curve<a name="fig7181141962810"></a>
+    ![](../figures/request_latency.png "request_latency")
 
-    ![](figures/request_latency.png "request_latency")
+## Extended Functions<a name="EN-US_TOPIC_0000002254643849"></a>
 
-## Extended Functions<a name="ZH-CN_TOPIC_0000002254643849"></a>
-
-### Adding Custom Collection Code<a name="ZH-CN_TOPIC_0000002184508129"></a>
+### Adding Custom Collection Code<a name="EN-US_TOPIC_0000002184508129"></a>
 
 The MindIE Motor framework includes built-in profiling code. This operation is optional.
 
-To customize performance data collection, modify the serving framework's collection code following the examples below. For available APIs, see [API Reference (C++)](./cpp_api/serving_tuning/README.md) or [API Reference (Python)](./python_api/README.md).
+To customize performance data collection, modify the serving framework's collection code following the examples below. For available APIs, see [API Reference (C++)](../cpp_api/serving_tuning/README.md) or [API Reference (Python)](../python_api/README.md).
 
 >[!NOTE]
 >
@@ -830,9 +818,9 @@ Metric data profiling:
 ```C++
 // Common data profiling: usage 50%
 PROF(INFO, Metric("usage", 0.5).Launch());
-// Incremental data profiling: number of requests + 1
+// Increment the request count by 1 for profiling
 PROF(INFO, MetricInc("reqSize", 1).Launch());
-// Define the profiling range (global by default): The current size of the third queue is 14.
+// Define the profiling range (global by default); the current third-queue size is 14
 PROF(INFO, Metric("queueSize", 14).MetricScope("queue", 3).Launch());
 ```
 
@@ -855,14 +843,14 @@ PROF(INFO, Attr<msServiceProfiler::VERBOSE>("verboseAttr", 1000).Event("test"));
 PROF(INFO, Domain("http").Res(reqId).Attr("attr", "attrValue").Event("test"));
 ```
 
-### Serving profile data comparison tool<a name="ZH-CN_TOPIC_0000002219803962"></a>
+### Serving profile data comparison tool<a name="EN-US_TOPIC_0000002219803962"></a>
 
 Different versions and frameworks of the foundation model inference service may perform differently. The serving profile data comparison tool uses the msServiceProfiler tool to analyze profile data and quickly spot potential issues. For details, see [Serving Profile Data Comparison Tool](./ms_service_profiler_compare_tool_instruct.md).
 
-### vLLM Service Profiler<a name="ZH-CN_TOPIC_0000002205822501"></a>
+### vLLM Service Profiler<a name="EN-US_TOPIC_0000002205822501"></a>
 
 The tool uses Ascend-vLLM for profiling. It combines msServiceProfiler's data parsing and visualization features to help debug and improve vLLM inference and serving. For details, see [vLLM Service Profiler](./vLLM_service_oriented_performance_collection_tool.md).
 
-### Serviceparam Optimizer<a name="ZH-CN_TOPIC_0000002387389717"></a>
+### Serviceparam Optimizer<a name="EN-US_TOPIC_0000002387389717"></a>
 
 Based on the profile data collected by the msServiceProfiler, this tool automatically optimizes serving parameters and test tool parameters. For details, see [Serviceparam Optimizer](./serviceparam_optimizer_instruct.md).

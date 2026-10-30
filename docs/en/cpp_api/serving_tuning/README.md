@@ -1,10 +1,10 @@
-# Overview<a name="ZH-CN_TOPIC_0000002184469813"></a>
+# Overview<a name="EN-US_TOPIC_0000002184469813"></a>
 
 ## API Description <a name="zh-cn_topic_0000001977973392_section883612815318"></a>
 
 The msServiceProfiler module offers C++ APIs for profiling inference services.
 
-For details about the functions and usage examples of these APIs, see *Data Collection*.
+For details about the functions and usage examples of the profiling data collection APIs, see *[Data Collection](../../user_guide/msserviceprofiler_serving_tuning_instruct.md#data-collection)*.
 
 Header file: `$\{INSTALL_DIR\}/include/msServiceProfiler.h`
 

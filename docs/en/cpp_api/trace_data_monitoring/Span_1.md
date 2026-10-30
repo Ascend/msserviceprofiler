@@ -1,11 +1,11 @@
-# Span Class<a name="ZH-CN_TOPIC_0000002486811446"></a>
+# Span Class<a name="EN-US_TOPIC_0000002486811446"></a>
 
-- **[Span](Span.md)**  
+- **[Span](Span.md)**
 
-- **[Activate](Activate.md)**  
+- **[Activate](Activate.md)**
 
-- **[SetAttribute](SetAttribute.md)**  
+- **[SetAttribute](SetAttribute.md)**
 
-- **[SetStatus](SetStatus.md)**  
+- **[SetStatus](SetStatus.md)**
 
-- **[End](End.md)**  
+- **[End](End.md)**

@@ -8,18 +8,28 @@ SGLang Service Profiler is used for performance monitoring and optimization anal
 
 ## Supported Products
 
->[!NOTE]
+> [!NOTE]
 >
 >For details about Ascend product models, see [Ascend Product Models](https://www.hiascend.com/document/detail/en/AscendFAQ/ProduTech/productform/hardwaredesc_0001.html).
 
-|Product Type| Supported (Yes/No)|
-|--|:----:|
-|Ascend 950 products|No|
-|Atlas A3 Training Products and Atlas A3 Inference Products|  Yes  |
-|Atlas A2 training products and Atlas A2 inference products|  Yes  |
-|Atlas 200I/500 A2 inference products|  No  |
-|Atlas inference products|  No  |
-|Atlas training products|  No  |
+<!-- npu="950" id1 -->
+- <term>Ascend 950PR&950DT products</term>: Not supported
+<!-- end id1 -->
+<!-- npu="A3" id2 -->
+- <term>Atlas A3 products</term>: Supported
+<!-- end id2 -->
+<!-- npu="910b" id3 -->
+- <term>Atlas A2 products</term>: Supported
+<!-- end id3 -->
+<!-- npu="310b" id4 -->
+- <term>Atlas 200I/500 A2 inference products</term>: Not supported
+<!-- end id4 -->
+<!-- npu="310p" id5 -->
+- <term>Atlas inference products</term>: Not supported
+<!-- end id5 -->
+<!-- npu="910" id6 -->
+- <term>Atlas training products</term>: Not supported
+<!-- end id6 -->
 
 The NPU models supported by this tool match those supported by the SGLang framework for inference serving. For details, see [SGLang installation with NPUs support](https://docs.sglang.io/docs/hardware-platforms/ascend-npus/ascend_npu).
 
@@ -29,11 +39,11 @@ The NPU models supported by this tool match those supported by the SGLang framew
 
 1. In the Ascend environment, install the matching CANN Toolkit and ops operator packages, and configure CANN environment variables. For details, see [CANN Installation Guide](https://www.hiascend.com/en/cann/download).
 2. Install and deploy SGLang on the NPU and ensure that the inference service can run properly. For details, see [SGLang installation with NPUs support](https://docs.sglang.io/docs/hardware-platforms/ascend-npus/ascend_npu).
-3. Build the .run package from the source code and upgrade the tool. For details, see the section *Upgrade* in [msServiceProfiler Installation Guide](./msserviceprofiler_install_guide.md#5-upgrade).
+3. See the section "[5. Upgrade](../install_guide/msserviceprofiler_install_guide.md#5-upgrade)" in *msServiceProfiler Installation Guide*.
 
 ### Restrictions
 
-- **Version compatibility**: Currently, only SGLang 0.5.4.post1 is supported.
+- **Version compatibility**: Currently supported up to SGLang 0.5.4.post1. The collected data varies with the SGLang version. If you need to collect data on other versions, see the section "[Profiling Configuration Usage Guide](#profiling-configuration-usage-guide)" in this guide, and customize and adapt the configuration in advance.
 - **Resource usage**: The data collection process may consume significant memory. It is advised to adjust the collection frequency as required.
 
 ## Usage Instruction
@@ -50,8 +60,9 @@ a. Before starting the service, import the profiling module into the SGLang fram
 **(1) Main process entry point (TokenizerManager/HTTP server)**
 
 ```bash
-# Open the SGLang server launch file to import the profiling module
-vim /usr/local/python3.11.13/lib/python3.11/site-packages/sglang/launch_server.py # Replace /usr/local/python3.11.13/lib/python3.11/site-packages with the sglang installation path from the pip show sglang command output
+# Edit the SGLang serving launch entry file
+# /usr/local/pythonx.xx.xx/lib/pythonx.xx/site-packages is the installation path returned by pip show sglang
+vim /usr/local/pythonx.xx.xx/lib/pythonx.xx/site-packages/sglang/launch_server.py
 # Insert the following code after all existing import statements:
 from ms_service_profiler.patcher.sglang import register_service_profiler
 register_service_profiler()
@@ -138,7 +149,7 @@ For details about the command parameters for parsing data, see [Data Parsing](./
 
 **5. Viewing Data**
 
-After parsing is complete, the `output` folder is generated in the current directory. The folder contains the following deliverables:
+After parsing is complete, the `output` folder is generated in the current directory. The folder contains the following deliverables.
 
 |          Deliverable         | Description                                                                                                        |
 |:---------------------:|:-----------------------------------------------------------------------------------------------------------|
