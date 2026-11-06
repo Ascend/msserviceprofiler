@@ -7,15 +7,15 @@ msServiceProfiler Trace receives, processes, and forwards distributed trace data
 It collects data from the MindIE Motor service, including request response time, response status, client IP/port, and server IP/port. Then, it pushes the collected data to OTLP-compliant open-source monitoring platforms such as Jaeger for visualization.
 
 - The current version primarily targets the MindIE inference framework and supports single-node deployment and multi-node Prefill-Decode (PD) competition deployment.
-- Trace monitoring is currently supported only for core inference endpoints [/v1/chat](https://www.hiascend.com/document/detail/en/mindie/latest/mindiellm/llmdev/mindie_service0078.html) and [/v1/completions](https://www.hiascend.com/document/detail/en/mindie/latest/mindiellm/llmdev/mindie_service0323.html) of MindIE.
+- Trace monitoring is currently supported only for core inference endpoints [/v1/chat](https://www.hiascend.com/document/detail/en/mindie/320/mindiellm/llmdev/mindie_service0078.html) and [/v1/completions](https://www.hiascend.com/document/detail/en/mindie/320/mindiellm/llmdev/mindie_service0323.html) of MindIE.
 - For details about data monitoring APIs of msServiceProfiler Trace, see "msServiceProfiler API Reference (C++) \>  [Trace Data Monitoring](../cpp_api/trace_data_monitoring/README.md)".
-- For details about MindIE Motor, see [MindIE Motor Developer Guide](https://gitcode.com/Ascend/MindIE-Motor/blob/26.2.0/docs/en/user_guide/README.md).
+- For details about MindIE Motor, see [MindIE Motor Developer Guide](https://gitcode.com/Ascend/MindIE-Motor/blob/v3.2.0/docs/en/user_guide/README.md).
 
 ## Supported Products<a name="EN-US_TOPIC_0000002489576470"></a>
 
 > [!NOTE]
 >
->For details about Ascend product models, see [Ascend Product Models](https://www.hiascend.com/document/detail/en/AscendFAQ/ProduTech/productform/hardwaredesc_0001.html).
+>For details about Ascend product models, see [Ascend Product Models](https://www.hiascend.com/en-sg/document/detail/en/Glossary/productform/hardwaredesc_0001.html).
 
 <!-- npu="950" id1 -->
 - <term>Ascend 950PR&950DT products</term>: Not supported
@@ -49,7 +49,7 @@ It collects data from the MindIE Motor service, including request response time,
 
 2. Install [msServiceProfiler](../install_guide/msserviceprofiler_install_guide.md).
 
-3. Install and configure MindIE and ensure that MindIE Motor can run properly. For details, see [MindIE Installation Guide](https://gitcode.com/Ascend/MindIE-Motor/blob/26.2.0/docs/en/user_guide/maintenance/build_motor_image_from_vllm_ascend.md).
+3. Install and configure MindIE and ensure that MindIE Motor can run properly. For details, see [MindIE Installation Guide](https://gitcode.com/Ascend/MindIE-Motor/blob/v3.2.0/docs/en/user_guide/maintenance/build_motor_image_from_vllm_ascend.md).
 
 4. The Ascend environment where the MindIE Motor service resides must have a stable network connection to the OTLP collector (such as Jaeger).
 

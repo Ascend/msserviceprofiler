@@ -32,7 +32,7 @@ The tool has been validated on LLaMA3-8B and Qwen3-8B. In principle, it does not
 
 > [!NOTE]
 >
->For details about Ascend product models, see [Ascend Product Models](https://www.hiascend.com/document/detail/en/AscendFAQ/ProduTech/productform/hardwaredesc_0001.html).
+>For details about Ascend product models, see [Ascend Product Models](https://www.hiascend.com/en-sg/document/detail/en/Glossary/productform/hardwaredesc_0001.html).
 
 <!-- npu="950" id1 -->
 - <term>Ascend 950PR&950DT products</term>: Not supported
@@ -61,7 +61,7 @@ The tool has been validated on LLaMA3-8B and Qwen3-8B. In principle, it does not
 ## Preparations
 
 **Environment Setup**
-Set up an environment where serving tools (such as [MindIE Service](https://gitcode.com/Ascend/MindIE-Motor/blob/26.2.0/docs/en/user_guide/deployment/README.md)/[vLLM Server](https://docs.vllm.ai/projects/ascend/en/latest/quick_start.html)) and benchmark tools (such as `vllm_benchmark`/`ais_bench`, see [Benchmark Tool Deployment](https://github.com/AISBench/benchmark/blob/master/docs/source_en/get_started/install.md)) can run properly.
+Set up an environment where serving tools (such as [MindIE Service](https://gitcode.com/Ascend/MindIE-Motor/blob/v3.2.0/docs/en/user_guide/deployment/README.md)/[vLLM Server](https://docs.vllm.ai/projects/ascend/en/latest/quick_start.html)) and benchmark tools (such as `vllm_benchmark`/`ais_bench`, see [Benchmark Tool Deployment](https://github.com/AISBench/benchmark/blob/master/docs/source_en/get_started/install.md)) can run properly.
 
 ## Tool Installation
 
@@ -345,7 +345,7 @@ If `vllm_benchmark` is used for the test, modify the following parameters:
 |num_prompts|Yes| Specifies the number of prompts to run from the dataset.<br>The value is an integer ranging from 1 to 10000.|
 |others|No| Additional parameters. Use spaces to separate them, and no space is allowed within the parameters, for example, `--ignore-eos --custom-output-len 1500`. This parameter is left empty by default.|
 
-**Serving parameters**: Modify these parameters as described in [MindIE Server Configuration Parameter Description](https://gitcode.com/Ascend/MindIE-LLM/blob/26.2.0/docs/en/user_guide/user_manual/service_parameter_configuration.md).
+**Serving parameters**: Modify these parameters as described in [MindIE Server Configuration Parameter Description](https://gitcode.com/Ascend/MindIE-LLM/blob/v3.1.0/docs/en/user_guide/user_manual/service_parameter_configuration.md).
 You can define search ranges directly using these parameters. For example, to set the optimization search space for `max_batch_size` to 10 to 400:
 
 ```toml

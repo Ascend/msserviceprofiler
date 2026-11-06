@@ -12,7 +12,7 @@ msServiceProfiler provides end-to-end performance profiling. It clearly displays
 
 - Install msServiceProfiler before you use the performance tuning tool. For details, see *[msServiceProfiler Installation Guide](../install_guide/msserviceprofiler_install_guide.md)*.
 - Ensure that the corresponding service framework has been installed and its availability has been verified (the service starts successfully, and can process an inference request using official example scripts or APIs).
-  - **MindIE Motor**: Install and configure MindIE as described in [MindIE Installation Guide](https://gitcode.com/Ascend/MindIE-Motor/blob/26.2.0/docs/en/user_guide/maintenance/build_motor_image_from_vllm_ascend.md) and ensure that the MindIE Motor service can start successfully and complete a sample inference request.
+  - **MindIE Motor**: Install and configure MindIE as described in [MindIE Installation Guide](https://gitcode.com/Ascend/MindIE-Motor/blob/v3.2.0/docs/en/user_guide/maintenance/build_motor_image_from_vllm_ascend.md) and ensure that the MindIE Motor service can start successfully and complete a sample inference request.
   - **vLLM-Ascend**: See [vLLM Service Profiler User Guide](../user_guide/vLLM_service_oriented_performance_collection_tool.md) and the official vLLM-Ascend installation document to set up the environment and verify that the vLLM service can provide inference APIs for external systems.
   - **SGLang**: See [SGLang Service Profiler User Guide](../user_guide/SGLang_service_oriented_performance_collection_tool.md) and the official SGLang installation document to set up the environment and verify that the SGLang service can provide inference APIs for external systems.
 
@@ -46,7 +46,7 @@ The steps for starting a service vary by framework. However, for msServiceProfil
 
 #### 2.1 MindIE Motor
 
-Start the inference service as described in the [MindIE Installation Guide](https://gitcode.com/Ascend/MindIE-Motor/blob/26.2.0/docs/en/user_guide/maintenance/build_motor_image_from_vllm_ascend.md). If `SERVICE_PROF_CONFIG_PATH` is correctly configured, logs prefixed with `[msservice_profiler]` will be output before the service deployment completes, indicating that msServiceProfiler has been initialized. Example:
+Start the inference service as described in the [MindIE Installation Guide](https://gitcode.com/Ascend/MindIE-Motor/blob/v3.2.0/docs/en/user_guide/maintenance/build_motor_image_from_vllm_ascend.md). If `SERVICE_PROF_CONFIG_PATH` is correctly configured, logs prefixed with `[msservice_profiler]` will be output before the service deployment completes, indicating that msServiceProfiler has been initialized. Example:
 
 ```ColdFusion
 [msservice_profiler] [PID:225] [INFO] [ParseEnable:179] profile enable_: false
