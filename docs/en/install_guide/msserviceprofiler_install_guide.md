@@ -14,11 +14,11 @@ If you need to upgrade this tool separately or use the latest version, you can i
 
 ### 2.1 Online Installation
 
-If your device can access the Internet, you can download and install the tool automatically with a single command. Go to the MindStudio [download](https://www.hiascend.com/developer/software/mindstudio/download) page on the Ascend community, select the corresponding CANN version, and choose **Online installation** as the installation method; the system will guide you through the remaining steps.
+If your device can access the Internet, you can download and install the tool automatically with a single command. Go to the MindStudio [download](https://www.hiascend.com/en/developer/software/mindstudio/download) page on the Ascend community, select the corresponding CANN version, and choose **Online installation** as the installation method; the system will guide you through the remaining steps.
 
 ### 2.2 Offline Installation
 
-For devices on an enterprise intranet or in other environments without external network access, first download the complete offline installation package on a machine with network access, then transfer it to the target device for installation. Go to the MindStudio [download](https://www.hiascend.com/developer/software/mindstudio/download) page on the Ascend community, select the corresponding CANN version, and choose **Offline installation** as the installation method to obtain the package and the installation instructions.
+For devices on an enterprise intranet or in other environments without external network access, first download the complete offline installation package on a machine with network access, then transfer it to the target device for installation. Go to the MindStudio [download](https://www.hiascend.com/en/developer/software/mindstudio/download) page on the Ascend community, select the corresponding CANN version, and choose **Offline installation** as the installation method to obtain the package and the installation instructions.
 
 ### 2.3 Source Installation
 
@@ -139,4 +139,4 @@ You can uninstall the tool by following these steps:
 ## 5. Upgrade
 
 Upgrading means "uninstall first, then install." Simply run the installation command, and the tool will automatically uninstall the old version and guide you through the overwrite installation.
-You can check the version information of the current environment by running the `pip list | grep ms_service_profiler` command, and then select the version you want to upgrade to. When upgrading, pay attention to the version compatibility. For details, see [Release Notes](https://gitcode.com/Ascend/release-management/blob/master/MindStudio/26.2.0/release_notes.md).
+You can check the version information of the current environment by running the `pip list | grep ms_service_profiler` command, and then select the version you want to upgrade to. When upgrading, pay attention to the version compatibility. For details, see [Release Notes](https://gitcode.com/Ascend/release-management/blob/master/MindStudio/26.2.0/release_notes_en.md).
