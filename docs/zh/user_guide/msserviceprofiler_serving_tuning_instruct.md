@@ -321,7 +321,7 @@ PD分离部署场景及概念详细介绍请参见[PD分离服务部署](https:/
 |used_blocks|记录调度后实际占用内存块的数量，计算方式total_blocks - free_blocks。当前仅支持vllm场景。|
 |free_blocks|记录调度执行后剩余可用内存块的数量，从原始FreeBlocksAfter字段获取。当前仅支持vllm场景。|
 |blocks_allocated|记录本次调度操作消耗的KVCache资源，计算方式FreeBlocksBefore - FreeBlocksAfter。当前仅支持vllm场景。|
-|blocks_freed|记录的是本次调度操作释放的KVCache资源，计算方式FreeBlocksAfter - FreeBlocksBefore。当前仅支持vllm场景。|
+|blocks_freed|记录本次调度操作释放的KVCache资源，计算方式FreeBlocksAfter - FreeBlocksBefore。当前仅支持vllm场景。|
 |kvcache_usage_rate|计算本次调度过程中KVCache的内存使用百分比，计算方式used_blocks / total_blocks。当前仅支持vllm场景。|
 |prefill_scheduled_tokens|记录调度过程中prefill占用的token数。|
 |decode_scheduled_tokens|记录调度过程中decode占用的token数。|

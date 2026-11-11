@@ -325,4 +325,4 @@ def custom_handler(original_func, this, *args, **kwargs):
 >[!NOTE]
 >
 > - vLLM Service Profiler 在 `acl_task_time` 参数配置为1时，不支持同时配置vLLM原生 Torch Profiler 的 `VLLM_TORCH_PROFILER_DIR` 环境变量进行性能数据采集。
-> - 配置 Torch Profiler 采集时，`enable`参数取值初始须为0（表示关闭性能数据采集），之后在启动 vLLM-Ascend 推理服务框架服务后再将配置`enable`参数配置为1（开启采集），为了避免采集过多的性能数据，可在完成相应数据采集过后关闭采集。如果`enable`参数取值初始为1，会采集大量框架层数据，很容易生成几个 GB 的跟踪文件。
+> - 配置 Torch Profiler 采集时，`enable`参数取值初始须为0（表示关闭性能数据采集），之后在启动 vLLM-Ascend 推理服务框架后再将配置中的`enable`参数配置为1（开启采集），为了避免采集过多的性能数据，可在完成相应数据采集过后关闭采集。如果`enable`参数取值初始为1，会采集大量框架层数据，很容易生成几个 GB 的跟踪文件。

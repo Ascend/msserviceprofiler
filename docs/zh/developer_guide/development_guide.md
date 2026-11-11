@@ -171,7 +171,7 @@ export SERVICE_PROF_CONFIG_PATH="./ms_service_profiler_config.json"
 
 **Step 3：解析采集数据**
 
-采集完成后，使用解析工具行解析后，生成解析产物，包含csv、json、db等文件：
+采集完成后，使用解析工具解析后，生成解析产物，包含csv、json、db等文件：
 
 ```bash
 python -m ms_service_profiler.parse --input-path=./prof_dir

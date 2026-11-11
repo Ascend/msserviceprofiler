@@ -122,7 +122,7 @@ msserviceprofiler advisor -i /your/path/instance/
 专家建议命令执行完成后输出调参建议，结果如下：
 
 - **使用场景一**
-  - 结果表示根据当前可用显存信息、模型结构信息、MindIE Service config.json配置信息及请求输入输出长度等情况综合考虑，计算出当前 MindIE Service config.json中的maxBatchSize的建议取值范围。
+  - 结果根据当前可用显存信息、模型结构信息、MindIE Service config.json配置信息及请求输入输出长度等情况综合考虑，计算出当前 MindIE Service config.json中的maxBatchSize的建议取值范围。
   - 建议用户根据下述提示，将 MindIE Service config.json中的maxBatchSize设置为平均值大小，maxPrefillBatchSize设置为maxBatchSize的一半，重新拉起服务化运行，观察性能是否提升。
   - 若性能有提升，则可尝试逐渐向range中的最大值靠近，观察性能指标变化情况。
   - 若maxBatchSize值设置过大，则会导致模型拉起失败，此时应当将该值向range中的最小值靠近，直到模型能成功拉起。

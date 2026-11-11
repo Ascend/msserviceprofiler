@@ -44,7 +44,7 @@ def metric_inc(self, metric_name, metric_value):
 
 |参数名|输入/输出|说明|
 |--|--|--|
-|metric_name|输入|指标名字。|
+|metric_name|输入|指标名。|
 |metric_value|输入|增量数值，为负数时表示减少。|
 
 ## 返回值说明<a name="section776014535188"></a>

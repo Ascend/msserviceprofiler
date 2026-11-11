@@ -44,4 +44,4 @@ def __init__(self, profiler_level):
 
 |参数名|输入/输出|说明|
 |--|--|--|
-|profiler_level|输入|定义的采集级别。|
+|profiler_level|输入|定义采集级别。|

@@ -46,7 +46,7 @@ size_t ExtractAndAttach(const std::string& traceParentOfW3C, const std::string& 
 
 |参数名|输入/输出|说明|
 |--|--|--|
-|traceParentOfW3C|输入|W3C标准的trace-parent字符串。|
+|traceParentOfW3C|输入|W3C标准的traceparent字符串。|
 |traceOfB3|输入|B3标准的trace字符串。|
 
 ## 返回值说明<a name="section16621124213476"></a>

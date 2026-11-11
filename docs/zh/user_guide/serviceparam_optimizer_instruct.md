@@ -293,7 +293,7 @@ msserviceprofiler optimizer -e vllm -b vllm_benchmark -c ../configs/vllm_config.
 | throughput | 测试吞吐，单位为请求数/秒。 |
 | CONCURRENCY | 并发数。 |
 | REQUESTRATE | 发送速率。 |
-| error | 记录这次参数没有正常执行的原因，在发送错误时记录。 |
+| error | 记录这次参数没有正常执行的原因，在发生错误时记录。 |
 | backup | 数据记录地址，当开启--backup时记录。 |
 | real_evaluation | 标记数据是否由真实测试结果得到。false代表该组数据由gp模型预测得到。 |
 | fitness | 寻优算法优化值，该值越小代表该组参数效果越好 |
@@ -306,7 +306,7 @@ msserviceprofiler optimizer -e vllm -b vllm_benchmark -c ../configs/vllm_config.
 ### 配置文件说明
 
 **寻优参数**： `n_particles` （寻优种子数）、`iters` （迭代轮次数）、 `tpot_slo` （`time_per_output_token`的限制时延）等。
-用户可根据预估时间来自行配置种子和迭代次数。我们单个种子使用时间为拉起服务+测试数据。比如用户拉起服务+完成测试需9-10min，且愿意用8小时来进行寻优，则一共可跑约50个种子，建议用户配置5 * 10。设置种子数为10，迭代次数为5，建议用户配置种子数为迭代次数的2倍左右。
+用户可根据预估时间来自行配置种子和迭代次数。我们单个种子使用时间为拉起服务+测试数据。比如用户拉起服务+完成测试需9-10min，且愿意用8小时来进行寻优，则一共可跑约50个种子，建议用户配置5 * 10，即设置种子数为10，迭代次数为5，种子数为迭代次数的2倍左右。
 
 > **注意**：以下寻优参数均为必填项，不可删除或省略，否则运行时会报错。
 
