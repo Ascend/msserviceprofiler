@@ -2,7 +2,7 @@
 
 ## Background
 
-A customer deployed an inference service based on MindIE-LLM for LLaMA2-70B on an Ascend A2 cluster. After deployment, stress testing showed that at a fixed concurrency level (QPS = 20), the serving throughput was only about **55%** of the expected value. 99th-percentile (P99) time to first token (TTFT) reached **820 ms** (SLA target: **300 ms**), and P99 time per output token (TPOT) reached **85 ms** (SLA target: **30 ms**). However, `npu-smi info` showed that the average NPU utilization (AI Core) was **78%**, while AIPower was normal and the temperature did not trigger frequency throttling. On the surface, the hardware did not appear to be fully utilized, yet the service was slow. This is a typical serving-layer scheduling issue.
+A customer deployed an inference service based on MindIE LLM for LLaMA2-70B on an Ascend A2 cluster. After deployment, stress testing showed that at a fixed concurrency level (QPS = 20), the serving throughput was only about **55%** of the expected value. 99th-percentile (P99) time to first token (TTFT) reached **820 ms** (SLA target: **300 ms**), and P99 time per output token (TPOT) reached **85 ms** (SLA target: **30 ms**). However, `npu-smi info` showed that the average NPU utilization (AI Core) was **78%**, while AIPower was normal and the temperature did not trigger frequency throttling. On the surface, the hardware did not appear to be fully utilized, yet the service was slow. This is a typical serving-layer scheduling issue.
 
 Further stress testing produced the following results.
 
@@ -19,7 +19,7 @@ The throughput achievement rate **decreases significantly** as concurrency incre
 
 ## Symptoms
 
-In Continuous Batching mode of the serving-layer scheduler, a long request that has just completed prefill is mixed into the same decode batch with several short requests that are already in the decode stage. The execution time of a decode step is no longer determined primarily by the average length of the current batch, but is instead dominated by the longest request undergoing prefill. As a result:
+In Continuous Batching mode of the serving-layer scheduler, a long request that has just completed prefill is mixed into the same decode batch with several short requests that are already in the decode stage. The execution duration of a decode step is no longer determined primarily by the average length of the current batch, but is instead dominated by the longest request undergoing prefill. As a result:
 
 * **Short requests are slowed down:** A short request that would normally generate one token in approximately 25 ms may have to wait 80–100 ms because it is blocked by the long request prefill, causing TPOT to increase by 3–4 times.
 * **Decode step duration shows periodic spikes:** On the timeline, decode operator duration fluctuates in a "short-long-short-long" sawtooth pattern.
@@ -61,7 +61,7 @@ bash /usr/local/Ascend/mindie/latest/scripts/start.sh \
     --max-prefill-tokens 8192
 ```
 
-**Disable data collection after 60 seconds** (to limit the amount of collected data):
+**Wait 60 seconds, then disable data collection** (to avoid data explosion):
 
 ```json
 {
@@ -104,7 +104,7 @@ Open the **Summary** page and focus on the following three views:
 
 #### 2.2 Comparing Representative Batches on the Timeline
 
-Open the **Timeline** page and first select two representative batches from the batch list:
+Open the **Timeline** page and first select two extreme samples from the batch list:
 
 * **Bad batch: b-15892** (`seq_cnt` = 8, `max_len` = 4096, `min_len` = 64, **`len_ratio` = 64**)
 * **Good batch: b-16301** (`seq_cnt` = 6, `max_len` = 512, `min_len` = 256, **`len_ratio` = 2**)
@@ -133,7 +133,7 @@ Zoom in on an approximately 500 ms window for each of the two batches to compare
 
 ## Root Cause
 
-**Root Cause Type:** Framework adaptation issue. The scheduler in MindIE-LLM 1.0.RC2 does not sufficiently bucket or sort requests by length.
+**Root Cause Type:** Framework adaptation issue. The scheduler in MindIE LLM 1.0.RC2 does not sufficiently bucket or sort requests by length.
 
 ## Methodology Summary
 

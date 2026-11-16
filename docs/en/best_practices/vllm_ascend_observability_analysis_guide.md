@@ -85,7 +85,7 @@ If no normal window exists, collect one baseline round under a fixed load before
 
 ### 3.3 Checking the Observability Chain
 
-Tracing relies on the native OpenTelemetry capability of the vLLM V1 engine. To reduce the maintenance cost of older versions, the lower bound of the Hook Tracing support policy in this material is vLLM-Ascend `v0.20.0`. During actual installation, choose a complete combination from the official compatibility matrix; the first public combination that satisfies this boundary is vLLM-Ascend `v0.20.2rc1` with vLLM `v0.20.2`. For the version basis, Jaeger deployment, startup parameters, network debugging, and verification methods, see *[vLLM Hook Tracing User Guide](../user_guide/vLLM_hook_tracing_instruct.md)*. Independent Metrics analysis does not require this Tracing version condition.
+Tracing relies on the native OpenTelemetry capability of the vLLM V1 engine. To reduce the maintenance cost of older versions, the lower bound of the Hook Tracing support policy in this material is vLLM-Ascend `v0.20.0`. During actual installation, choose a complete combination from the official compatibility matrix; the first public combination that satisfies this boundary is vLLM-Ascend `v0.20.2rc1` with vLLM `v0.20.2`. For the version basis, Jaeger deployment, startup parameters, network debugging, and verification methods, see [vLLM Hook Tracing User Guide](../user_guide/vLLM_hook_tracing_instruct.md). Independent Metrics analysis does not require this Tracing version condition.
 
 | Check Item | Pass Criteria | Handling After Failure |
 |---|---|---|
@@ -414,9 +414,9 @@ If any of the following occurs, repair the observability chain before performing
 | Situation | Handling |
 |---|---|
 | Metrics has no sample points in the target window | Check the scrape targets, the scrape interval, service restarts, and the multiprocess directory |
-| Counters reset to zero after a process restart | Use `rate()` or `increase()`, and break the results down by instance and process |
-| A histogram has no `_bucket` | Quantiles cannot be calculated; use `_sum/_count` to calculate the average instead |
-| A trace has only 1 to 2 spans | Check context propagation, span links, the OTLP configuration, and hook matches |
+| A counter resets to zero after a process restart | Use `rate()` or `increase()`, and break the results down by instance and process |
+| A histogram does not have `_bucket` | Quantiles cannot be calculated; use `_sum/_count` to calculate the average instead |
+| A trace has only 1 or 2 spans | Check context propagation, span links, the OTLP configuration, and hook matches |
 | The span time order is abnormal | Unify the node clocks and check the time zone; cross-node gap intervals must not be used directly for attribution |
 | The Metrics and trace times are inconsistent | Record the abnormal window with the same time zone and absolute time |
 | The abnormal and normal traces have different request scales | Select control data with the same token scale, batch, and phase again |

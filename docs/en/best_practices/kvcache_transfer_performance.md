@@ -21,7 +21,7 @@ Users typically first observe extended request wait time on decode nodes rather 
 
 ### Step 1: Collecting Communication and KV Cache Data with Profiler
 
-In a multi-node, multi-device PD disaggregation deployment, configure `ms_service_profiler_config.json` consistently on all nodes and set `domain` to `"Request; KVCache; Communication; Schedule; ModelExecute"` to ensure that `Communication` and `KVCache` domain data is collected. After collection is complete, run the following command to parse the data:
+In a multi-node, multi-rank PD disaggregation deployment, configure `ms_service_profiler_config.json` consistently on all nodes and set `domain` to `"Request; KVCache; Communication; Schedule; ModelExecute"` to ensure that `Communication` and `KVCache` domain data is collected. After collection is complete, run the following command to parse the data:
 
 ```bash
 python3 -m ms_service_profiler.parse --input-path ${PATH}/prof_dir/

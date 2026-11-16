@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This metric monitoring tool enhances the native monitoring capability of the vLLM-Ascend inference framework. While vLLM-Ascend provides basic metrics out of the box, this tool adds the following capabilities:
+The vLLM Serving Prometheus Metric Monitoring Tool enhances the native monitoring capability of the vLLM-Ascend inference framework. While vLLM-Ascend provides basic metrics out of the box, this tool adds the following capabilities:
 
 - **KVCache monitoring**: tracks total blocks, idle block count, and the number of blocks allocated per DP domain.
 - **Token and throughput**: monitors the number of input/output tokens and total tokens per DP domain.
@@ -40,10 +40,10 @@ This metric monitoring tool enhances the native monitoring capability of the vLL
 1. In the Ascend environment, install the matching CANN Toolkit and ops operator packages, and configure CANN environment variables. For details, see [CANN Installation Guide](https://www.hiascend.com/en/cann/download).
 2. Install vLLM and vLLM-Ascend. Verify that vLLM-Ascend can run properly and the metrics endpoint is accessible. For details, see [vLLM-Ascend Installation Guide](https://vllm-ascend.readthedocs.io/en/latest/installation.html).
 
-### Restrictions
+### Constraints
 
 - **Version compatibility**: Ensure that vLLM-Ascend, CANN, and collection tool versions meet the requirements in the Appendix.
-- **Resource usage**: Data monitoring requires enabling **Prometheus multi-process mode** (`PROMETHEUS_MULTIPROC_DIR`). This may impact inference performance.
+- **Resource usage**: Data monitoring requires enabling **Prometheus multi-process mode** (`PROMETHEUS_MULTIPROC_DIR`). Metric collection increases runtime overhead. Before production use, measure the performance difference between metric collection enabled and disabled under a fixed workload.
 - **Function restrictions**: Some advanced features may require specific vLLM-Ascend versions.
 
 ### Third-Party Visualization Tools
@@ -72,7 +72,7 @@ pip install -e .
 Follow these steps to complete the metric monitoring process:
 
 1. **Set environment variables and start the service** (with Prometheus multi-process mode enabled).
-2. **Enable the collection function** by modifying the `metric_enable` field in the configuration file (independent of the `enable` field).
+2. **Enable collection**.
 3. **Send an inference request**.
 4. **View metrics** by accessing the metrics endpoint or Grafana.
 
@@ -101,7 +101,7 @@ vllm serve Qwen/Qwen2.5-0.5B-Instruct &
 - `service_metrics_symbols.yaml` configures symbols. For details about how to customize symbols, see [Symbol Configuration User Guide](#symbol-configuration-user-guide).
 - 8000 is the default port for vLLM serving inference startup. This document uses port 8000 as an example. To change the serving startup port, you can use the `--port` command line parameter to specify a port when starting the vLLM service. For details, see [vllm serve Command Parameter Description](https://docs.vllm.com.cn/en/latest/cli/serve/#arguments).
 
-### Step 2 Profiler Collection Enabling
+### Step 2: Enable Collection
 
 ```bash
 # Enable metric collection
@@ -145,11 +145,11 @@ You can also configure Prometheus to scrape metrics from this endpoint and visua
 
 ## Symbol Configuration User Guide
 
-### Function
+### Function Description
 
 The symbol configuration file defines the functions/methods to be monitored, and supports flexible configuration and custom attribute collection.
 
-### Precautions
+### Notes
 
 - When the collection points are updated, you can reload the configuration with `ms-service-metric restart`.
 - All custom metric names are automatically prefixed with `vllm_profiling_` and must comply with [Prometheus Metric and label naming](https://prometheus.io/docs/practices/naming/).
@@ -159,8 +159,8 @@ The symbol configuration file defines the functions/methods to be monitored, and
 | Field| Description| Example|
 |------|------|------|
 | symbol| Python import path + attribute chain (format: `module:class.method`)| `vllm.v1.core.kv_cache_manager:KVCacheManager.free` |
-| min_version | Earliest compatible version| `"0.9.1"` |
-| max_version | Latest compatible version| `"0.11.0"` |
+| min_version | Minimum version constraint| `"0.9.1"` |
+| max_version | Maximum version constraint| `"0.11.0"` |
 | metrics | List of custom metrics. Currently, the `timer` type is supported (which measures function execution duration).| See the following example.|
 
 ### Configuration Example
@@ -199,7 +199,7 @@ vllm_profiling_server:create_chat_completion:duration_count{dp="-1"} 9.0
 
 ### Built-in Metric Symbols
 
-The following are default metric symbols built into the tool. All metric names are automatically prefixed with `vllm_profiling_` and contain the `dp` label. (The scheduling process is the actual DP domain ID, and the request process is `-1`.) Some metrics also include additional labels, such as `engine`, `req_phase`, `role`, `name`, `rank`, `phase`, `layer`, `threshold`, and `exception_type`.
+The following are default metric symbols built into the tool. All metric names are automatically prefixed with `vllm_profiling_` and contain the `dp` label. (The scheduler process is the actual DP domain ID, and the request process is `-1`.) Some metrics also include additional labels, such as `engine`, `req_phase`, `role`, `name`, `rank`, `phase`, `layer`, `threshold`, and `exception_type`.
 
 #### Metrics for Scheduling and Batch Processing
 
@@ -428,7 +428,7 @@ If the metrics already support a phase or capacity conclusion, you can proceed d
 4. Use `request.id`, `request.ids`, trace IDs, and span links to confirm the association between requests and batches.
 5. Compare the scheduler, model, model runner, and output spans; calculate the gap between spans only for the same trace ID or a unified Perfetto timeline.
 
-For the complete flow, see *[vLLM-Ascend Observability Performance Diagnostics Guide](../best_practices/vllm_ascend_observability_analysis_guide.md)*.
+For the complete flow, see [vLLM-Ascend Observability Performance Diagnostics Guide](../best_practices/vllm_ascend_observability_analysis_guide.md).
 
 ## Related Documents
 

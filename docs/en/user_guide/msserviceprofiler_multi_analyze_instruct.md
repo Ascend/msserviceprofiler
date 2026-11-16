@@ -11,22 +11,22 @@ msServiceProfiler Multi Analyze parses the profile data collected by the msServi
 >For details about Ascend product models, see [Ascend Product Models](https://www.hiascend.com/en-sg/document/detail/en/Glossary/productform/hardwaredesc_0001.html).
 
 <!-- npu="950" id1 -->
-- <term>Ascend 950PR&950DT products</term>: Not supported
+- Ascend 950PR&950DT products: Not supported
 <!-- end id1 -->
 <!-- npu="A3" id2 -->
-- <term>Atlas A3 products</term>: Supported
+- Atlas A3 products: Supported
 <!-- end id2 -->
 <!-- npu="910b" id3 -->
-- <term>Atlas A2 products</term>: Supported
+- Atlas A2 products: Supported
 <!-- end id3 -->
 <!-- npu="310b" id4 -->
-- <term>Atlas 200I/500 A2 inference products</term>: Supported
+- Atlas 200I/500 A2 inference products: Supported
 <!-- end id4 -->
 <!-- npu="310p" id5 -->
-- <term>Atlas inference products</term>: Supported
+- Atlas inference products: Supported
 <!-- end id5 -->
 <!-- npu="910" id6 -->
-- <term>Atlas training products</term>: Not supported
+- Atlas training products: Not supported
 <!-- end id6 -->
 
 > [!NOTE]
@@ -54,7 +54,7 @@ msServiceProfiler Multi Analyze depends on the `ms_service_profiler` tool provid
 
 This tool can analyze serving profile data across multiple dimensions.
 
-**Precautions**
+**Notes**
 
 None
 

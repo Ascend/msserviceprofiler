@@ -33,7 +33,7 @@ This document uses long wait time for inference requests as an example to descri
 
 Use `msServiceProfiler` to collect data from the `Request`, `BatchSchedule`, `ModelExecute`, `KVCache`, and `Communication` domains. Combine the collected data with `batch.csv`, `request.csv`, `BatchSchedule.csv`, `forward.csv`, and visualization curves to identify the sources of request waiting time.
 
-### Precautions
+### Notes
 
 - Collect profile data in a stress testing scenario that can reproduce the issue consistently. Record key parameters such as concurrency, input and output lengths, `maxBatchSize`, and `max_wait_time`.
 - If most of the waiting time occurs at the service entry point or in external dependencies, also collect logs from the service gateway, database, cache, and postprocessing paths.

@@ -76,7 +76,7 @@ pip uninstall msservice_advisor
   - The `instance` folder must be provided, containing at least 1,000 samples.
   - If the data required for Scenario 1 is also provided, the `maxBatchSize` recommendation from Scenario 1 will be taken into account.
 
-### Precautions
+### Notes
 
 Security warning: Do not run this tool as user `root`. Executing operations with elevated privileges may compromise system security. It is advised to use a regular user account.
 

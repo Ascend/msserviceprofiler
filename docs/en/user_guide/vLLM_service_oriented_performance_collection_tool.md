@@ -43,13 +43,13 @@ vLLM Service Profiler is used for performance profiling analysis when deploying 
 #### Environment Setup
 
 1. In the Ascend environment, install the matching CANN Toolkit and ops operator packages, and configure CANN environment variables. For details, see [CANN Installation Guide](https://www.hiascend.com/en/cann/download).
-2. Complete the installation and configuration of vLLM and vLLM-Ascend and confirm that vLLM-Ascend can run properly. For details, see *[vLLM-Ascend Installation Guide](https://docs.vllm.ai/projects/ascend/en/v0.13.0/installation.html)*.
+2. Complete the installation and configuration of vLLM and vLLM-Ascend and confirm that vLLM-Ascend can run properly. For details, see [vLLM-Ascend Installation Guide](https://docs.vllm.ai/projects/ascend/en/v0.13.0/installation.html).
 3. Upgrade msServiceProfiler. Build the `.run` file from the source code and upgrade the tool. For details, see the section *Upgrade* in [msServiceProfiler Installation Guide](../install_guide/msserviceprofiler_install_guide.md#5-upgrade).
 
 #### Constraints
 
 - **Version compatibility**: Ensure that vLLM-Ascend, CANN, and profiler versions meet the requirements in the Appendix.
-- **Resource usage**: The data collection process may consume significant memory. It is advised to adjust the collection frequency as required.
+- **Resource usage**: The data collection process may consume significant memory. It is advised to adjust the collection frequency parameter as required.
 - **Function restrictions**: Some advanced features may require specific vLLM-Ascend versions.
 
 ## Quick Start
@@ -119,14 +119,14 @@ After the parsing is complete, a profile data file is generated in the directory
 
 The symbol configuration file defines the functions/methods to be monitored, and supports flexible configuration and custom attribute collection.
 
-### Precautions
+### Notes
 
 #### Built-in/Customized Symbol Configuration File
 
 The symbol configuration file has been built in vLLM-Ascend and the tool.
 
 - Default loading path: `~/.config/vllm_ascend/service_profiling_symbols.MAJOR.MINOR.PATCH.yaml` (applicable to the vLLM-Ascend framework and the file name varies with the installed vllm version)
-- Backup loading path: `*tool installation path*/ms_service_profiler/patcher/vllm/config/service_profiling_symbols.yaml`
+- Backup loading path: `<tool installation path>/ms_service_profiler/patcher/vllm/config/service_profiling_symbols.yaml`
 
 To customize profiling symbols, you are advised to set the environment variable PROFILING_SYMBOLS_PATH and copy a symbol configuration file to the working directory for modification.
 
@@ -142,8 +142,8 @@ If a profiling symbol is updated, restart the vLLM service to load the updated c
 |   handler   | Handler type            | `"timer"` (timer) or `"pkg.mod:func"` (custom)                 |
 |   domain    | Domain ID            | `"KVCache"` and `"ModelExecute"`                         |
 |    name     | Event name             | `"EngineCoreExecute"`                                 |
-| min_version | Earliest compatible version           | `"0.9.1"`                                             |
-| max_version | Latest compatible version           | `"0.11.0"`                                            |
+| min_version | Minimum version constraint           | `"0.9.1"`                                             |
+| max_version | Maximum version constraint           | `"0.11.0"`                                            |
 | attributes  | Custom attribute collection           | Supported only for the `"timer"` handler. See the custom attribute collection mechanism below.                   |
 
 #### Configuration Example
@@ -287,7 +287,7 @@ After parsing is complete, the deliverables listed in the following table are ge
 |     `profiler.db`     | SQLite database file for generating visualized line charts. For details, see [profiler.db](./msserviceprofiler_serving_tuning_instruct.md#profilerdb).                                |
 |     `request.csv`     | Records detailed data of inference requests in a serving scenario. For details, see [request.csv](./msserviceprofiler_serving_tuning_instruct.md#requestcsv).                                     |
 | `request_summary.csv` | Overall request statistics                                                                                                                                  |
-| `forward.csv` | Records detailed data of the forward execution process of an inference model in a serving scenario. For details, see [forward.csv](./msserviceprofiler_serving_tuning_instruct.md#forwardcsv).                                   |
+| `forward.csv` | Records detailed data about the forward pass execution of an inference model in a serving scenario. For details, see [forward.csv](./msserviceprofiler_serving_tuning_instruct.md#forwardcsv).                                   |
 |     `kvcache.csv`     | Records memory usage during inference. For details, see [kvcache.csv](./msserviceprofiler_serving_tuning_instruct.md#kvcachecsv).                                         |
 |      `batch.csv`      | Records detailed data of inference batches in a serving scenario. For details, see [batch.csv](./msserviceprofiler_serving_tuning_instruct.md#batchcsv).                                      |
 |   `spec_decode.csv`   | Records detailed data for each request in a speculative inference scenario. For details, see [spec_decode.csv](./msserviceprofiler_serving_tuning_instruct.md#spec_decodecsv).|
@@ -320,7 +320,7 @@ After parsing is complete, the deliverables listed in the following table are ge
 
 ### Profiling Configuration Usage Guide
 
-For details about the profiling configuration, see the instructions for creating configuration files and the clarifications [Data Collection](./msserviceprofiler_serving_tuning_instruct.md#data-collection).
+For profiling configuration, see [Data Collection](./msserviceprofiler_serving_tuning_instruct.md#data-collection), including the instructions for creating a configuration file and the related notes.
 
 >[!NOTE]
 >

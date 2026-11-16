@@ -14,7 +14,7 @@ Using a case where asynchronous scheduling does not take effect, this document d
 - In the timeline, `BatchSchedule`, host-side dispatch, and `ModelExecute` still appear strictly serial, with no overlap between scheduling and execution.
 - The CPU-side scheduling thread waits for NPU execution to complete before submitting the next round of tasks, resulting in obvious pipeline gaps.
 - `Decode_Generate_Speed_Latency_curve` does not decrease, and P90/P99 values of `Request_Latency_curve` remain high.
-- In single-node prefill/decode (PD) disaggregation or multi-card scenarios, communication waits are not effectively overlapped, and communication duration in the `Communication` domain remains exposed on the critical path.
+- In single-node prefill/decode (PD) disaggregation or multi-rank scenarios, communication waits are not effectively overlapped, and communication duration in the `Communication` domain remains exposed on the critical path.
 - The service startup logs do not show that asynchronous scheduling has been enabled, or that the startup parameters or environment variables have been recognized by the framework.
 
 **Impact**
@@ -33,12 +33,12 @@ Using a case where asynchronous scheduling does not take effect, this document d
 
 Uses `msServiceProfiler` to collect data for the `BatchSchedule`, `ModelExecute`, `Communication`, and `Request` domains. It also uses the timeline, `span_info`, `batch.csv`, `forward.csv`, `pd_split_communication.csv`, and visualization curves to help determine whether asynchronous scheduling takes effect.
 
-### Precautions
+### Notes
 
 - Before collection, record the service startup command, environment variables, MindIE version, CANN version, hardware model, and deployment configuration.
 - You are advised to collect two sets of data, one with asynchronous scheduling disabled and the other with this feature enabled, and then compare them under the same stress testing conditions.
 - If further analysis of host-to-device task dispatch duration is required, ACL task duration collection can be enabled, but the additional overhead should be evaluated.
-- In multi-device or PD disaggregation scenarios, the `Communication` domain must also be collected. Otherwise, it cannot be determined whether communication waits are effectively overlapped with other operations through asynchronous scheduling.
+- In multi-rank or PD disaggregation scenarios, the `Communication` domain must also be collected. Otherwise, it cannot be determined whether communication waits are effectively overlapped with other operations through asynchronous scheduling.
 
 ### Configuration Example
 
@@ -195,7 +195,7 @@ In single-node PD disaggregation scenarios, you are advised to enable compute-co
 export ATB_LLM_LCOC_ENABLE=1
 ```
 
-In multi-device scenarios, ensure that the HCCL/LCCL configuration is correct to prevent issues such as communication initialization, rank configuration, or network problems that may prevent the benefits of asynchronous scheduling from being realized.
+In multi-rank scenarios, ensure that the HCCL/LCCL configuration is correct to prevent issues such as communication initialization, rank configuration, or network problems that may prevent the benefits of asynchronous scheduling from being realized.
 
 ### Lack of Collaborative Features Such as Prefix Cache and LCCL
 
@@ -271,7 +271,7 @@ When the optimization is effective, the following results are typically observed
 | Compatibility issues with older versions | Upgrade CANN, MindIE, or the inference framework to a stable version that supports asynchronous scheduling. |
 | Communication configuration offsetting benefits | Check the HCCL/LCCL configuration, remove conflicting variables, and enable compute-communication fusion if necessary. |
 | Insufficient benefit in single-node PD disaggregation | Use in combination with `ATB_LLM_LCOC_ENABLE=1`, prefix cache, and the LCCL communication library. |
-| Multi-device scenario still serial | Check rank configuration, network communication, communication domain duration, and cross-device synchronization points. |
+| Multi-rank scenario still serial | Check rank configuration, network communication, communication domain duration, and cross-rank synchronization points. |
 
 ## Summary
 

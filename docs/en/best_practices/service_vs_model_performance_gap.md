@@ -15,7 +15,7 @@ Using a serving inference scenario with lower performance than the pure-model ba
 - `Prefill_Generate_Speed_Latency_curve` and `Decode_Generate_Speed_Latency_curve` are significantly worse than the pure-model baseline.
 - P90/P99 latency in `First_Token_Latency_curve` or `Request_Latency_curve` is high and increases rapidly as concurrency increases.
 - HCCL communication timeouts, rank connection failures, model loading hangs, or service process termination occur during startup.
-- During multi-device deployment of MoE models, some devices have significantly higher execution times, and `moe_analysis` or expert hotspot diagrams indicate load imbalance.
+- During multi-rank deployment of MoE models, some devices have significantly higher execution times, and `moe_analysis` or expert hotspot diagrams indicate load imbalance.
 
 **Impact**
 
@@ -33,11 +33,11 @@ Using a serving inference scenario with lower performance than the pure-model ba
 
 Use msServiceProfiler to collect data related to `Request`, `BatchSchedule`, `ModelExecute`, `Communication`, `KVCache`, and expert load during serving inference. Compare the differences between the pure-model baseline and the serving inference pipeline using `batch.csv`, `request.csv`, `forward.csv`, `BatchSchedule.csv`, and visualization curves.
 
-### Precautions
+### Notes
 
 - Complete pure-model baseline testing before optimization to determine the maximum performance with fixed input/output lengths and batch size.
 - Reuse the input/output lengths, concurrency level, and model configuration from the pure-model baseline as much as possible during serving stress testing to ensure that the baseline remains comparable.
-- Before collecting data in multi-node, multi-device scenarios, verify that the system clocks are synchronized across nodes to avoid time offsets in the Timeline and load-balancing diagrams.
+- Before collecting data in multi-node, multi-rank scenarios, verify that the system clocks are synchronized across nodes to avoid time offsets in the Timeline and load-balancing diagrams.
 - If communication, task dispatch, or operator execution time needs to be analyzed, enable ACL task-time-related data collection as required, but evaluate the additional overhead.
 - Configure the `eplb_observe` domain separately to collect expert hotspot information and avoid excessive data volume.
 
@@ -150,7 +150,7 @@ docker run --privileged=true
 
 **Cause**
 
-Multi-node, multi-device deployment in the serving framework relies on HCCL or LCCL communication. If environment variables are inconsistent between the primary and secondary nodes, the rank table path is incorrect, the container IP is incorrectly configured, or the communication timeout is too short, service startup may fail, decode waits may increase, or cross-device synchronization may take excessively long.
+Multi-node, multi-rank deployment in the serving framework relies on HCCL or LCCL communication. If environment variables are inconsistent between the primary and secondary nodes, the rank table path is incorrect, the container IP is incorrectly configured, or the communication timeout is too short, service startup may fail, decode waits may increase, or cross-device synchronization may take excessively long.
 
 **Solution**
 
@@ -233,7 +233,7 @@ When the optimization is effective, the following results are typically observed
 | High prefill latency | Adjust `prefillBatchSize` and `maxSeqLen`, and check KVCache reservation and input length distribution. |
 | High decode latency | Optimize HCCL/LCCL configuration, enable compute-communication fusion, and check cross-device communication waits. |
 | Startup failure or process termination | Check `free_mem`, container privileged mode, path permissions, and memory limits. |
-| Multi-device load imbalance | Use `msit elb` to generate `expert_map_file` and enable static or dynamic expert load balancing. |
+| Multi-rank load imbalance | Use `msit elb` to generate `expert_map_file` and enable static or dynamic expert load balancing. |
 | Large gap from the pure-model baseline persists | Return to baseline alignment and verify that the model version, parallelization strategy, input/output lengths, and hardware resources are consistent. |
 
 ## Summary

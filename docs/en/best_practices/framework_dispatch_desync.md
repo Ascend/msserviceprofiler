@@ -31,7 +31,7 @@ Using prefill/decode (PD) disaggregation and multi-node concurrent inference as 
 
 Use `msServiceProfiler` to collect `Span`, `Event`, `Metric`, and `Link` data for key stages, including framework scheduling, host-side dispatch, device execution, and synchronization wait. Combine these data with `BatchSchedule.csv`, `forward.csv`, and `Request_Latency_curve` to determine whether scheduling and dispatch are synchronized.
 
-### Precautions
+### Notes
 
 - Reproduce the issue in a stress-testing environment before enabling data collection to avoid affecting online services due to an excessive collection scope.
 - In multi-node scenarios, synchronize the system time across nodes before data collection. Otherwise, timeline alignment may be inaccurate.

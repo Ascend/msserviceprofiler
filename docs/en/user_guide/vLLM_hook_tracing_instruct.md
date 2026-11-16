@@ -154,7 +154,7 @@ PY
 python3 -c "from vllm.config import ObservabilityConfig; assert 'otlp_traces_endpoint' in ObservabilityConfig.__dataclass_fields__, 'vLLM does not support --otlp-traces-endpoint'; print('--otlp-traces-endpoint: supported')"
 ```
 
-The versions of vLLM and vLLM-Ascend must be a paired combination from the official compatibility matrix. If the `ms_service_profiler` version query raises `PackageNotFoundError` or the OpenTelemetry import fails, install msServiceProfiler in that Python environment first; for the installation method, see *[msServiceProfiler Installation Guide](../install_guide/msserviceprofiler_install_guide.md)*. Do not use `--no-deps` to skip the Python dependencies during installation.
+The versions of vLLM and vLLM-Ascend must be a paired combination from the official compatibility matrix. If the `ms_service_profiler` version query raises `PackageNotFoundError` or the OpenTelemetry import fails, install msServiceProfiler in that Python environment first; for the installation method, see [msServiceProfiler Installation Guide](../install_guide/msserviceprofiler_install_guide.md). Do not use `--no-deps` to skip the Python dependencies during installation.
 
 ### 5. Starting vLLM and Hook Tracing
 
@@ -212,7 +212,7 @@ The pass criteria for verifying the Jaeger Trace chain are as follows:
 2. The `data` array of `/api/traces` is not empty.
 3. After selecting `vllm-server` in the Jaeger UI, the interface shows both the native vLLM request span and at least one hook span among `vllm.scheduler.schedule`, `vllm.model.execute`, `vllm_ascend.model_runner.execute`, and `vllm.output.process`.
 
-If `vllm-server` does not exist in `/api/services`, follow the order in [Troubleshooting the Network and Data Chain](#sectionNetworkDataLinkTroubleshooting) and check the container status, DNS, ports, vLLM parameters, exporter logs, and hook matches in turn. Change only one variable at a time during troubleshooting so that the cause of the failure can be identified.
+If `vllm-server` does not exist in `/api/services`, follow the order in [Troubleshooting the Network and Data Link](#sectionNetworkDataLinkTroubleshooting) and check the container status, DNS, ports, vLLM parameters, exporter logs, and hook matches in turn. Change only one variable at a time during troubleshooting so that the cause of the failure can be identified.
 
 ## Feature Description
 
@@ -376,7 +376,7 @@ After clicking a trace, focus on the following.
 | References/Links | Check cross-request batching or cross-process association; a link is not the same as a parent-child relationship |
 | Error/Status | Locate abnormal requests and the failing phase |
 
-Meanings of the typical instrumentation points.
+Meanings of the typical instrumentation points
 
 | Span | Main Localization Direction |
 |---|---|
@@ -392,7 +392,7 @@ Meanings of the typical instrumentation points.
 - `vllm.model.execute` is clearly larger than the inner `vllm_ascend.model_runner.execute`: the difference is outside the executor; continue checking IPC, synchronization, and data preparation.
 - The output span rises abnormally: focus on output processing, token post-processing, network return, and the request completion logic.
 - A few traces are long-tail: select the long-tail trace in the scatter chart and use Compare against a normal trace to compare span durations and attribute differences.
-- Many traces have only 1 to 2 spans: this only proves that the instrumentation has been exported, not that the full request parent-child chain exists; continue checking Links, `request.ids`, and the native vLLM root span in the trace details.
+- Many traces have only 1 or 2 spans: this only proves that the instrumentation has been exported, not that the full request parent-child chain exists; continue checking Links, `request.ids`, and the native vLLM root span in the trace details.
 
 Tracing is used to narrow down the phase in which the problem lies; if you need to analyze operators, kernels, HCCL, device memory, or NPU timelines, continue using the original profiling collection and parsing capabilities.
 
@@ -441,7 +441,7 @@ This section applies to scenarios in which Metrics and Tracing data are both ava
 | execute model rises while model runner is stable | The peripheral time of the model span increases | IPC, synchronization, or data preparation around the executor has become slower |
 | output processor rises while model execution is stable | The output span becomes longer | The output processing phase has become slower |
 
-Independent Tracing analysis can localize the critical path and the abnormal phase of a target request, but the scope of the conclusion covers only the analyzed requests or observation groups. Independent Metrics analysis can confirm the abnormal trend, the capacity, and the scope of impact, but does not describe a single-request call chain. When the two types of data are used together, the SLO symptoms, the Metrics determination, and the Trace localization must correspond to each other. For the complete flow, see *[vLLM-Ascend Observability Performance Diagnostics Guide](../best_practices/vllm_ascend_observability_analysis_guide.md)*.
+Independent Tracing analysis can localize the critical path and the abnormal phase of a target request, but the scope of the conclusion covers only the analyzed requests or observation groups. Independent Metrics analysis can confirm the abnormal trend, the capacity, and the scope of impact, but does not describe a single-request call chain. When the two types of data are used together, the SLO symptoms, the Metrics determination, and the Trace localization must correspond to each other. For the complete flow, see [vLLM-Ascend Observability Performance Diagnostics Guide](../best_practices/vllm_ascend_observability_analysis_guide.md).
 
 #### 6. Request Association Methods and Quantity Boundaries
 
@@ -453,7 +453,7 @@ Independent Tracing analysis can localize the critical path and the abnormal pha
 
 A single hook span records up to 128 `request.ids` and span links. When a batch contains more than 128 requests, the remaining requests do not enter the request association set of that span. In this case, use `batch.request_count`, `batch.scheduled_tokens`, the instance/DP/phase aggregation of Metrics, and Perfetto or Profiling data to complete the batch-level analysis; do not claim that the span covers all requests in the batch.
 
-### Troubleshooting the Network and Data Chain<a name="sectionNetworkDataLinkTroubleshooting"></a>
+### Troubleshooting the Network and Data Link<a name="sectionNetworkDataLinkTroubleshooting"></a>
 
 Troubleshoot layer by layer in the order of the following table; continue to the next layer only after the previous layer passes, and do not refresh the Jaeger UI repeatedly.
 
@@ -463,7 +463,7 @@ Troubleshoot layer by layer in the order of the following table; continue to the
 | Host UI | `curl -fsS http://127.0.0.1:16686/ >/dev/null` | The return code is 0 | The port is not mapped, the process is not listening, or the local firewall blocks it |
 | Container network | `docker network inspect ms-tracing-net` | Both the Jaeger and vLLM containers appear under `Containers` | The two containers do not share a Docker network |
 | Container DNS | `getent hosts ms-trace-jaeger` | It returns the container IP | The endpoint name is wrong, or the container did not join the same network |
-| OTLP TCP | `curl -sS -o /dev/null -w '%%{http_code}\n' http://ms-trace-jaeger:4318/v1/traces` | It returns an HTTP status code | `refused` means nothing is listening; a timeout is usually routing or a firewall; a `404/405` from a plain GET can be ignored |
+| OTLP TCP | `curl -sS -o /dev/null -w '%{http_code}\n' http://ms-trace-jaeger:4318/v1/traces` | It returns an HTTP status code | `refused` means nothing is listening; a timeout is usually routing or a firewall; a `404/405` from a plain GET can be ignored |
 | vLLM configuration | Check the actual startup command and the process environment | It contains `--otlp-traces-endpoint`, and the process environment contains `MS_TRACE_ENABLE=1` | Changing a shell variable without restarting the process has no effect |
 | Inference load | Call `/v1/completions` | It returns a valid inference result | A successful `/health` does not prove that a request trace was produced |
 | Native data | `curl -fsS 'http://127.0.0.1:16686/api/services'` | The value of `OTEL_SERVICE_NAME` appears | Check the endpoint, the protocol, and the vLLM exporter log first; do not check the hooks first |
@@ -483,7 +483,7 @@ with socket.create_connection((host, port), timeout=3):
 PY
 ```
 
-Common symptoms and their handling.
+Common symptoms and their handling
 
 | Symptom | Cause and Handling |
 |---|---|
@@ -500,7 +500,7 @@ Common symptoms and their handling.
 | The Perfetto JSON is an empty array | The forwarder is not running, no new hook span has been produced since it started, or native OTLP tracing is not enabled in vLLM; start the forwarder and send another real inference request |
 | Jaeger works but the Perfetto file does not exist | The two endpoints are independent; check the forwarder process and the log in the vLLM container |
 | vLLM cannot recognize the NPU | Do not restrict `VLLM_PLUGINS` to the single msserviceprofiler plugin; also check `ASCEND_RT_VISIBLE_DEVICES` |
-| A Jaeger trace has only 1 to 2 spans | Check context propagation, span links, and `request.ids`; do not directly claim that the complete request chain passed |
+| A Jaeger trace has only 1 or 2 spans | Check context propagation, span links, and `request.ids`; do not directly claim that the complete request chain passed |
 
 ## Abnormal Scenarios
 

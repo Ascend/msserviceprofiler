@@ -107,7 +107,7 @@ Common root causes of SLO degradation caused by model performance degradation in
 
 6. **Host Bound causing device idle time**: For small models or in the decode stage, the host cannot dispatch tasks fast enough to keep up with the device's execution speed, causing intermittent device idle time. CANN graph-mode scheduling or model sinking can be used to address this issue.
 
-7. **Communication bottlenecks**: In multi-device inference scenarios, collective communication such as AllReduce/AllGather accounts for a high proportion of the execution time; in PD disaggregation scenarios, KV cache transfer latency is high; or in EP (Expert Parallelism) scenarios, Dispatch-Combine communication becomes a bottleneck.
+7. **Communication bottlenecks**: In multi-rank inference scenarios, collective communication such as AllReduce/AllGather accounts for a high proportion of the execution time; in PD disaggregation scenarios, KV cache transfer latency is high; or in EP (Expert Parallelism) scenarios, Dispatch-Combine communication becomes a bottleneck.
 
 8. **Improper model quantization or precision settings**: During inference with a quantized model, precision loss causes additional computation steps to be required, or improper quantization configurations cause some operators to fall back to higher-precision computation.
 

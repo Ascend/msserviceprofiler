@@ -18,7 +18,7 @@ msServiceProfiler is a performance data collection, parsing, and analysis tool f
 
 ## 2. Development Environment Configuration
 
-Complete the setup of the build and test environment as described in *[msServiceProfiler Installation Guide - Source Installation](../install_guide/msserviceprofiler_install_guide.md#231-environment-setup)*.
+Complete the setup of the build and test environment as described in [msServiceProfiler Installation Guide - Source Installation](../install_guide/msserviceprofiler_install_guide.md#231-environment-setup).
 
 > **Note:** The build method of the environment image and the versions of the supporting software are maintained by the MindStudio unified image creation guide and are not repeated in this repository.
 
@@ -27,7 +27,7 @@ Complete the setup of the build and test environment as described in *[msService
 ### 3.1 Code Pull Process
 
 ```bash
-# Fork the code to your own repository, and use git to clone the code from your remote repository to the local machine
+# Fork the code to your own repository, and use git to clone the code from your remote repository to the compilation container
 git clone https://gitcode.com/Ascend/msserviceprofiler.git
 cd msserviceprofiler
 ```
@@ -165,7 +165,7 @@ export SERVICE_PROF_CONFIG_PATH="./ms_service_profiler_config.json"
 
 Start the target service (MindIE/vLLM/SGLang) and check the logs to confirm that msServiceProfiler has started.
 
-```ColdFusion
+```text
 [msservice_profiler] [PID:225] [INFO] [ParseEnable:179] profile enable_: false
 ```
 
@@ -254,7 +254,7 @@ MindIE uses intrusive instrumentation for collection, which requires directly ca
 
 - C++ API: See [Serving Tuning C++ API](../cpp_api/serving_tuning/README.md)
 - Python API: See [Serving Tuning Python API](../python_api/README.md)
-- Usage Instructions: See [Serving Tuning Tool User Guide](../user_guide/msserviceprofiler_serving_tuning_instruct.md)
+- Usage Instructions: See [msServiceProfiler User Guide](../user_guide/msserviceprofiler_serving_tuning_instruct.md)
 
 **Development Process**:
 
@@ -269,7 +269,7 @@ vLLM adopts dynamic hook for collection. Collection points are defined by config
 **Development Guide**:
 
 - Usage Instructions: See [vLLM Service-oriented Performance Collection Tool User Guide](../user_guide/vLLM_service_oriented_performance_collection_tool.md)
-- Point Configuration: See [vLLM Point Configuration User Guide](../user_guide/vLLM_service_oriented_performance_collection_tool.md#symbol-configuration-user-guide)
+- Symbol Configuration: See [vLLM Symbol Configuration User Guide](../user_guide/vLLM_service_oriented_performance_collection_tool.md#symbol-configuration-user-guide)
 - Configuration File: `ms_service_profiler/patcher/vllm/config/service_profiling_symbols.yaml`
 - Hook Implementation: `ms_service_profiler/patcher/vllm/handlers/`
 
@@ -304,7 +304,7 @@ SGLang uses dynamic hook for collection, similar to vLLM.
 The parsing process converts the collected raw data into deliverables in CSV, JSON, DB, and other formats:
 
 ```text
-Raw data → DataSource loading → Pipeline process → Plugin → Exporter → Artifact
+Raw data → DataSource loading → Pipeline processing → Plugin → Exporter → Deliverable
 ```
 
 #### 5.6.2 Key Code Entry Points
@@ -451,7 +451,7 @@ bash test/run_st.sh
 
 ### 6.5 Adding Developer Tests
 
-When adding new feature code, you are required to supplement  developer tests (DTs) at the same time:
+When adding new feature code, you are required to supplement developer tests (DTs) at the same time:
 
 - **C++ DT**: Add test files in the `test/ut/cpp/` directory.
 - **Python DT**: Add test files in the `test/ut/python/` directory.
@@ -603,7 +603,7 @@ The msServiceProfiler tool consists of two parts: **collection** and **parsing**
 ┌─────────────────────────────────────────────────────────────┐
 │                     Parsing Layer                           │
 ├─────────────────────────────────────────────────────────────┤
-│  Python module (ms_service_profiler/)                       │
+│  Python parsing module (ms_service_profiler/)               │
 │  - data_source/    data source import                       │
 │  - pipeline/       data processing pipeline                 │
 │  - plugins/        plugin handling                          │
@@ -669,7 +669,7 @@ msserviceprofiler split --input-path=./prof_dir
 
 #### 7.5.5 Parsing Output Format
 
-The format of the deliverables after parsing.
+Parsed deliverable formats are as follows.
 
 | Format | Description | Purpose |
 | :--- | :------ | :------------------- |
@@ -769,7 +769,7 @@ The `--upgrade` command will overwrite the following files in the target path:
 
 During the upgrade, the files to be overwritten will be listed and confirmation will be awaited:
 
-```ColdFusion
+```text
 [mindstudio-msserviceprofiler] [INFO]: Upgrade target path: /usr/local/Ascend/cann-x.x.x
 [mindstudio-msserviceprofiler] [INFO]: The following files will be overwritten.
   - /usr/local/Ascend/cann-x.x.x/python/site-packages/ms_service_profiler
@@ -832,7 +832,7 @@ A: Check whether the log contains output similar to the following:
 
 - [msServiceProfiler Tool Installation Guide](../install_guide/msserviceprofiler_install_guide.md)
 - [Quick Start](../quick_start/quick_start.md)
-- [Serving Tuning Tool User Guide](../user_guide/msserviceprofiler_serving_tuning_instruct.md)
+- [msServiceProfiler User Guide](../user_guide/msserviceprofiler_serving_tuning_instruct.md)
 - [vLLM Serving Performance Collection Tool](../user_guide/vLLM_service_oriented_performance_collection_tool.md)
 - [SGLang Serving Performance Collection Tool](../user_guide/SGLang_service_oriented_performance_collection_tool.md)
 - [Trace Data Monitoring Tool](../user_guide/msserviceprofiler_trace_data_monitoring_instruct.md)

@@ -2,7 +2,7 @@
 
 The msServiceProfiler project directory is described as follows:
 
-```ColdFusion
+```text
 3rdparty/                                                    # Directory for third-party dependencies
     ├── CMakeLists.txt                                       # Root CMakeLists configuration file for third-party dependencies
     ├── ascend/                                              # Dependencies for the Ascend AI computing platform

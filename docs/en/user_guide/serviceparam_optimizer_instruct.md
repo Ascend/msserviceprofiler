@@ -14,7 +14,7 @@ The tool supports simulation and lightweight modes and consists of three core fu
 
 >[!NOTE]
 >
-> The benchmark tool is about to be replaced by AISBench and is no longer supported by Serviceparam Optimizer.
+> Since `benchmark` is about to be deprecated and replaced by AISBench, Serviceparam Optimizer currently no longer supports `benchmark`.
 
 Based on the modules above, Serviceparam Optimizer can automatically recommend serving parameter combinations that deliver high throughput. It can be used in the following modes:
 
@@ -26,7 +26,7 @@ The tool has been validated on LLaMA3-8B and Qwen3-8B. In principle, it does not
 **Concepts**
 
 - `MindIE` and `vLLM`: serving frameworks, which support model deployment in serving scenarios.
-- `AISBench` and `vLLM_Benchmark`: inference performance benchmark tools for serving frameworks.
+- `AISBench` and `VLLM_Benchmark`: inference performance benchmarking tools for serving frameworks.
 
 ## Supported Products<a name="EN-US_TOPIC_0000002479925980"></a>
 
@@ -61,7 +61,7 @@ The tool has been validated on LLaMA3-8B and Qwen3-8B. In principle, it does not
 ## Preparations
 
 **Environment Setup**
-Set up an environment where serving tools (such as [MindIE Service](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/en/user_guide/deployment/README.md)/[vLLM Server](https://docs.vllm.ai/projects/ascend/en/latest/quick_start.html)) and benchmark tools (such as `vllm_benchmark`/`ais_bench`, see [Benchmark Tool Deployment](https://github.com/AISBench/benchmark/blob/master/docs/source_en/get_started/install.md)) can run properly.
+Set up an environment where serving tools (such as [Deployment Methods](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/en/user_guide/deployment/README.md)/[vLLM Server](https://docs.vllm.ai/projects/ascend/en/latest/quick_start.html)) and benchmark tools (such as `vllm_benchmark`/`AISBench`, see [Benchmark Tool Deployment](https://github.com/AISBench/benchmark/blob/master/docs/source_en/get_started/install.md)) can run properly.
 
 ## Tool Installation
 
@@ -97,7 +97,7 @@ pip uninstall ms_serviceparam_optimizer
 | Version Compatibility|     CANN    |     Framework    |
 |:-------------:|:------------:|:--------------:|
 |     Current MindIE Version     | CANN 8.3.RC2 | MindIE 2.2.RC1 |
-|     vLLM Current Version     | CANN 8.2.RC1 | VLLM 0.8.4 |
+|     Current vLLM Version     | CANN 8.2.RC1 | vLLM 0.8.4 |
 
 **Constraints**
 
@@ -115,17 +115,17 @@ The tool uses MindIE images and must follow their startup instructions. In Prefi
     msserviceprofiler optimizer
     ```
 
-    By default, the tool optimizes `MindIE` serving parameters with `Ais_Bench` as the benchmark tool.
+    By default, the tool optimizes `MindIE` serving parameters with `AISBench` as the benchmark tool.
 
 4. View the results. The optimization time depends on the model size and dataset size, typically taking 4 to 8 hours. Upon completion, the `data_storage_*.csv` file is generated and saved in the `result/store` subdirectory under the current directory. The file records the performance of each parameter set. For details, see [Output File Description](#output-file-description).
 
 ## Lightweight Mode
 
-**Function**
+**Function Description**
 
 This mode prioritizes accuracy and reliability. By combining real-device testing with the parameter verification and optimization modules, it delivers reliable recommended values for serving parameters.
 
-**Precautions**
+**Notes**
 
 None
 
@@ -142,10 +142,10 @@ msserviceprofiler optimizer [options]
 |-lb or --load_breakpoint|No|Specifies whether to resume optimization from a breakpoint. Including this parameter enables breakpoint resumption; omitting it disables this feature.|
 |-d or --deploy_policy|No|Specifies a deployment policy. The options are as follows:<br>&#8226;`single`: single-node deployment<br>&#8226;`multiple`: multi-node deployment<br>The default value is `single`.|
 |--backup|No|Specifies whether to back up data during optimization. The options are as follows:<br>&#8226; `True`: enables backup.<br>&#8226; `False`: disables backup.<br>The default value is `False`.|
-|-b or --benchmark_policy|No|Specifies a benchmark tool. The options are as follows:<br>&#8226;`vllm_benchmark`: vllm_benchmark is used as the benchmark tool.<br>&#8226;`ais_bench`: ais_bench is used as the benchmark tool.<br>The default value is `ais_bench`.<br>You need to select a benchmark tool compatible with your inference framework.|
+|-b or --benchmark_policy|No|Specifies a benchmark tool. The options are as follows:<br>&#8226;`vllm_benchmark`: vllm_benchmark is used as the benchmark tool.<br>&#8226;`ais_bench`: AISBench is used as the benchmark tool.<br>The default value is `ais_bench`.<br>You need to select an inference framework and a benchmark tool that are compatible with each other.|
 |-e or --engine|No|Specifies an inference framework. The options are as follows:<br>&#8226;`mindie`: MindIE is used as the inference framework.<br>&#8226;`vllm`: vLLM is used as the inference framework.<br>The default value is `mindie`.|
 |--pd|No|Specifies an inference framework mode. The options are as follows:<br>&#8226;`competition`: PD competition mode<br>&#8226;`disaggregation`: PD disaggregation mode<br>The default value is `competition`.|
-|-c or --config|Optional|Specifies the path of a custom configuration file (TOML format). The following three forms are supported:<br>&#8226;Absolute path: the specified path is used as is.<br>&#8226;Relative path (with directory separators): resolved relative to the current working directory.<br>&#8226;File name only: searched for in the current working directory.<br/>By default it is not specified, and the tool automatically searches for configuration files in the preset path order.<br/>The specified file must be valid TOML and takes the highest configuration priority.|
+|-c or --config|No|Specifies the path of a custom configuration file (TOML format). The following three forms are supported:<br>&#8226;Absolute path: the specified path is used as is.<br>&#8226;Relative path (with directory separators): resolved relative to the current working directory.<br>&#8226;File name only: searched for in the current working directory.<br/>By default it is not specified, and the tool automatically searches for configuration files in the preset path order.<br/>The specified file must be valid TOML and takes the highest configuration priority.|
 
 **Example (MindIE Serving Parameter Optimization)**
 
@@ -211,11 +211,11 @@ After automatic optimization is complete, a result file in CSV format is generat
 
 ## Simulation Mode
 
-**Function**
+**Function Description**
 
 The simulation mode prioritizes speed and resource efficiency. It invokes all modules to quickly and accurately predict throughput for each parameter set, delivering recommended serving parameters with minimal NPU resource usage.
 
-**Precautions**
+**Notes**
 
 The simulation mode requires training on the collected serving data first. See [Service Tuning Quick Start](../quick_start/quick_start.md) and run the MindIE inference service test script once with profiling enabled, then parse the collected profile data and use it to train the model. The profile data to be collected must include `batch_type`, `batch_size`, `forward_time`, `batch_end_time(ms)`, `request_recv_token_size`, `request_reply_token_size`, `need_blocks`, `request_execution_time(ms)`, and `first_token_latency(ms)`.
 
@@ -248,7 +248,7 @@ The simulation mode requires training on the collected serving data first. See [
 |-lb or --load_breakpoint|No|Specifies whether to resume optimization from a breakpoint. Including this parameter enables breakpoint resumption; omitting it disables this feature.|
 |-d or --deploy_policy|No|Specifies a deployment policy. The options are as follows:<br>&#8226;`single`: single-node deployment<br>&#8226;`multiple`: multi-node deployment<br>The default value is `single`.|
 |--backup|No|Specifies whether to back up data during optimization. The options are as follows:<br>&#8226; `True`: enables backup.<br>&#8226; `False`: disables backup.<br>The default value is `False`.|
-|-b or --benchmark_policy|No|Specifies a benchmark tool. The options are as follows:<br>&#8226;`vllm_benchmark`: vllm_benchmark is used as the benchmark tool.<br>&#8226;`ais_bench`: ais_bench is used as the benchmark tool.<br>The default value is `ais_bench`.<br>You need to select a benchmark tool compatible with your inference framework.|
+|-b or --benchmark_policy|No|Specifies a benchmark tool. The options are as follows:<br>&#8226;`vllm_benchmark`: vllm_benchmark is used as the benchmark tool.<br>&#8226;`ais_bench`: AISBench is used as the benchmark tool.<br>The default value is `ais_bench`.<br>You need to select an inference framework and a benchmark tool that are compatible with each other.|
 |-e or --engine|No|Specifies an inference framework. The options are as follows:<br>&#8226;`mindie`: MindIE is used as the inference framework.<br>&#8226;`vllm`: vLLM is used as the inference framework.<br>The default value is `mindie`.|
 |--pd|No|Specifies an inference framework mode. The options are as follows:<br>&#8226;`competition`: PD competition mode<br>&#8226;`disaggregation`: PD disaggregation mode<br>The default value is `competition`.|
 
@@ -293,11 +293,11 @@ Each row in the output CSV corresponds to a parameter set, with the first four c
 | throughput | Test throughput, in requests per second.|
 | CONCURRENCY | Concurrency|
 | REQUESTRATE | Send rate|
-| error | Records error reasons if parameters failed to execute.|
+| error | Records the reason why the parameters failed to execute normally; recorded when an error is emitted. |
 | backup | Data backup path (recorded when `--backup` is enabled)|
 | real_evaluation | Specifies whether data is obtained from the actual test result. `false` indicates that the data is obtained from the GP model prediction.|
-| fitness | Optimization score. Lower values indicate better parameter sets.|
-| num_prompts | Number of requests sent by the benchmark tool.|
+| fitness | Optimization score of the search algorithm. Lower values indicate better parameter sets. |
+| num_prompts | Number of requests sent by the benchmark tool during this optimization run. |
 
 Other columns are the `config.toml` parameters from MindIE or vLLM.
 
@@ -306,7 +306,7 @@ Other columns are the `config.toml` parameters from MindIE or vLLM.
 ### Configuration File Description
 
 **Optimization parameters**: `n_particles` (number of optimization particles), `iters` (number of iterations), and `tpot_slo` (latency constraint for `time_per_output_token`).
-You can configure the number of particles and iterations based on the estimated time. Each particle requires time for service startup and testing. For example, if service startup and testing takes 9 to 10 minutes per run, and you allocate 8 hours for optimization, you can run approximately 50 particles in total. The recommended configuration is 5 × 10. That is, 10 particles and 5 iterations. As a rule of thumb, set the number of particles to about twice the number of iterations.
+You can configure the number of particles and iterations based on the estimated time. Each particle requires time for service startup and testing. For example, if service startup and testing takes 9 to 10 minutes per run, and you allocate 8 hours for optimization, you can run approximately 50 particles in total. The recommended configuration is 5 × 10. That is, 5 iterations and 10 particles. As a rule of thumb, set the number of particles to about twice the number of iterations.
 
 > **Note**: The following optimization parameters are mandatory. Do not delete or omit them, as doing so will cause runtime errors.
 
@@ -317,8 +317,8 @@ You can configure the number of particles and iterations based on the estimated 
 |ttft_penalty|Yes|Penalty coefficient for `time_to_first_token` (TTFT) violations. Set it to `0` if there is no TTFT constraint. Value range: [0, 100]. The recommended value is `1`.|
 |tpot_penalty|Yes|Penalty coefficient for `time_per_output_token` (TPOT) violations. Set it to `0` if there is no TPOT constraint. Value range: [0, 100]. The recommended value is `1`.|
 |success_rate_penalty|Yes|Penalty coefficient for the request success rate. The value is an integer ranging from 1 to 1000. The recommended value is `5`.|
-|ttft_slo|Yes|TTFT latency constraint (in seconds) For example, if TTFT is limited to 2s, set the value to `2`. Value range: (0, 100].|
-|tpot_slo|Yes|TPOT latency constraint (in seconds) For example, if TPOT is limited to 50 ms, set the value to `0.05`. Value range: (0, 100].|
+|ttft_slo|Yes|Latency constraint for `time_to_first_token`, in seconds. For example, if the constraint is 2s, set the value to `2`. Value range: (0, 100].|
+|tpot_slo|Yes|Latency constraint for `time_per_output_token`, in seconds. For example, if the constraint is 50 ms, set the value to `0.05`. Value range: (0, 100].|
 |service|Yes|Node role in multi-node deployment. The options are as follows:<br>&#8226;`master`: primary node<br>&#8226;`slave`: secondary node<br>The default value is `master`.|
 |sample_size|No|Dataset sampling size for improved efficiency. The value is an integer ranging from 1000 to 10000. The recommended value is 1/3 of original dataset size.|
 
@@ -345,7 +345,7 @@ If `vllm_benchmark` is used for the test, modify the following parameters.
 |num_prompts|Yes| Specifies the number of prompts to run from the dataset.<br>The value is an integer ranging from 1 to 10000.|
 |others|No| Additional parameters. Use spaces to separate them, and no space is allowed within the parameters, for example, `--ignore-eos --custom-output-len 1500`. This parameter is left empty by default.|
 
-**Serving parameters**: Modify these parameters as described in [MindIE Server Configuration Parameter Description](https://gitcode.com/Ascend/MindIE-LLM/blob/master/docs/en/user_guide/user_manual/service_parameter_configuration.md).
+**Serving parameters**: Modify these parameters as described in [Configuration Parameters (Serving)](https://gitcode.com/Ascend/MindIE-LLM/blob/master/docs/en/user_guide/user_manual/service_parameter_configuration.md).
 You can define search ranges directly using these parameters. For example, to set the optimization search space for `max_batch_size` to 10 to 400:
 
 ```toml
@@ -399,7 +399,7 @@ Scenario 1: `tp` and `pp` are tunable parameters, and `dp` is automatically deri
 >
 > - **Built-in protection for the int type**: When the result is less than 1 or not divisible, the source fields are repaired first; if the repair fails, the value is degraded according to min/max, and a WARNING is output.
 > - **Explicit range setting**: Configure `min_value` / `max_value` in `dtype_param` to override the upper and lower bounds.
-> - **Best practice**: Restrict the enumeration candidates of `tp` and `pp` so that the product is divisible by `product`, avoiding reliance on degraded handling.
+> - **Best practice**: Restrict the enumeration candidates of `tp` and `pp` so that the product of the dependent fields divides `product` evenly, avoiding reliance on degraded handling.
 
 ```toml
 # Method 1 (best practice): Restrict the enumeration candidates of tp and pp to ensure tp × pp ≤ 16
@@ -546,7 +546,7 @@ others = ""
 
 ### Custom Parameter Optimization
 
-The optimization tool supports adding any vllm startup parameter for optimization through `[[vllm.target_field]]`. The configuration consists of two steps: **declare the optimization field** + **reference the variable in `others`**.
+The optimization tool supports adding any vllm startup parameter for optimization through `[[vllm.target_field]]`. The configuration consists of two steps: **declaring the optimization field** + **referencing the variable in `others`**.
 
 > **Variable reference rule**: In `others`, reference the optimization field using the `$UPPERCASE_FIELD_NAME` format. At runtime, the tool automatically replaces it with the actual value of the current iteration.
 
@@ -603,10 +603,10 @@ others = "$COMPILATION_CONFIG"
 |log_snippet_length|No|Length of the log snippet used to display error details. Value range: 50-1000, default 200.|
 |service_errors.fatal_patterns|No|List of fatal error patterns of the serving framework, empty by default. Common fatal errors include out-of-memory and device faults.|
 |service_errors.retryable_patterns|No|List of retryable error patterns of the serving framework, empty by default. Common retryable errors include network errors and I/O errors.|
-|benchmark_errors.fatal_patterns|No|List of fatal error patterns of the evaluation tool, empty by default.|
-|benchmark_errors.retryable_patterns|No|List of retryable error patterns of the evaluation tool, empty by default.|
+|benchmark_errors.fatal_patterns|No|List of fatal error patterns of the benchmark tool, empty by default.|
+|benchmark_errors.retryable_patterns|No|List of retryable error patterns of the benchmark tool, empty by default.|
 
-Configuration example:
+Configuration Example
 
 ```toml
 [health_check]
@@ -668,7 +668,7 @@ K8s_v1.23_MindCluster.7.1.RC1.B098.aarch/
     ├──user_config_base_A3.json
 ```
 
-Configuration example:
+That is, configure it as follows.
 
 ```toml
 kubectl_default_path = "K8s_v1.23_MindCluster.7.1.RC1.B098.aarch/kubernetes_deploy_scripts_latest" # Use an absolute path.
@@ -705,4 +705,4 @@ The default log level during optimization is `INFO`. To view detailed per-iterat
 export MODELEVALSTATE_LEVEL=DEBUG
 ```
 
-The status of each iteration is printed to the console. Detailed `MindIE/vLLM` logs are redirected to `/tmp`. The exact file path is shown in the console output for debugging.
+The status of each iteration is printed to the console. Detailed `MindIE/vLLM` logs are redirected to `/tmp`. Use the exact file paths printed in the console to check the MindIE/vLLM running status.

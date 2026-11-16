@@ -41,10 +41,10 @@ The NPU models supported by this tool match those supported by the SGLang framew
 2. Install and deploy SGLang on the NPU and ensure that the inference service can run properly. For details, see [SGLang installation with NPUs support](https://docs.sglang.io/docs/hardware-platforms/ascend-npus/ascend_npu).
 3. See the section "[5. Upgrade](../install_guide/msserviceprofiler_install_guide.md#5-upgrade)" in *msServiceProfiler Installation Guide*.
 
-### Restrictions
+### Constraints
 
 - **Version compatibility**: Currently supported up to SGLang 0.5.4.post1. The collected data varies with the SGLang version. If you need to collect data on other versions, see the section "[Profiling Configuration Usage Guide](#profiling-configuration-usage-guide)" in this guide, and customize and adapt the configuration in advance.
-- **Resource usage**: The data collection process may consume significant memory. It is advised to adjust the collection frequency as required.
+- **Resource usage**: The data collection process may consume significant memory. It is advised to adjust the collection frequency parameter as required.
 
 ## Usage Instruction
 
@@ -167,7 +167,7 @@ After parsing is complete, the `output` folder is generated in the current direc
 
 ### Profiling Configuration Usage Guide
 
-1. For details about the profiling configuration, see the instructions for creating configuration files and the clarifications [Data Collection](./msserviceprofiler_serving_tuning_instruct.md#data-collection).
+1. For details about the profiling configuration, see the instructions for creating configuration files and the related notes in [Data Collection](./msserviceprofiler_serving_tuning_instruct.md#data-collection).
 2. When configuring the Torch Profiler, set `enable` to `0` (disabling profiling) first. After the SGLang inference framework starts, set `enable` to `1` (enabling profiling). To avoid collecting too much profile data, you can disable profiling after the corresponding data is collected. If the initial value of `enable` is `1`, a large amount of framework data is collected, which can easily generate trace files of several gigabytes.
 
 ### Symbol Configuration User Guide

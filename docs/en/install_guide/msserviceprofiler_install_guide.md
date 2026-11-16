@@ -28,8 +28,8 @@ To use the features of the latest code, or to modify the source code to enhance 
 
 Source code compilation uses the standard MindStudio build environment.
 
-- For daily development or when using a released image, see *[MindStudio Tool Development Environment Setup Guide](https://gitcode.com/Ascend/msot/blob/master/docs/en/common/dev_env_setup.md)*.
-- When you need to reproduce the environment from a base OS, or to run source build verification or unit test verification, you must see *[MindStudio Unified Build Image Creation Guide](https://gitcode.com/Ascend/msot/blob/master/docs/en/common/docker_image_build_guide.md)* and build the environment image on site from the openEuler base image.
+- For daily development or when using a released image, see [MindStudio Tool Development Environment Setup Guide](https://gitcode.com/Ascend/msot/blob/master/docs/en/common/dev_env_setup.md).
+- When you need to reproduce the environment from a base OS, or to run source build verification or unit test verification, you must see [MindStudio Unified Build Image Creation Guide](https://gitcode.com/Ascend/msot/blob/master/docs/en/common/docker_image_build_guide.md) and build the environment image on site from the openEuler base image.
 
 The source compilation and unit test commands later in this document are all executed in the container of the specified image above or of the on-site built environment image. The CANN, GCC, and Python versions are subject to the unified image creation guide and are not duplicated in this repository.
 
@@ -85,7 +85,7 @@ Copy the run package to the runtime environment and run the following command to
 
 The software package is installed successfully when the output contains the following information.
 
-```ColdFusion
+```text
 mindstudio-msserviceprofiler package install success, the path is: '<install_path>'.
 ```
 
@@ -132,7 +132,7 @@ You can uninstall the tool by following these steps:
 
    If the uninstallation is successful, the following information is printed:
 
-   ```ColdFusion
+   ```text
    Successfully uninstalled 1 tool ({tools_name})
    ```
 
