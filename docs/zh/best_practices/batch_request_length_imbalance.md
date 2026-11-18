@@ -1,4 +1,4 @@
-# 同一Batch内请求长度不均
+# 同一batch内请求长度不均
 
 ## 【问题背景】
 
@@ -88,7 +88,7 @@ python3 -m ms_service_profiler.parse \
 
 ---
 
-### 步骤 2：用 MindStudio Insight 看 Summary + Timeline 定位根因
+### 步骤 2：用 MindStudio Insight 看 Summary 与 Timeline 定位根因
 
 启动 Insight 并导入 `analysis.db`：
 
@@ -97,7 +97,7 @@ python3 -m ms_service_profiler.parse \
 进入 **Summary** 页面，重点看三个视图：
 
 1. **端到端性能折线图**：TTFT / TPOT / 吞吐随时间变化，能看到"周期性尖峰"
-2. **Batch 数据统计**：每个 batch 的 seq_cnt、max_len、min_len、batch_time 分布
+2. **batch 数据统计**：每个 batch 的 seq_cnt、max_len、min_len、batch_time 分布
 3. **Request 长度分布**：prompt_len 的直方图（确认是真实的长尾分布，不是异常配置导致）
 
 **关键观察**：在 Summary 上能直观看到 **batch 耗时（batch_time）与 batch 内长度比（len_ratio）呈强正相关**——大部分 batch 耗时 < 50ms，少量 batch 耗时飙到 150-180ms，**这些离群点正好对应长度比 > 16 的 batch**。
@@ -133,7 +133,7 @@ python3 -m ms_service_profiler.parse \
 
 ## 【问题根因】
 
-**根因类型**：框架适配错误（MindIE LLM 1.0.RC2 的调度器未对请求长度做充分分桶/排序）
+**根因类型**：框架适配错误（MindIE LLM 1.0.RC2 的调度器未对请求长度做充分分桶/排序）。
 
 ## 【定位方法论总结】
 
@@ -145,4 +145,4 @@ python3 -m ms_service_profiler.parse \
    - **Summary 页面**：先看 batch_time 分布，挑出离群点（> 100ms 的 batch），同时看 len_ratio 分布，找到两者相关性
    - **Timeline 页面**：从离群 batch 中挑典型（坏样本 len_ratio > 16），再挑一个正常 batch（len_ratio < 4）做**直接对比**
    - 坏 batch 的典型特征：1 个超长 Prefill 主导整批、Decode step 全部被拉成 ~180ms、算子条带首尾相连无边界
-   - 好 batch 的典型特征：Decode step 节奏稳定（~32ms/拍）、算子条带边界清晰、host 调度有规律
+   - 好 batch 的典型特征：Decode step 节奏稳定（~32ms/step）、算子条带边界清晰、host 调度有规律

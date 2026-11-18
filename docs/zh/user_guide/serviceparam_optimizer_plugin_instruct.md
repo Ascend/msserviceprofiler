@@ -2,7 +2,7 @@
 
 ## 简介
 
-寻优工具支持自定义插件，用户可通过开发自定义插件实现：自定义搜索参数配置、自定义服务框架，以及自定义性能测试工具。
+寻优工具支持自定义插件，用户可通过开发自定义插件实现：自定义参数搜索配置、自定义服务框架，以及自定义性能测试工具。
 
 自定义插件开发流程如下：
 
@@ -15,7 +15,7 @@
 
 1. 继承Settings类
 
-    settings是通过pydantic-settings实现的，可在类里面添加删除属性。例如：
+    settings是通过pydantic-settings实现的，可在类里面添加或删除属性。例如：
 
     ```python
     from ms_serviceparam_optimizer.config.config import Settings
@@ -148,7 +148,7 @@
 5. 使用插件
 
     可以通过寻优工具的调用参数来指定插件实现的模块。
-    新注册了服务框架vllm_infer和性能测试客户端vllm_infer_benchmark，先查看支持的服务和benchmark工具，是否包含刚刚注册的vllm_infer和vllm_infer_benchmark。例如：
+    新注册了服务框架vllm_infer和性能测试工具vllm_infer_benchmark，先查看支持的服务和benchmark工具，是否包含刚刚注册的vllm_infer和vllm_infer_benchmark。例如：
 
     ```bash
     msserviceprofiler optimizer -h

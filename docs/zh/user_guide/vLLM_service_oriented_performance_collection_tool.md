@@ -17,7 +17,7 @@ vLLM Service Profiler 适用于在 vLLM-Ascend 推理服务过程中进行性能
 
 > [!NOTE]
 >
->昇腾产品的具体型号，请参见《[昇腾产品形态说明](https://www.hiascend.com/document/detail/zh/Glossary/productform/hardwaredesc_0001.html)》
+>昇腾产品的具体型号，请参见《[昇腾产品形态说明](https://www.hiascend.com/document/detail/zh/Glossary/productform/hardwaredesc_0001.html)》。
 
 <!-- npu="950" id1 -->
 - Ascend 950PR&950DT系列产品：支持
@@ -43,8 +43,8 @@ vLLM Service Profiler 适用于在 vLLM-Ascend 推理服务过程中进行性能
 #### 环境准备
 
 1. 在昇腾环境安装配套版本的CANN Toolkit开发套件包和ops算子包并配置CANN环境变量，具体请参见[CANN快速安装](https://www.hiascend.com/cann/download)。
-2. 完成 vLLM 和 vLLM-Ascend 的安装和配置并确认 vLLM-Ascend 可以正常运行，具体请参见《 [vLLM-Ascend安装指南](https://docs.vllm.ai/projects/ascend/zh-cn/v0.13.0/installation.html)》。
-3. 升级 msServiceProfiler 工具，请参见《msServiceProfiler工具安装指南》文档中“[4. 升级](../install_guide/msserviceprofiler_install_guide.md#5-升级)”章节。
+2. 完成 vLLM 和 vLLM-Ascend 的安装和配置并确认 vLLM-Ascend 可以正常运行，具体请参见《[vLLM-Ascend安装指南](https://docs.vllm.ai/projects/ascend/zh-cn/v0.13.0/installation.html)》。
+3. 升级 msServiceProfiler 工具，请参见《msServiceProfiler工具安装指南》文档中“[5. 升级](../install_guide/msserviceprofiler_install_guide.md#5-升级)”章节。
 
 #### 约束
 
@@ -72,7 +72,7 @@ vllm serve Qwen/Qwen2.5-0.5B-Instruct &
 
 其中 `ms_service_profiler_config.json` 为采集配置文件，若不存在会自动生成默认配置。若有需要，可参照[采集配置使用指南](#采集配置使用指南)章节提前进行自定义配置。
 
-`service_profiling_symbols.yaml` 为需要导入的埋点配置文件。你也可以选择不设置环境变量 `PROFILING_SYMBOLS_PATH` ，此时将使用默认的配置文件；若你指定的路径下不存在该文件，系统同样会在你指定的路径生成一份配置文件以便后续修改。可参考[点位配置使用指南](#点位配置使用指南)一节进行自定义。
+`service_profiling_symbols.yaml` 为需要导入的埋点配置文件。你也可以选择不设置环境变量 `PROFILING_SYMBOLS_PATH`，此时将使用默认的配置文件；若你指定的路径下不存在该文件，系统同样会在你指定的路径生成一份配置文件以便后续修改。可参考[点位配置使用指南](#点位配置使用指南)一节进行自定义。
 
 如需通过 Hook 创建自定义链路 Span，并将数据接入 Jaeger 或 Perfetto，请参见 [vLLM Hook Tracing 使用指南](./vLLM_hook_tracing_instruct.md)。
 
@@ -125,7 +125,7 @@ msserviceprofiler parse --input-path=./ --output-path output
 
 点位配置文件已在 vLLM-Ascend 以及工具中内置：
 
-- 默认加载路径：`~/.config/vllm_ascend/service_profiling_symbols.MAJOR.MINOR.PATCH.yaml`（适用于 vLLM-Ascend 框架且文件名随已安装的 vllm 版本变化）
+- 默认加载路径：`~/.config/vllm_ascend/service_profiling_symbols.MAJOR.MINOR.PATCH.yaml`（适用于 vLLM-Ascend 框架且文件名随已安装的 vLLM 版本变化）
 - 备用加载路径：`工具安装路径/ms_service_profiler/patcher/vllm/config/service_profiling_symbols.yaml`
 
 如需自定义采集点，推荐通过设置环境变量`PROFILING_SYMBOLS_PATH`，将一份点位配置文件复制到工作目录进行修改使用。

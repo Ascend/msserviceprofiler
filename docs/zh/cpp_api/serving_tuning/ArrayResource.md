@@ -4,7 +4,7 @@
 
 > [!NOTE]
 >
->昇腾产品的具体型号，请参见《[昇腾产品形态说明](https://www.hiascend.com/document/detail/zh/Glossary/productform/hardwaredesc_0001.html)》
+>昇腾产品的具体型号，请参见《[昇腾产品形态说明](https://www.hiascend.com/document/detail/zh/Glossary/productform/hardwaredesc_0001.html)》。
 
 <!-- npu="950" id1 -->
 - Ascend 950PR&950DT系列产品：不支持
@@ -44,7 +44,7 @@ inline Profiler &ArrayResource(const T &startIter, const T &endIter,
 
 ## 参数说明<a name="section11506138144714"></a>
 
-**表 1**  参数说明
+**表 1** 参数说明
 
 |参数名|输入/输出|说明|
 |--|--|--|

@@ -16,7 +16,7 @@ $\{INSTALL\_DIR\}请替换为CANN软件安装后的文件存储路径。以root�
 
 具体接口如下：
 
-**表 1**  msServiceProfiler API（C++）
+**表 1** msServiceProfiler API（C++）
 
 |接口|说明|
 |--|--|

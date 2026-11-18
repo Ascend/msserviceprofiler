@@ -8,14 +8,14 @@ msServiceProfiler Trace采集MindIE Motor服务中的请求响应时间、响应
 
 - 当前版本主要面向MindIE推理框架，支持单机及多机PD竞争部署模式。
 - 当前仅支持对MindIE的[/v1/chat](https://www.hiascend.com/document/detail/zh/mindie/latest/mindiellm/llmdev/mindie_service0078.html)和[/v1/completions](https://www.hiascend.com/document/detail/zh/mindie/latest/mindiellm/llmdev/mindie_service0323.html)两个请求发送的核心接口进行Trace监测。
-- msServiceProfiler Trace数据监测接口包括“msServiceProfiler API参考（C++） \>  [Trace数据监测](../cpp_api/trace_data_monitoring/README.md)”。
-- 有关MindIE Motor相关介绍请参见《[MindIE Motor开发指南](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/README.md)》。
+- msServiceProfiler Trace数据监测接口请参见“msServiceProfiler API参考（C++） \> [Trace数据监测](../cpp_api/trace_data_monitoring/README.md)”。
+- MindIE Motor相关介绍请参见《[MindIE Motor开发指南](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/README.md)》。
 
 ## 产品支持情况<a name="ZH-CN_TOPIC_0000002489576470"></a>
 
 > [!NOTE]
 >
->昇腾产品的具体型号，请参见《[昇腾产品形态说明](https://www.hiascend.com/document/detail/zh/Glossary/productform/hardwaredesc_0001.html)》
+>昇腾产品的具体型号，请参见《[昇腾产品形态说明](https://www.hiascend.com/document/detail/zh/Glossary/productform/hardwaredesc_0001.html)》。
 
 <!-- npu="950" id1 -->
 - Ascend 950PR&950DT系列产品：不支持
@@ -87,20 +87,20 @@ msServiceProfiler Trace转发数据最大支持400并发，超过400并发可能
     | `MS_PROFILER_SAMPLE_RATE` | 设置采样频率，仅对自动生成 `trace_id` 的请求生效。该值为正整数 N，表示每 N 次请求采样 1 次。若未设置或设置为非正整数，则不采样。 |
     | `MS_PROFILER_SAMPLE_ERROR` | 是否仅上报错误的请求（适用于所有请求）。设置为 `1` 时仅上报错误 Span；未设置或设置为其他值时上报所有请求。 |
 
-```bash
-# 设置环境变量示例
+    ```bash
+    # 设置环境变量示例
 
-# 开启自动生成 trace_id（当请求头缺失时）
-export MS_PROFILER_AUTO_TRACE=1
+    # 开启自动生成 trace_id（当请求头缺失时）
+    export MS_PROFILER_AUTO_TRACE=1
 
-# 设置采样率为每100次请求采样1次（仅对自动生成的trace生效）
-export MS_PROFILER_SAMPLE_RATE=100
+    # 设置采样率为每100次请求采样1次（仅对自动生成的trace生效）
+    export MS_PROFILER_SAMPLE_RATE=100
 
-# 设置仅上报错误的请求
-export MS_PROFILER_SAMPLE_ERROR=1
-```
+    # 设置仅上报错误的请求
+    export MS_PROFILER_SAMPLE_ERROR=1
+    ```
 
-**3.** 运行MindIE Motor服务。
+3. 运行MindIE Motor服务。
 
 ### 配置目标采集服务器<a name="ZH-CN_TOPIC_0000002518641905"></a>
 
@@ -144,7 +144,7 @@ export MS_PROFILER_SAMPLE_ERROR=1
 
 >[!NOTE]
 >
->本工具依赖OpenTelemetry三方库实现。本文仅说明此工具使用的必备参数。更多功能接口请开发者深入其官方文档自行探索。
+>本工具依赖OpenTelemetry第三方库实现。本文仅说明此工具使用的必备参数。更多功能接口请开发者深入其官方文档自行探索。
 >
 >当前只支持单向认证，双向认证相关配置参数不支持，配置会导致功能不可用。不可用配置参数如下：
 >
@@ -209,7 +209,7 @@ python -m ms_service_profiler.trace --perfetto-output /path/to/hook_tracing.json
 
 ### 发送请求
 
-当前建议使用/v1/chat/completions及/v1/completions接口发送请求。且这两个接口的HTTP请求头中需要添加“开启采样”信息。当前支持添加“开启采样”的HTTP请求头格式如下：
+当前建议使用/v1/chat/completions及/v1/completions接口发送请求，且这两个接口的HTTP请求头中需要添加“开启采样”信息。当前支持添加“开启采样”的HTTP请求头格式如下：
 
 - W3C Trace Context \(traceparent\)
 - B3 Single Header \(单一头格式\)
@@ -225,7 +225,7 @@ HTTP请求头需要添加的内容格式详细配置介绍如下：
 traceparent: 00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01
 ```
 
-**表 1**  W3C Trace Context \(traceparent\)
+**表 1** W3C Trace Context \(traceparent\)
 
 |字段|位置|长度|含义|可选/必选|
 |--|--|--|--|--|
@@ -242,13 +242,13 @@ traceparent: 00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01
 b3: 0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-1-0000000000000001
 ```
 
-**表 2**  B3 Single Header（单一头格式）
+**表 2** B3 Single Header（单一头格式）
 
 |字段|字符位置|含义|格式|取值说明|可选/必选|
 |--|--|--|--|--|--|
 |TraceId|1~32位|全局Trace ID|32个十六进制字符|唯一标识整个分布式调用链|必选|
 |SpanId|34~49位|当前Span ID|16个十六进制字符|标识当前服务操作的唯一ID|必选|
-|Sampled|51位|采样决策|1个字符|**1=采样****0=不采样**|必选|
+|Sampled|51位|采样决策|1个字符|**1=采样，0=不采样**|必选|
 |ParentSpanId|53~68位|父Span ID|16个十六进制字符|可选字段，标识直接上游Span|可选|
 
 **B3 Multiple Headers（多头格式）<a name="section1410152418280"></a>**
@@ -261,13 +261,13 @@ X-B3-SpanId: b7ad6b7169203331
 X-B3-Sampled: 1
 ```
 
-**表 3**  B3 Multiple Headers（多头格式）
+**表 3** B3 Multiple Headers（多头格式）
 
 |字段名称|含义|格式|取值|作用|可选/必选|
 |--|--|--|--|--|--|
 |X-B3-TraceId|全局Trace ID|32个十六进制字符（16字节）|任意32位十六进制字符串|唯一标识整个分布式调用链，所有相关服务共享同一个TraceId|必选|
 |X-B3-SpanId|当前Span ID|16个十六进制字符（8字节）|任意16位十六进制字符串|标识当前服务操作的唯一ID，每个Span都有独立的SpanId|必选|
-|X-B3-Sampled|采样决策|字符串|**1 = 采样****0 = 不采样**|控制是否记录Trace数据到后端系统，避免产生过多性能开销|必选|
+|X-B3-Sampled|采样决策|字符串|**1 = 采样，0 = 不采样**|控制是否记录Trace数据到后端系统，避免产生过多性能开销|必选|
 
 **执行发送请求<a name="section113815183112"></a>**
 
@@ -293,22 +293,22 @@ curl http://127.0.0.1:1025/v1/chat/completions \
 
 完成[发送请求](#发送请求)后，可以在支持OTLP协议的开源监测平台（例如Jaeger，须先开启Jaeger平台服务）查看可视化结果，示例如下。
 
-**图 1**  可视化结果<a name="fig485163113451"></a>
+**图 1** 可视化结果<a name="fig485163113451"></a>
 ![](../figures/可视化结果.png "可视化结果")
 
 字段说明如下：
 
-**表 1**  基础信息
+**表 1** 基础信息
 
 |字段|说明|
 |--|--|
 |traceID|Trace链路的唯一标识符，string类型，示例值79f92f3577b34da6a3ce929d0e0e4703。|
 |spanID|当前Span的唯一标识符，string类型，示例值4736e32cc09f0000。|
 |operationName|操作/接口名称，string类型，示例值server.Request。|
-|startTime|Span开始时间，int类型，单位us，示例值1763784983019248。|
-|duration|Span持续时间，int类型，单位us，示例值328。|
+|startTime|Span开始时间，int类型，单位μs，示例值1763784983019248。|
+|duration|Span持续时间，int类型，单位μs，示例值328。|
 
-**表 2**  服务信息
+**表 2** 服务信息
 
 |字段|说明|
 |--|--|
@@ -317,7 +317,7 @@ curl http://127.0.0.1:1025/v1/chat/completions \
 |tags[key=server.path]|请求路径，string类型，示例值/v1/chat/completions。|
 |tags[key=span.kind]|Span类型，string类型，示例值server。|
 
-**表 3**  网络信息
+**表 3** 网络信息
 
 |字段|说明|
 |--|--|
@@ -326,7 +326,7 @@ curl http://127.0.0.1:1025/v1/chat/completions \
 |tags[key=server.net.peer.ip]|客户端IP地址，string类型，示例值127.0.0.1。|
 |tags[key=server.net.peer.port]|客户端端口，string类型，示例值36694。|
 
-**表 4**  状态信息
+**表 4** 状态信息
 
 |字段|说明|
 |--|--|

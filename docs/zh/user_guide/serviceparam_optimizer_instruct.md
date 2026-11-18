@@ -6,11 +6,11 @@
 
 工具支持仿真与轻量化两种模式，主要包括三大核心功能模块：
 
-- **参数寻优模块**：利用PSO粒子寻优算法自动生成服务化参数组合，不断逼近最优解；同时，Early Rejection算法通过理论建模、调优经验及部分实测数据对服务化参数完成早期评估；
+- **参数寻优模块**：利用PSO粒子寻优算法自动生成服务化参数组合，不断逼近最优解；同时，Early Rejection算法通过理论建模、调优经验及部分实测数据对服务化参数完成早期评估。
 
-- **仿真模块**：基于XGBoost模型对大模型推理时长进行精准预测，结合服务化调度的虚拟时间轴技术，加速服务化参数验证速度。
+- **仿真模块**：基于XGBoost模型对大模型推理时长进行精准预测，结合服务化调度的虚拟时间轴技术，加速服务化参数验证。
 
-- **参数验证模块**：自动化启动服务化进程与测评工具进程，进行参数测试，获取性能结果。当前已支持的测评工具包括AISBench，vllm_benchmark。
+- **参数验证模块**：自动化启动服务化进程与测评工具进程，进行参数测试，获取性能结果。当前已支持的测评工具包括AISBench、vllm_benchmark。
 
 > [!NOTE]
 >
@@ -26,7 +26,7 @@
 **基本概念**
 
 - `MindIE`、`VLLM`：服务化框架，支持对模型进行服务化部署。
-- `AISBench`、`VLLM_Benchmark`：推理性能评测工具，支持对服务化进行推理性能评测。
+- `AISBench`、`vllm_Benchmark`：推理性能评测工具，支持对服务化进行推理性能评测。
 
 ## 产品支持情况<a name="ZH-CN_TOPIC_0000002479925980"></a>
 
@@ -80,7 +80,7 @@
  pip install -e .[speed] # 选择 speed 选项安装寻优工具插件
  ```
 
- 如果上述安装失败，可尝试安装较少依赖的第三方包，但训练模型时，大数据量时性能较低。
+ 如果上述安装失败，可尝试安装依赖较少的第三方包，但训练模型时，大数据量时性能较低。
 
  ```bash
  pip install -e .[train] # 选择 train 选项安装寻优工具插件
@@ -144,7 +144,7 @@ msserviceprofiler optimizer [options]
 |--backup|可选|决定是否在寻优过程中备份数据，配置本参数表示开启备份，可取值：<br>&#8226;True：开启备份<br>&#8226;False：不开启备份。<br/>默认值为`False`。|
 |-b或--benchmark_policy|可选|指定测评工具，可取值：<br>&#8226;vllm_benchmark：使用vllm_benchmark作为测试工具 <br/>&#8226;ais_bench：使用AISBench作为测试工具<br/>默认值为`ais_bench`。<br/>用户需自行选择适配的推理框架以及测试框架。|
 |-e或--engine|可选|指定推理框架，可取值：<br>&#8226;mindie：使用MindIE作为推理框架<br>&#8226;vllm：使用VLLM作为推理框架<br/>默认值为`mindie`。|
-|--pd|可选|指定推理框架模式pd竞争或pd分离，可取值：<br>&#8226;competition：pd竞争模式<br>&#8226;disaggregation：pd分离模式<br/>默认值为`competition`。|
+|--pd|可选|指定推理框架模式PD竞争或PD分离，可取值：<br>&#8226;competition：pd竞争模式<br>&#8226;disaggregation：pd分离模式<br/>默认值为`competition`。|
 |-c或--config|可选|指定自定义配置文件路径（TOML格式）。支持以下三种形式：<br>&#8226;绝对路径：直接使用指定路径；<br>&#8226;相对路径（含目录分隔符）：相对于当前工作目录解析；<br>&#8226;仅文件名：在当前工作目录下查找。<br/>默认不指定，工具按预设路径顺序自动搜索配置文件。<br/>指定文件必须为有效 TOML 格式，且具有最高配置优先级。|
 
 **使用示例（mindie服务化参数寻优）**
@@ -182,7 +182,7 @@ msserviceprofiler optimizer [options]
     msserviceprofiler optimizer -e vllm
     ```
 
-    若在VLLM场景下使用`vllm_benchmark`测评工具可参考
+    若在VLLM场景下使用`vllm_benchmark`测评工具可参考：
 
     ```bash
     msserviceprofiler optimizer -e vllm -b vllm_benchmark
@@ -250,11 +250,11 @@ msserviceprofiler optimizer -e vllm -b vllm_benchmark -c ../configs/vllm_config.
 |--backup|可选|决定是否在寻优过程中备份数据，配置本参数表示开启备份，可取值：<br>&#8226;True：开启备份<br>&#8226;False：不开启备份。<br/>默认值为`False`。|
 |-b或--benchmark_policy|可选|指定测评工具，可取值：<br>&#8226;vllm_benchmark：使用vllm_benchmark作为测试工具 <br/>&#8226;ais_bench：使用AISBench作为测试工具<br/>默认值为`ais_bench`。<br/>用户需自行选择适配的推理框架以及测试框架。|
 |-e或--engine|可选|指定推理框架，可取值：<br>&#8226;mindie：使用MindIE作为推理框架<br>&#8226;vllm：使用VLLM作为推理框架<br/>默认值为`mindie`。|
-|--pd|可选|指定推理框架模式pd竞争或pd分离，可取值：<br>&#8226;competition：pd竞争模式<br>&#8226;disaggregation：pd分离模式<br/>默认值为`competition`。|
+|--pd|可选|指定推理框架模式PD竞争或PD分离，可取值：<br>&#8226;competition：pd竞争模式<br>&#8226;disaggregation：pd分离模式<br/>默认值为`competition`。|
 
 **使用示例**
 
-1. 修改配置文件：启动寻优前需用户按照实际情况配置[`config.toml`](../../../ms_serviceparam_optimizer/ms_serviceparam_optimizer/config.toml)，包括寻优参数、测评工具参数、服务化参数。参考[配置文件说明](#配置文件说明)章节完成配置。
+1. 修改配置文件：启动寻优前需用户按照实际情况配置[`config.toml`](../../../ms_serviceparam_optimizer/ms_serviceparam_optimizer/config.toml)，包括寻优参数、测评工具参数、服务化参数。参考[配置文件说明](#配置文件说明)章节完成配置
 
 2. 训练模型
 
@@ -287,8 +287,8 @@ msserviceprofiler optimizer -e vllm -b vllm_benchmark -c ../configs/vllm_config.
 | 字段 | 说明 |
 | --- | --- |
 | generate_speed | 吞吐。 |
-| time_to_first_token | ttft时延，单位为秒。 |
-| time_per_output_token | tpot时延，单位为秒。 |
+| time_to_first_token | TTFT时延，单位为秒。 |
+| time_per_output_token | TPOT时延，单位为秒。 |
 | success_rate | 测试返回请求成功率。 |
 | throughput | 测试吞吐，单位为请求数/秒。 |
 | CONCURRENCY | 并发数。 |
@@ -305,8 +305,8 @@ msserviceprofiler optimizer -e vllm -b vllm_benchmark -c ../configs/vllm_config.
 
 ### 配置文件说明
 
-**寻优参数**： `n_particles` （寻优种子数）、`iters` （迭代轮次数）、 `tpot_slo` （`time_per_output_token`的限制时延）等。
-用户可根据预估时间来自行配置种子和迭代次数。我们单个种子使用时间为拉起服务+测试数据。比如用户拉起服务+完成测试需9-10min，且愿意用8小时来进行寻优，则一共可跑约50个种子，建议用户配置5 * 10，即设置种子数为10，迭代次数为5，种子数为迭代次数的2倍左右。
+**寻优参数**： `n_particles`（寻优种子数）、`iters`（迭代轮次数）、`tpot_slo`（`time_per_output_token`的限制时延）等。
+用户可根据预估时间来自行配置种子和迭代次数。我们单个种子使用时间为拉起服务+测试数据的时间。比如用户拉起服务+完成测试需9-10分钟，且愿意用8小时来进行寻优，则一共可跑约50个种子，建议用户配置5 * 10，即设置种子数为10，迭代次数为5，种子数为迭代次数的2倍左右。
 
 > **注意**：以下寻优参数均为必填项，不可删除或省略，否则运行时会报错。
 
@@ -320,7 +320,7 @@ msserviceprofiler optimizer -e vllm -b vllm_benchmark -c ../configs/vllm_config.
 |ttft_slo|必选|`time_to_first_token`的限制时延。如对`time_to_first_token`限制为2s内，则设为2，取值范围：(0, 100]，单位s。|
 |tpot_slo|必选|`time_per_output_token`的限制时延。如对`time_per_output_token`限制为50ms内，则设为0.05，取值范围：(0, 100]，单位s。 |
 |service|必选|标注多机启动时为主机或从机，多机场景下从机设为 `slave`，可取值：<br>&#8226;master：主机<br/>&#8226;slave：从机，<br/>默认值为`master`。|
-|sample_size|可选|对原始数据集采样大小，用采样后的数据进行调优，可增加寻优效率，取值范围为：1000-10000的整数，建议设为原数据集请求的1 / 3。|
+|sample_size|可选|对原始数据集采样大小，用采样后的数据进行调优，可提高寻优效率，取值范围为：1000-10000的整数，建议设为原数据集请求的1 / 3。|
 
 **测评工具参数**：
 若使用`AISBench`测评，需修改以下参数，可以参照[AISBench 使用说明](https://github.com/AISBench/benchmark/blob/master/README.md)进行修改。
@@ -525,7 +525,7 @@ dtype_param = {target_names = ["seq_len", "prefill_batch_size"], product = 2, dt
 # 当 seq_len=1024, prefill_batch_size=4 时，max_prefill_tokens = 2 × 1024 × 4 = 8192
 ```
 
-使用vllm框架时，需修改`config.toml`中的`[vllm.command]`参数，如：
+使用vLLM框架时，需修改`config.toml`中的`[vllm.command]`参数，如：
 
 ```toml
 [vllm.command]
@@ -550,7 +550,7 @@ others = ""
 
 > **变量引用规则**：在 `others` 中使用 `$字段名大写` 的格式引用寻优字段，工具运行时会自动将其替换为当前迭代的实际值。
 
-#### 示例一：枚举数值参数（以 `gpu_memory_utilization` 为例）
+#### 示例一：枚举数值参数（以 gpu_memory_utilization 为例）
 
 **第一步**：声明寻优字段。
 
@@ -571,7 +571,7 @@ value = 0.9
 others = "--gpu-memory-utilization $GPU_MEMORY_UTILIZATION"
 ```
 
-#### 示例二：开关型/复合字符串参数（以编译配置 `--compilation-config` 为例）
+#### 示例二：开关型/复合字符串参数（以编译配置 --compilation-config 为例）
 
 当参数本身是一段完整的 CLI 字符串时，可将“不启用”（空字符串 `""`）和“启用”两种形态作为枚举候选值。工具遇到空字符串时会自动跳过，不向启动命令追加任何内容。
 
@@ -625,7 +625,7 @@ io_error = ["file not found", "permission denied", "IO error"]
 
 服务化自动寻优工具支持在MindIE的A2单机PD分离场景中进行参数寻优（仅支持轻量化模式），且需要k8s部署。需保证能正常使用k8s拉起MindIE服务。
 > [!NOTE]
-> 当前仅支持MindIE 2.2.RC1
+> 当前仅支持MindIE 2.2.RC1。
 
 需要在`config.toml`中配置kubectl_default_path字段，将该字段配置为k8s安装脚本解压后的单机执行目录，目录结构需要为：
 
@@ -668,7 +668,7 @@ K8s_v1.23_MindCluster.7.1.RC1.B098.aarch/
     ├──user_config_base_A3.json
 ```
 
-即配置
+即配置：
 
 ```toml
 kubectl_default_path = "K8s_v1.23_MindCluster.7.1.RC1.B098.aarch/kubernetes_deploy_scripts_latest" #使用绝对路径
@@ -699,7 +699,7 @@ dtype_param = "default_p_rate"
 
 ### 日志说明
 
-寻优过程中默认日志为INFO级别，如果用户想看每一轮具体的日志，可以在使用工具前设置
+寻优过程中默认日志为INFO级别，如果用户想看每一轮具体的日志，可以在使用工具前设置：
 
 ```bash
 export MODELEVALSTATE_LEVEL=DEBUG

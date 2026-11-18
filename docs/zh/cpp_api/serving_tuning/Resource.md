@@ -4,7 +4,7 @@
 
 > [!NOTE]
 >
->昇腾产品的具体型号，请参见《[昇腾产品形态说明](https://www.hiascend.com/document/detail/zh/Glossary/productform/hardwaredesc_0001.html)》
+>昇腾产品的具体型号，请参见《[昇腾产品形态说明](https://www.hiascend.com/document/detail/zh/Glossary/productform/hardwaredesc_0001.html)》。
 
 <!-- npu="950" id1 -->
 - Ascend 950PR&950DT系列产品：不支持
@@ -32,7 +32,7 @@
 
 ## 功能说明<a name="section20806203412478"></a>
 
-添加资源ID，数据和timeline根据资源ID进行关联，一般是请求ID。
+添加资源ID后，数据和timeline会根据该资源ID进行关联，该资源ID一般是请求ID。
 
 ## 函数原型<a name="section1121883194711"></a>
 
@@ -42,7 +42,7 @@ inline Profiler &Resource(const ResID &rid)
 
 ## 参数说明<a name="section11506138144714"></a>
 
-**表 1**  参数说明
+**表 1** 参数说明
 
 |参数名|输入/输出|说明|
 |--|--|--|

@@ -2,7 +2,7 @@
 
 ## 问题背景
 
-在服务化推理场景中，SLO（Service Level Objective，服务等级目标）是衡量服务质量的核心指标，通常包括首Token时延（TTFT）、Token生成速度（TPS）、请求端到端时延（E2E Latency）、吞吐量（Throughput）等。当模型执行侧出现性能劣化时，会直接导致SLO指标恶化，影响用户体验和业务SLA。模型性能劣化可能由多种因素引起：算子执行效率下降、模型计算图编译优化失效、NPU显存不足导致Swap、模型版本升级引入性能回退、CANN版本变更导致算子性能变化、动态shape场景下编译缓存未命中、MoE模型专家负载不均等。昇腾NPU上，模型从GPU迁移后可能因算子适配差异、图编译策略不同、内存管理机制差异等原因出现性能劣化，需要通过系统化的定位手段逐层排查。
+在服务化推理场景中，SLO（Service Level Objective，服务级别目标）是衡量服务质量的核心指标，通常包括首Token延迟（TTFT）、Token生成速度（TPS）、请求端到端时延（E2E Latency）、吞吐量（Throughput）等。当模型执行侧出现性能劣化时，会直接导致SLO指标恶化，影响用户体验和业务SLA。模型性能劣化可能由多种因素引起：算子执行效率下降、模型计算图编译优化失效、NPU显存不足导致Swap、模型版本升级引入性能回退、CANN版本变更导致算子性能变化、动态shape场景下编译缓存未命中、MoE模型专家负载不均等。昇腾NPU上，模型从GPU迁移后可能因算子适配差异、图编译策略不同、内存管理机制差异等原因出现性能劣化，需要通过系统化的定位手段逐层排查。
 
 ## 问题来源
 
@@ -105,7 +105,7 @@ msprof --export=on --output=/path/to/output
 
 5. **MoE模型专家负载不均**：DeepSeek等MoE模型中，不同专家被调用的频率差异大，部分专家所在设备成为计算热点，其他设备空闲等待，形成快慢卡现象。
 
-6. **Host Bound导致Device空闲**：小模型或Decode阶段，Host下发Task的速度跟不上Device执行速度，Device出现间歇性空闲。可通过CANN图模式调度或模型下沉解决。
+6. **Host Bound导致Device空闲**：小模型或Decode阶段，Host下发Task的速度跟不上Device执行速度，Device出现间歇性空闲，可通过CANN图模式调度或模型下沉解决。
 
 7. **通信瓶颈**：多卡推理场景中，AllReduce/AllGather等集合通信耗时占比过高；PD分离场景中KV Cache传输延迟大；EP（专家并行）场景中Dispatch-Combine通信成为瓶颈。
 

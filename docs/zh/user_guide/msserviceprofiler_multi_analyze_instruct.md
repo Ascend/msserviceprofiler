@@ -73,11 +73,11 @@
 | 参数          | 可选/必选 | 说明                                                         |
 | ------------- | --------- | ------------------------------------------------------------ |
 | --input-path  | 必选      | 指定性能数据所在路径。                                       |
-| --output-path | 可选      | 指定解析后文件生成路径，默认为当前路径下 output 文件夹。     |
+| --output-path | 可选      | 指定解析后文件生成路径，默认为当前路径下output文件夹。     |
 | --log-level   | 可选      | 设置日志级别，取值为：<br/>&#8226; debug：调试级别。该级别的日志记录了调试信息，便于开发人员或维护人员定位问题。<br/>&#8226; info：正常级别。记录工具正常运行的信息。默认值。<br/>&#8226; warning：警告级别。记录工具和预期的状态不一致，但不影响整个进程运行的信息。<br/>&#8226; error：一般错误级别。<br/>&#8226; critical：严重错误级别。<br/>&#8226; fatal：致命错误级别。 |
-| --format      | 可选      | 设置性能数据输出文件的导出格式，取值为 json、csv、db。       |
+| --format      | 可选      | 设置性能数据输出文件的导出格式，取值为json、csv、db。       |
 
-### **输出结果文件说明**
+### 输出结果文件说明
 
 - `batch_summary.csv`
 
@@ -127,7 +127,7 @@
   | total_input_token_num  | 总输入Token数量。 |
   | total_generated_token_num  | 总输出Token数量。 |
   | generate_token_speed(token/s)  | 每秒输出Token数，单位token/s。 |
-  | generate_all_token_speed(token/s) | 每秒处理Token数，单位token/s （输入输出总数）。 |
+  | generate_all_token_speed(token/s) | 每秒处理Token数，单位token/s（输入输出总数）。 |
   | 指标数据（行表头）  |-|
   | Value | 具体数值 |
 

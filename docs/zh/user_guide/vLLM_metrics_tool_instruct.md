@@ -5,14 +5,14 @@
 vLLM 服务化 Prometheus 数据监测工具用于增强 vLLM-Ascend 推理服务框架的原生监测能力。在 vLLM-Ascend 原生 metrics 基础上，本工具新增以下监测能力：
 
 - **KVCache 监测**：各 DP 域的 block 总数、空闲数、已分配数
-- **Token 与吞吐**：各 DP 域的 请求输入/输出 token 数量、总 token 数
+- **Token 与吞吐**：各 DP 域的请求输入/输出 Token 数量、总 Token 数
 - **自定义指标**：支持对任意函数执行时长添加 timer 类型指标
 
 ## 产品支持情况
 
 > [!NOTE]
 >
->昇腾产品的具体型号，请参见《[昇腾产品形态说明](https://www.hiascend.com/document/detail/zh/Glossary/productform/hardwaredesc_0001.html)》
+>昇腾产品的具体型号，请参见《[昇腾产品形态说明](https://www.hiascend.com/document/detail/zh/Glossary/productform/hardwaredesc_0001.html)》。
 
 <!-- npu="950" id1 -->
 - Ascend 950PR&950DT系列产品：支持
@@ -207,7 +207,7 @@ vllm_profiling_server:create_chat_completion:duration_count{dp="-1"} 9.0
 |----------|------|------|------|
 | batch_size | Histogram | engine | 当前正在执行的请求数量 |
 | waiting_batch_size | Histogram | engine | 当前等待调度的请求数量 |
-| num_spec_tokens | Histogram | engine | 投机解码中的草稿 token 数量 |
+| num_spec_tokens | Histogram | engine | 投机推理中的草稿 token 数量 |
 | scheduler:duration | Histogram | - | 单次 `Scheduler.schedule` 调度耗时 |
 | scheduler:batch_size | Histogram | - | 单次调度输出的请求数量 |
 | scheduler:running_queue_size | Histogram | - | 调度后 running 队列中的请求数量 |
@@ -251,8 +251,8 @@ vllm_profiling_server:create_chat_completion:duration_count{dp="-1"} 9.0
 | engine:memory:non_torch_gb | Gauge | - | 非 PyTorch 组件占用显存，单位 GiB |
 | engine:memory:activation_gb | Gauge | - | Profile 过程中峰值 activation 显存，单位 GiB |
 | engine:memory:graph_gb | Gauge | - | NPU Graph 占用显存，单位 GiB |
-| engine:memory:torch_reserved_gb | Gauge | - | vllm-ascend 运行态 PyTorch reserved 显存，单位 GiB |
-| engine:memory:torch_allocated_gb | Gauge | - | vllm-ascend 运行态 PyTorch allocated 显存，单位 GiB |
+| engine:memory:torch_reserved_gb | Gauge | - | vLLM-Ascend 运行态 PyTorch reserved 显存，单位 GiB |
+| engine:memory:torch_allocated_gb | Gauge | - | vLLM-Ascend 运行态 PyTorch allocated 显存，单位 GiB |
 
 >[!NOTE]
 >
@@ -318,7 +318,7 @@ vllm_profiling_server:create_chat_completion:duration_count{dp="-1"} 9.0
 性能分析按“业务 SLO、调度与容量、模型执行、异常状态”的顺序展开：
 
 1. 使用 `fine_grained_ttft`、`fine_grained_tpot` 和 `engine:generate:duration` 确认异常影响首 Token、后续 Token 还是引擎生成过程；压测客户端端到端时延单独记录，不能与服务端引擎耗时混用。
-2. 使用 `waiting_batch_size`、`batch_size` 和 `scheduler:duration` 判断请求是否堵塞在调度阶段。
+2. 使用 `waiting_batch_size`、`batch_size` 和 `scheduler:duration` 判断请求是否阻塞在调度阶段。
 3. 使用 `free_kvcache_blocks`、`allocated_kvcache_blocks`、`block_allocate_failures`、`running_to_waiting_count` 判断 KVCache 是否限制请求进入执行阶段。
 4. 使用 `executor:execute_model:duration`、`executor:model_runner_execute_model:duration` 和 `npu:forward_duration` 判断模型执行是否变慢。
 5. 使用 `output_processor_duration`、`rpc_errors` 和 `health_check_failed` 排查输出处理和异常路径。
@@ -428,7 +428,7 @@ Metrics 已经能够形成阶段或容量结论时，可以直接进入处理和
 4. 使用 `request.id`、`request.ids`、Trace ID 和 Span Links 确认请求与 Batch 的关联。
 5. 对比 scheduler、model、model runner 和 output Span；只有同一 Trace ID 或统一 Perfetto Timeline 才计算 Span 间空白。
 
-完整流程参见[《vLLM-Ascend 可观测性性能诊断指南》](../best_practices/vllm_ascend_observability_analysis_guide.md)。
+完整流程参见《[vLLM-Ascend 可观测性性能诊断指南](../best_practices/vllm_ascend_observability_analysis_guide.md)》。
 
 ## 相关文档
 

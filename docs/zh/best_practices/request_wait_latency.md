@@ -2,7 +2,7 @@
 
 ## 场景说明
 
-在大模型推理服务化场景中，请求从进入服务到开始执行模型推理之间，通常会经过网关转发、请求入队、批处理组batch、Prefill执行、Decode调度、结果回传等阶段。若请求等待时间过长，用户侧会表现为首Token时延升高、端到端时延P99变差、低负载下响应不稳定或高负载下排队持续堆积。
+在大模型推理服务化场景中，请求从进入服务到开始执行模型推理之间，通常会经过网关转发、请求入队、批处理组batch、Prefill执行、Decode调度、结果回传等阶段。若请求等待时间过长，用户侧会表现为首Token延迟升高、端到端时延P99变差、低负载下响应不稳定或高负载下排队持续堆积。
 
 本文以推理请求等待时间过长为例，介绍如何使用msServiceProfiler采集Request和BatchSchedule数据，定位等待时间主要发生在入口排队、组batch等待、Prefill/Decode资源竞争、外部依赖阻塞还是系统资源瓶颈，并给出批处理、调度、资源、缓存和监控方向的优化方案。
 
@@ -21,7 +21,7 @@
 
 | 影响项 | 表现 |
 | --- | --- |
-| 首Token时延 | 请求长时间等待组batch或Prefill资源，TTFT升高。 |
+| 首Token延迟 | 请求长时间等待组batch或Prefill资源，TTFT升高。 |
 | 端到端时延 | 排队时间被放大，Request Latency P90/P99恶化。 |
 | 吞吐 | batch未打满或调度过于保守，NPU利用率不足。 |
 | 稳定性 | 高峰流量下队列持续堆积，出现超时或请求失败。 |
@@ -150,7 +150,7 @@ Prefill阶段通常计算量大，Decode阶段需要持续迭代。如果调度�
 
 **原因**
 
-服务化链路中可能存在鉴权、数据库查询、向量检索、日志落盘、网络调用或后处理逻辑。如果这些操作在主线程或调度线程中同步执行，会导致请求无法及时入队或组batch。
+服务化链路中可能存在认证、数据库查询、向量检索、日志落盘、网络调用或后处理逻辑。如果这些操作在主线程或调度线程中同步执行，会导致请求无法及时入队或组batch。
 
 **解决方案**
 
@@ -182,9 +182,9 @@ Prefill阶段和Decode阶段对计算、显存和KVCache的需求不同。若二
 **解决方案**
 
 - 采用PD分离架构，将Prefill和Decode部署在不同节点或实例池中。
-- 通过高性能KV Cache传输降低Prefill到Decode切换成本。
+- 通过高性能KVCache传输降低Prefill到Decode切换成本。
 - 分别为Prefill实例和Decode实例设置不同的batch、并发和扩缩容策略。
-- 对PD分离链路采集Communication域数据，确认KV Cache传输没有成为新的瓶颈。
+- 对PD分离链路采集Communication域数据，确认KVCache传输没有成为新的瓶颈。
 
 ### 缓存与预处理缺失
 
@@ -195,7 +195,7 @@ Prefill阶段和Decode阶段对计算、显存和KVCache的需求不同。若二
 **解决方案**
 
 - 构建向量缓存层，例如使用Redis缓存热门问题的Embedding或检索结果，减少重复Embedding模型调用。
-- 对高频固定前缀启用Prefix Cache，复用历史上下文的KV Cache，降低Prefill计算开销。
+- 对高频固定前缀启用Prefix Cache，复用历史上下文的KVCache，降低Prefill计算开销。
 - 对请求预处理结果进行缓存，例如模板拼接、分词或路由判定结果。
 - 监控缓存命中率，并将命中率与TTFT、Prefill耗时关联分析。
 
@@ -209,7 +209,7 @@ CPU调度抖动、内存页抖动、线程迁移或KVCache显存碎片化，可�
 
 - 对关键线程开启CPU绑核，减少线程迁移。
 - 根据系统要求评估透明大页配置，降低内存管理抖动。
-- 使用PagedAttention类技术对KV Cache进行分块管理，提高显存利用率并降低碎片化。
+- 使用PagedAttention类技术对KVCache进行分块管理，提高显存利用率并降低碎片化。
 - 对语音流式输入场景，优化内存页和缓冲区大小，减少小块数据频繁拷贝。
 
 ## 优化验证
@@ -223,7 +223,7 @@ CPU调度抖动、内存页抖动、线程迁移或KVCache显存碎片化，可�
 | Prefill/Decode优先级 | BatchSchedule.csv、Decode时延 | Prefill和Decode互相阻塞减少。 |
 | 异步I/O | externalIOMs、requestQueueSize | 主线程阻塞降低，请求入队更稳定。 |
 | 分布式扩容 | P99延迟、实例负载 | 高峰期waiting队列不再持续堆积。 |
-| Prefix Cache | Prefill耗时、TTFT | 重复前缀请求首Token时延下降。 |
+| Prefix Cache | Prefill耗时、TTFT | 重复前缀请求首Token延迟下降。 |
 | PagedAttention | KVCache使用率、并发 | 显存利用率提升，可承接更多请求。 |
 
 优化有效时，通常会看到以下结果：

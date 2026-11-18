@@ -38,8 +38,8 @@
 - 调优前需先完成纯模型基准测试，明确在固定输入输出长度和固定batch size下的最大性能。
 - 服务化压测应尽量复用纯模型基准的输入输出长度、并发规模和模型配置，避免基准不可比。
 - 多机多卡场景采集前需确认各节点时间同步，避免Timeline和负载均衡图出现时间偏差。
-- 若需要分析通信、任务下发或算子执行耗时，可开启acl任务耗时相关采集，但需评估额外开销。
-- 专家热点信息建议单独配置eplb_observe domain域，避免采集数据过大。
+- 若需要分析通信、任务下发或算子执行耗时，可开启ACL任务耗时相关采集，但需评估额外开销。
+- 专家热点信息建议单独配置eplb_observe域，避免采集数据过大。
 
 ### 配置示例
 
@@ -101,7 +101,7 @@ export SERVICE_PROF_CONFIG_PATH=/path/to/ms_service_profiler_config.json
    - Prefill_Generate_Speed_Latency偏高，优先检查maxPrefillBatchSize、maxSeqLen、KVCache预留和输入长度分布。
    - Decode_Generate_Speed_Latency偏高，优先检查通信配置、LCCL、通算融合、MoE负载均衡和跨卡同步等待。
 
-4. 查看Kvcache_usage_percent_curve。
+4. 查看KVCache_usage_percent_curve。
    - 若KVCache使用率长期较低但maxSeqLen配置很大，说明预留过多，可能限制batch和并发。
    - 若KVCache使用率接近上限，说明并发或序列长度已触及内存瓶颈，需降低maxSeqLen或增加资源。
 

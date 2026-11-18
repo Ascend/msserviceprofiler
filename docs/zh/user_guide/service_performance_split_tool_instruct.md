@@ -4,7 +4,7 @@
 
 服务化拆解工具（Service Performance Split Tool）基于msServiceProfiler工具采集的性能数据拆解服务化Batch执行中各阶段耗时，如组Batch、数据下发、模型执行、数据接收等。通过拆解识别性能瓶颈，方便开发人员优化框架。
 
-**基本概念**
+### 基本概念
 
 - `prefill batch`: Prefill阶段是处理用户输入prompt的初始阶段，在这个阶段，模型需要处理整个输入序列，计算并生成第一个输出token。该阶段执行的batch叫做prefill batch。
 - `decode batch`: Decode阶段模型逐个生成后续的输出token，每次生成一个token。相比Prefill阶段，Decode阶段的每次迭代计算量较小，但由于需要逐个生成token，可能会有很多次迭代。该阶段执行的batch叫做decode batch。
@@ -13,7 +13,7 @@
 
 > [!NOTE]
 >
->昇腾产品的具体型号，请参见《[昇腾产品形态说明](https://www.hiascend.com/document/detail/zh/Glossary/productform/hardwaredesc_0001.html)》
+>昇腾产品的具体型号，请参见《[昇腾产品形态说明](https://www.hiascend.com/document/detail/zh/Glossary/productform/hardwaredesc_0001.html)》。
 
 <!-- npu="950" id1 -->
 - Ascend 950PR&950DT系列产品：不支持
@@ -87,16 +87,16 @@ msserviceprofiler split
 | --input-path | 指定性能数据所在路径  |是|
 | --output-path | 指定拆解后文件生成路径，默认为当前路径下 output 文件夹 |否|
 | --log-level  | 日志级别，可选值debug,info,warning,error,fatal,critical，默认info  |否|
-| --prefill-batch-size  | 指定拆解的Prefill batch的batch_size大小，该值可以从batch.csv中的`batch_size`字段中获取，默认值为0 ，代表不执行 prefill性能拆解 |否|
+| --prefill-batch-size  | 指定拆解的Prefill batch的batch_size大小，该值可以从batch.csv中的`batch_size`字段中获取，默认值为0，代表不执行 prefill性能拆解 |否|
 | --prefill-number  | 指定拆解的Prefill batch的数量，用于统计执行时间的最大值、最小值、平均值和标准差，默认值为1 |否|
 | --prefill-rid  | 指定拆解的Prefill batch的请求id，该值可以从request.csv 中的`http_rid`字段中获取，默认值为-1，代表不执行prefill性能拆解 |否|
 | --decode-batch-size | 指定拆解的Decode batch的batch_size大小，该值可以从batch.csv中的`batch_size`字段中获取，默认值为0，代表不执行 decode性能拆解 |否|
 | --decode-number  | 指定拆解的Decode batch的数量，用于统计执行时间的最大值、最小值、平均值和标准差，默认值为1 |否|
-| --decode-rid  | 指定拆解的Decode batch的请求id，该值可以从request.csv 中的`http_rid`字段中获取，默认值为-1，代表不执行decode性能拆解 |否|
+| --decode-rid  | 指定拆解的Decode batch的请求ID，该值可以从request.csv 中的`http_rid`字段中获取，默认值为-1，代表不执行decode性能拆解 |否|
 
 ### 使用示例
 
-- **使用场景 1，指定`batch_size`大小拆解**
+- **使用场景1，指定`batch_size`大小拆解**
   - 如拆解100个`batch_size`为1的`prefill batch`数据，可执行：
 
     ```sh
@@ -111,15 +111,15 @@ msserviceprofiler split
     ```
 
     执行完毕在结果路径下生成输出文件`decode.csv`。
-- **使用场景 2，指定`rid`拆解**
-  - 拆解prefill数据:
+- **使用场景2，指定`rid`拆解**
+  - 拆解prefill数据：
 
     ```sh
     msserviceprofiler split --input-path /path/to/input --output-path /path/to/output/ --prefill-rid efcas2d
     ```
 
     执行完毕在结果路径下生成输出文件`prefill.csv`。
-  - 拆解decode数据:
+  - 拆解decode数据：
 
     ```sh
     msserviceprofiler split --input-path /path/to/input --output-path /path/to/output/ --decode-rid efcas2d
@@ -127,7 +127,7 @@ msserviceprofiler split
 
     执行完毕在结果路径下生成输出文件`decode.csv`。
 
-### **输出说明**
+### 输出说明
 
 - `prefill.csv`
 
@@ -146,8 +146,8 @@ msserviceprofiler split
   | rid  | 请求ID  |
 
 - `decode.csv`
-与 `prefill.csv` 格式相同， `decode.csv` 不含 `rid` 列。
-- 采集domain域与解析结果对照表
+  与`prefill.csv`格式相同，`decode.csv`不含`rid`列。
+- 采集domain与解析结果对照表
 
   | 解析结果                 | 采集domain域                                 |
   | -------------------- | ----------------------------------------------- |

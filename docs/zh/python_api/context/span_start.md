@@ -4,7 +4,7 @@
 
 > [!NOTE]
 >
->昇腾产品的具体型号，请参见《[昇腾产品形态说明](https://www.hiascend.com/document/detail/zh/Glossary/productform/hardwaredesc_0001.html)》
+>昇腾产品的具体型号，请参见《[昇腾产品形态说明](https://www.hiascend.com/document/detail/zh/Glossary/productform/hardwaredesc_0001.html)》。
 
 <!-- npu="950" id1 -->
 - Ascend 950PR&950DT系列产品：支持
@@ -32,7 +32,7 @@
 
 ## 函数功能<a name="section463019538153"></a>
 
-记录一个过程的开始节点。
+记录一个区间的开始节点。
 
 ## 函数原型<a name="section759854510169"></a>
 

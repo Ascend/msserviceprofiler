@@ -1,4 +1,4 @@
-# vLLM Hook Tracing 使用指南
+# vLLM Hook Tracing使用指南
 
 ## 简介
 
@@ -15,7 +15,7 @@ vLLM Hook Tracing 通过 msServiceProfiler 现有 Hook/YAML 机制，为请求�
 
 > [!NOTE]
 >
->昇腾产品的具体型号，请参见《[昇腾产品形态说明](https://www.hiascend.com/document/detail/zh/Glossary/productform/hardwaredesc_0001.html)》
+>昇腾产品的具体型号，请参见《[昇腾产品形态说明](https://www.hiascend.com/document/detail/zh/Glossary/productform/hardwaredesc_0001.html)》。
 
 <!-- npu="950" id1 -->
 - Ascend 950PR&950DT系列产品：支持
@@ -272,7 +272,7 @@ Tracing 复用 profiling 的同一份符号 YAML，不存在第二份 Tracing YA
 
 ##### Jaeger-only
 
-仅验证 Jaeger 时，不需要运行 `python3 -m ms_service_profiler.trace`。在 vLLM 进程环境中开启 Hook tracing，并为 vLLM 配置原生 OTLP endpoint：
+仅验证 Jaeger 时，不需要运行 `python3 -m ms_service_profiler.trace`。在 vLLM 进程环境中开启 Hook Tracing，并为 vLLM 配置原生 OTLP endpoint：
 
 ```bash
 export MS_TRACE_ENABLE=1
@@ -441,7 +441,7 @@ Tracing 不依赖 Metrics 才能开始分析。根据已有信息选择入口：
 | execute model 升高，model runner 稳定 | model Span 的外围时间增加 | Executor 外围 IPC、同步或数据准备变慢 |
 | output processor 升高，模型执行稳定 | output Span 变长 | 输出处理阶段变慢 |
 
-Tracing 独立分析可以定位目标请求的关键路径和异常阶段，但结论范围仅覆盖已分析的请求或观测组。Metrics 独立分析可以确认异常趋势、容量和影响范围，但不描述单请求调用链。两类数据联合使用时，要求 SLO 现象、Metrics 定界和 Trace 定位相互对应。完整流程参见[《vLLM-Ascend 可观测性性能诊断指南》](../best_practices/vllm_ascend_observability_analysis_guide.md)。
+Tracing 独立分析可以定位目标请求的关键路径和异常阶段，但结论范围仅覆盖已分析的请求或观测组。Metrics 独立分析可以确认异常趋势、容量和影响范围，但不描述单请求调用链。两类数据联合使用时，要求 SLO 现象、Metrics 定界和 Trace 定位相互对应。完整流程参见《[vLLM-Ascend 可观测性性能诊断指南](../best_practices/vllm_ascend_observability_analysis_guide.md)》。
 
 #### 6. 请求关联方式与数量边界
 
@@ -506,8 +506,8 @@ PY
 
 | 场景 | 行为 |
 |---|---|
-| vLLM 未配置 `--otlp-traces-endpoint` | 无可复用全局 Provider，Hook tracing no-op，并提示开启 vLLM 原生 Tracing |
-| OpenTelemetry 依赖缺失 | Hook tracing no-op，推理继续 |
+| vLLM 未配置 `--otlp-traces-endpoint` | 无可复用全局 Provider，Hook Tracing no-op，并提示开启 vLLM 原生 Tracing |
+| OpenTelemetry 依赖缺失 | Hook Tracing no-op，推理继续 |
 | Jaeger 不可用 | vLLM exporter 按自身策略处理，推理和 Hook 调用继续 |
 | Perfetto Forwarder 未启动 | 不注册 Perfetto Processor，Jaeger 不受影响 |
 | 部分 YAML 符号不存在 | 跳过该 Hook，其他 Hook 继续 |

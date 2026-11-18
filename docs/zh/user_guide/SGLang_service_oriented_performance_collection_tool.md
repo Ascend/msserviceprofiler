@@ -2,15 +2,15 @@
 
 ## 简介
 
-SGLang 服务化性能采集工具（SGLang Service Profiler）是用于监测和采集 SGLang 推理服务框架内部执行流程性能数据的工具。该工具通过采集关键流程的起止时间、识别关键函数、或记录关键事件并捕获多种类型的信息，帮助用户快速定位性能瓶颈。
+SGLang 服务化性能采集工具（SGLang Service Profiler）是用于监测和采集 SGLang 推理服务框架内部执行流程性能数据的工具。该工具通过采集关键流程的起止时间、识别关键函数、记录关键事件并捕获多种类型的信息，帮助用户快速定位性能瓶颈。
 
-SGLang Service Profiler 适用于在NPU部署SGLang推理服务过程中进行性能监测和优化分析，覆盖从准备、采集、解析到结果展示的完整流程。
+SGLang Service Profiler 适用于在NPU上部署SGLang推理服务过程中进行性能监测和优化分析，覆盖从准备、采集、解析到结果展示的完整流程。
 
 ## 产品支持情况
 
 > [!NOTE]
 >
->昇腾产品的具体型号，请参见《[昇腾产品形态说明](https://www.hiascend.com/document/detail/zh/Glossary/productform/hardwaredesc_0001.html)》
+>昇腾产品的具体型号，请参见《[昇腾产品形态说明](https://www.hiascend.com/document/detail/zh/Glossary/productform/hardwaredesc_0001.html)》。
 
 <!-- npu="950" id1 -->
 - Ascend 950PR&950DT系列产品：不支持
@@ -31,7 +31,7 @@ SGLang Service Profiler 适用于在NPU部署SGLang推理服务过程中进行�
 - Atlas训练系列产品：不支持
 <!-- end id6 -->
 
-工具支持型号与SGLang框架服务化推理部署支持的NPU型号保持一致，具体可参考 [SGLang installation with NPUs support](https://docs.sglang.io/docs/hardware-platforms/ascend-npus/ascend_npu)。
+工具支持的型号与SGLang框架服务化推理部署支持的NPU型号保持一致，具体可参考 [SGLang installation with NPUs support](https://docs.sglang.io/docs/hardware-platforms/ascend-npus/ascend_npu)。
 
 ## 使用前准备
 
@@ -110,7 +110,7 @@ python -m sglang.launch_server --model-path=/Qwen2.5-0.5B-Instruct --device npu
 **注意：
 本工具不支持 host_system_usage_freq、npu_memory_usage_freq 利用率相关参数配置，以及 acl_task_time=2、api_filter、kernel_filter mspti采集相关配置参数。**
 
-`service_profiling_symbols.yaml` 为需要导入的埋点配置文件。你也可以选择不设置环境变量 `PROFILING_SYMBOLS_PATH` ，此时将使用默认的配置文件。可参考[点位配置使用指南](#点位配置使用指南)一节进行自定义。
+`service_profiling_symbols.yaml` 为需要导入的埋点配置文件。你也可以选择不设置环境变量 `PROFILING_SYMBOLS_PATH`，此时将使用默认的配置文件。可参考[点位配置使用指南](#点位配置使用指南)一节进行自定义。
 
 **2. 开启采集**
 

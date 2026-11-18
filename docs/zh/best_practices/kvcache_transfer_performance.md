@@ -2,7 +2,7 @@
 
 ## 问题背景
 
-在PD分离（Prefill-Decode分离）部署场景下，Prefill节点完成输入序列的KV Cache计算后，需要将KV Cache传输到Decode节点进行后续的逐Token生成。KV Cache的跨节点传输是PD分离架构的关键路径，传输延迟直接影响Decode节点的首Token生成时间和整体请求延迟。在分布式KV Cache池化场景中，跨节点的KV Cache加载和写入同样涉及大量数据传输。昇腾通过HIXL单边通信库和MemFabric跨节点内存统一编址技术优化KV Cache传输路径，但在实际部署中，网络带宽不足、传输协议开销大、内存拷贝次数多、传输与计算未充分重叠等问题仍可能导致KV Cache传输成为性能瓶颈。
+在PD分离（Prefill-Decode分离）部署场景下，Prefill节点完成输入序列的KV Cache计算后，需要将KV Cache传输到Decode节点进行后续的逐Token生成。KV Cache的跨节点传输是PD分离架构的关键路径，传输延迟直接影响Decode节点的首Token延迟和整体请求延迟。在分布式KV Cache池化场景中，跨节点的KV Cache加载和写入同样涉及大量数据传输。昇腾通过HIXL单边通信库和MemFabric跨节点内存统一编址技术优化KV Cache传输路径，但在实际部署中，网络带宽不足、传输协议开销大、内存拷贝次数多、传输与计算未充分重叠等问题仍可能导致KV Cache传输成为性能瓶颈。
 
 ## 问题来源
 
@@ -10,7 +10,7 @@
 
 ## 问题现象
 
-用户通常先看到PD分离场景下Decode节点的请求等待时间（`queue_wait_time`）显著偏高，首Token时延（TTFT）中Prefill执行完成后到Decode开始生成之间的间隔时间过长。进一步观察PD分离相关指标时，可能出现：
+用户通常先看到PD分离场景下Decode节点的请求等待时间（`queue_wait_time`）显著偏高，首Token延迟（TTFT）中Prefill执行完成后到Decode开始生成之间的间隔时间过长。进一步观察PD分离相关指标时，可能出现：
 
 - 在`pd_split_communication.csv`中，`prefill_res_time`到`request_end_time`之间的时间差过大，说明KV Cache传输占用了大量时间。
 - 在`pd_split_kvcache.csv`中，`during_time(ms)`（KV Cache从P节点传输到D节点的耗时）偏高，且与请求的`seq_len`（序列长度）呈正相关。序列越长，KV Cache数据量越大，传输耗时越长。
@@ -19,7 +19,7 @@
 
 ## 定位过程
 
-### 步骤 1：用Profiler采集PD分离场景的通信和KVCache数据
+### 步骤1：用Profiler采集PD分离场景的通信和KVCache数据
 
 在PD分离部署的多机多卡场景中，需要在各节点统一配置`ms_service_profiler_config.json`，设置`domain`为`"Request; KVCache; Communication; Schedule; ModelExecute"`，确保采集Communication和KVCache domain数据。采集完成后执行解析：
 
@@ -29,7 +29,7 @@ python3 -m ms_service_profiler.parse --input-path ${PATH}/prof_dir/
 
 解析生成`pd_split_communication.csv`、`pd_split_kvcache.csv`、`request.csv`、`batch.csv`、`chrome_tracing.json`等文件。
 
-### 步骤 2：分析pd_split_kvcache.csv中的KV Cache传输耗时
+### 步骤2：分析pd_split_kvcache.csv中的KV Cache传输耗时
 
 在`pd_split_kvcache.csv`中查看每条请求的KV Cache传输数据。关键字段包括：
 
@@ -41,7 +41,7 @@ python3 -m ms_service_profiler.parse --input-path ${PATH}/prof_dir/
 
 按`rank`（设备ID）分组统计，判断是否存在特定设备或链路的传输慢问题。
 
-### 步骤 3：分析pd_split_communication.csv中的端到端通信时序
+### 步骤3：分析pd_split_communication.csv中的端到端通信时序
 
 在`pd_split_communication.csv`中查看关键时间节点：
 
@@ -59,17 +59,17 @@ python3 -m ms_service_profiler.parse --input-path ${PATH}/prof_dir/
 
 如果KV Cache传输+Decode执行耗时在总耗时中占比过高，且与`seq_len`强相关，可确认KV Cache传输是瓶颈。
 
-### 步骤 4：通过Timeline视图确认传输与计算的重叠情况
+### 步骤4：通过Timeline视图确认传输与计算的重叠情况
 
 打开`chrome_tracing.json`，在Timeline视图中定位PD分离场景的KV Cache传输过程。观察Prefill节点的ModelExecute色块结束时间与Decode节点开始执行时间之间的间隙。如果这个间隙与`pd_split_kvcache.csv`中的`during_time(ms)`吻合，可确认KV Cache传输是Decode等待的直接原因。
 
 在Timeline中观察是否存在KV Cache传输与计算重叠的情况。如果传输完全串行在Prefill之后、Decode之前，说明传输与计算未重叠，存在优化空间。
 
-### 步骤 5：在Grafana中观察PD分离场景指标
+### 步骤5：在Grafana中观察PD分离场景指标
 
 在PD分离部署场景中，分别观察Prefill节点和Decode节点的指标。如果Decode节点的`waiting_batch_size`持续偏高而`batch_size`偏低，且Prefill节点负载正常，说明Decode节点在等待KV Cache传输。观察`request_status.csv`中Decode节点的waiting/running状态变化，判断等待时间是否与KV Cache传输相关。
 
-### 步骤 6：用多维度解析工具获取请求维度统计
+### 步骤6：用多维度解析工具获取请求维度统计
 
 ```bash
 msserviceprofiler analyze --input-path=/path/to/input
@@ -79,7 +79,7 @@ msserviceprofiler analyze --input-path=/path/to/input
 
 ## 问题根因
 
-KVCache传输影响模型性能的常见根因包括：
+KV Cache传输影响模型性能的常见根因包括：
 
 1. **通信协议开销大**：使用传统双边通信协议（如HCCL集合通信）进行KV Cache传输时，发送方和接收方需要多次握手确认，协议开销在高频、小包、单向的PD分离通信模式下被放大。
 

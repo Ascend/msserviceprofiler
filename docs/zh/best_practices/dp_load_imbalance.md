@@ -23,11 +23,11 @@ DP并行场景下，一个服务实例内存在多个DP域。正常情况下，�
 
 ### 步骤 1：先确认是不是只有部分DP域在忙
 
-在Grafana的DP维度负载面板中，按`dp`或`engine`维度比较同一时间窗口内的请求数、prompt token吞吐、generation token吞吐、batch大小和waiting请求数。
+在Grafana的DP维度负载面板中，按`dp`或`engine`维度比较同一时间窗口内的请求数、prompt token吞吐、generation token吞吐、batch size和waiting请求数。
 
 如果只有短时间分叉，且时延没有明显变化，可以先认为是流量抖动；如果某些DP域在多个连续窗口里持续更高，就进入下一步。
 
-### 步骤 2：判断不均来自“请求更多”还是“请求更重”
+### 步骤 2：判断不均来自「请求更多」还是「请求更重」
 
 将Grafana中的请求数、prompt token吞吐和generation token吞吐放在一起看，判断热点DP域的负载来源：
 
@@ -74,7 +74,7 @@ DP域间承接的请求数量、token数量或执行能力不一致。常见根�
 
 ## 定位方法论总结
 
-针对DP负载不均场景，需要优先使用ms-service-metric按DP域比较请求数、prompt/generation token、waiting请求数、batch大小和KVCache水位，先判断是否存在持续热点DP域；确认在线指标存在持续分叉后，再使用msServiceProfiler按`dp_rank`聚合`request.csv`、`batch.csv`和`kvcache.csv`，区分请求数量偏斜、token重量偏斜、KVCache压力集中或设备/进程异常。
+针对DP负载不均场景，需要优先使用ms-service-metric按DP域比较请求数、prompt/generation token、waiting请求数、batch size和KVCache水位，先判断是否存在持续热点DP域；确认在线指标存在持续分叉后，再使用msServiceProfiler按`dp_rank`聚合`request.csv`、`batch.csv`和`kvcache.csv`，区分请求数量偏斜、token重量偏斜、KVCache压力集中或设备/进程异常。
 
 ## 对工具的改进建议
 

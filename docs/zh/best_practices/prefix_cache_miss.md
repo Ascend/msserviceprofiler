@@ -2,7 +2,7 @@
 
 ## 问题背景
 
-在LLM推理应用中，长system prompt场景和多轮对话场景非常普遍。长system prompt场景下，不同请求的system prompt相同，对应的KV Cache计算也相同；多轮对话场景中，每一轮对话依赖所有历史轮次的上下文，历史轮次的KV Cache在后续每一轮中都要被重新计算。Prefix Caching（前缀缓存）通过缓存和复用已计算的公共前缀KV Cache，可以显著降低首Token时延（TTFT）和Prefill阶段计算量。Ascend-vLLM默认开启Prefix Caching特性，但在实际使用中，由于缓存命中条件不满足、缓存容量不足被淘汰、跨请求公共前缀token数不足block size等原因，可能出现PrefixCache未命中，导致TTFT升高、Prefill耗时增加。
+在LLM推理应用中，长system prompt场景和多轮对话场景非常普遍。长system prompt场景下，不同请求的system prompt相同，对应的KV Cache计算也相同；多轮对话场景中，每一轮对话依赖所有历史轮次的上下文，历史轮次的KV Cache在后续每一轮中都要被重新计算。Prefix Caching（前缀缓存）通过缓存和复用已计算的公共前缀KV Cache，可以显著降低首Token延迟（TTFT）和Prefill阶段计算量。Ascend-vLLM默认开启Prefix Caching特性，但在实际使用中，由于缓存命中条件不满足、缓存容量不足被淘汰、跨请求公共前缀token数不足block size等原因，可能出现PrefixCache未命中，导致TTFT升高、Prefill耗时增加。
 
 ## 问题来源
 
@@ -21,11 +21,11 @@
 
 ## 定位过程
 
-### 步骤 1：先确认KVCache使用情况和TTFT变化
+### 步骤1：先确认KVCache使用情况和TTFT变化
 
 在Grafana中查看`free_kvcache_blocks`、`allocated_kvcache_blocks`、`kvcache_usage_rate`等KVCache相关指标。如果`kvcache_usage_rate`长期处于低位但`allocated_kvcache_blocks`频繁波动，说明缓存在被反复分配释放而非复用。同时观察TTFT指标（`first_token_latency`），如果TTFT波动大且与KVCache使用率变化相关，可初步怀疑PrefixCache命中率问题。
 
-### 步骤 2：用Profiler采集请求和KVCache数据
+### 步骤2：用Profiler采集请求和KVCache数据
 
 配置`ms_service_profiler_config.json`，设置`domain`为`"Request; KVCache; Schedule"`，开启数据采集。采集完成后执行解析：
 
@@ -35,23 +35,23 @@ python3 -m ms_service_profiler.parse --input-path ${PATH}/prof_dir/
 
 解析生成`request.csv`、`kvcache.csv`、`batch.csv`等文件。
 
-### 步骤 3：分析request.csv中的缓存命中率和TTFT
+### 步骤3：分析request.csv中的缓存命中率和TTFT
 
 在`request.csv`中查看每条请求的`cache_hit_rate`字段。统计整体缓存命中率分布（平均值、P50、P90）。如果命中率普遍偏低，说明PrefixCache未有效工作。
 
 按请求到达时间排序，观察`cache_hit_rate`的时间序列变化。如果命中率随时间波动大，可能是缓存容量不足导致频繁淘汰。对比相同`recv_token_size`（输入长度）的请求，如果输入长度相近但`first_token_latency(ms)`差异大，且低时延请求对应高`cache_hit_rate`，可确认PrefixCache命中率是TTFT的关键影响因素。
 
-### 步骤 4：分析kvcache.csv中的缓存分配模式
+### 步骤4：分析kvcache.csv中的缓存分配模式
 
 在`kvcache.csv`中按时间序列观察`blocks_allocated`和`blocks_freed`的变化。如果每次新请求到达时`blocks_allocated`接近请求的完整前缀token数（而非仅增量部分），说明缓存未命中，全量前缀被重新分配。
 
 统计`total_blocks`和`free_blocks`的变化趋势。如果`total_blocks`配置充足但`free_blocks`频繁大幅波动，说明缓存管理策略存在问题，可能是LRU淘汰策略过于激进或缓存容量配置不足。
 
-### 步骤 5：分析batch.csv中的Prefill调度情况
+### 步骤5：分析batch.csv中的Prefill调度情况
 
 筛选`batch_type`为`prefill`的行，查看`prefill_scheduled_tokens`和`during_time(ms)`。如果Prefill调度的token数接近请求的完整输入长度（而非增量），说明前缀未被缓存复用。对比相同输入长度的请求在不同时间的Prefill耗时，如果差异大且与缓存命中率相关，可确认根因。
 
-### 步骤 6：用多维度解析工具获取请求维度统计
+### 步骤6：用多维度解析工具获取请求维度统计
 
 ```bash
 msserviceprofiler analyze --input-path=/path/to/input

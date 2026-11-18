@@ -4,7 +4,7 @@
 
 大模型推理服务的一条请求可拆分为三个阶段：前处理（Tokenizer 编码）、模型推理（Prefill + Decode）、后处理（Detokenizer 解码）。其中前/后处理在 CPU 侧执行，涉及文本编码/解码、特殊 token 处理、chat template 渲染等操作。当输入 prompt 较长（>10000 tokens）或服务处于多轮对话场景时，前后处理的 CPU 耗时可能超过模型推理耗时，成为端到端延迟的主要瓶颈。
 
-用户反馈在A2上部署对话模型服务，TTFT（首令牌生成时间）约 450ms，其中模型 Prefill 仅占约 180ms，怀疑前处理耗时过长，需通过服务化 profiling 定位具体环节。
+用户反馈在A2上部署对话模型服务时，TTFT（Time to first token，首Token延迟）约 450ms，其中模型 Prefill 仅占约 180ms，怀疑前处理耗时过长，需通过服务化 profiling 定位具体环节。
 
 ## 问题现象
 
@@ -13,7 +13,7 @@
 - TTFT 约 450ms，远超预期的 ~200ms
 - NPU 在请求到达后有明显的空闲等待期（约 250ms），期间无任何计算活动
 - prompt 越长，TTFT 中的空闲占比越高：2000 prompt 时空闲约 60ms，8000 prompt 时空闲约 250ms
-- 并发请求下，前后处理排队等待现象明显——后续请求的前处理需等待前序请求完成后处理才能开始
+- 并发请求下，前后处理排队等待现象明显——后续请求的前处理需等待前序请求后处理完成后才能开始
 
 <div align="center"><img src="./figures/profiler_model_time_consume.png" /></div>
 
@@ -23,7 +23,7 @@
 
 ### 1. 全局性能数据采集 —— msServiceProfiler
 
-使用**msServiceProfiler**工具对服务端进行完整的性能数据采集，获取端到端各阶段的耗时分布。
+使用`msServiceProfiler`工具对服务端进行完整的性能数据采集，获取端到端各阶段的耗时分布。
 
 ### 2. 可视化分析
 
@@ -49,7 +49,7 @@ Prefill 完成后同样存在一段 CPU 后处理区间：
 
 #### 2. 分析前处理各环节耗时
 
-从导出 CSV 中筛选前处理相关函数，按耗时排序。
+从导出的 CSV 中筛选前处理相关函数，按耗时排序。
 
 <div align="center"><img src="./figures/profiler_model_time_usage.png" /></div>
 

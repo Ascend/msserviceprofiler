@@ -87,7 +87,7 @@ msserviceprofiler compare ./profiling_data/v1 ./profiling_data/v2
 
 **输出目录说明**
 
-span_comparation_result.csv文件展示所有数据pair的绝对误差和相对误差。包含多个span名称，展示不同span时间差异。
+span_comparation_result.csv文件展示所有数据pair的绝对误差和相对误差，包含多个span名称，展示不同span的时间差异。
 
 输出目录结构如下：
 

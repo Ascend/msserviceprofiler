@@ -1,6 +1,6 @@
-# 服务化性能调优工具快速入门<a name="ZH-CN_TOPIC_0000002475358702"></a>
+# 服务化调优工具快速入门<a name="ZH-CN_TOPIC_0000002475358702"></a>
 
-服务化框架的性能调优往往如同置身 “黑盒”，问题根源难以精准定位 —— 比如请求量攀升后响应速度显著下降、硬件设备更换后性能表现迥异等场景，都难以快速排查。
+服务化框架的性能调优往往如同置身“黑盒”，问题根源难以精准定位——比如请求量攀升后响应速度显著下降、硬件设备更换后性能表现迥异等场景，都难以快速排查。
 
 msServiceProfiler（服务化调优工具）提供全链路性能剖析，清晰展示框架调度、模型推理等环节的表现，帮助用户快速找到性能瓶颈（帮助判断是框架问题还是模型问题），从而有效提升服务性能。
 
@@ -10,11 +10,11 @@ msServiceProfiler（服务化调优工具）提供全链路性能剖析，清晰
 
 ## 前提条件<a name="section1605203618349"></a>
 
-- 在使用性能调优工具前请先完成msServiceProfiler工具安装，具体请参见《[msServiceProfiler工具安装指南](../install_guide/msserviceprofiler_install_guide.md)》。
+- 在使用服务化调优工具前请先完成msServiceProfiler工具安装，具体请参见《[msServiceProfiler工具安装指南](../install_guide/msserviceprofiler_install_guide.md)》。
 - 已完成对应服务框架的安装，并通过可用性验证（服务能够正常启动，且可通过官方示例脚本或 API 成功发起一次推理请求）：
   - **MindIE Motor**：请参见《[MindIE 安装](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/maintenance/build_motor_image_from_vllm_ascend.md)》完成 MindIE 的安装和配置，并确认 MindIE Motor 服务可以正常启动且能完成一次示例推理请求。
-  - **vLLM-Ascend**：请参见《[vLLM 服务化性能采集工具使用指南](../user_guide/vLLM_service_oriented_performance_collection_tool.md)》以及 vLLM-Ascend 官方安装文档，完成环境准备并验证 vLLM 服务可正常对外提供推理接口。
-  - **SGLang**：请参见《[SGLang 服务化性能采集工具使用指南](../user_guide/SGLang_service_oriented_performance_collection_tool.md)》以及 SGLang 官方安装文档，完成环境准备并验证 SGLang 服务可正常对外提供推理接口。
+  - **vLLM-Ascend**：请参见《[vLLM 服务化性能采集工具使用指南](../user_guide/vLLM_service_oriented_performance_collection_tool.md)》以及 vLLM-Ascend官方安装文档，完成环境准备并验证 vLLM 服务可正常对外提供推理接口。
+  - **SGLang**：请参见《[SGLang 服务化性能采集工具使用指南](../user_guide/SGLang_service_oriented_performance_collection_tool.md)》以及 SGLang官方安装文档，完成环境准备并验证 SGLang 服务可正常对外提供推理接口。
 
 ## 操作步骤<a name="section166491954201410"></a>
 
@@ -34,7 +34,7 @@ msServiceProfiler 的采集能力需要在部署服务之前，通过设置环�
   export SERVICE_PROF_CONFIG_PATH="./ms_service_profiler_config.json"
   ```
 
-`SERVICE_PROF_CONFIG_PATH` 的值需要指定到 json 文件名，该 json 文件即为控制性能数据采集的配置文件，比如采集性能元数据存放位置、算子采集开关等，具体字段介绍参考[3. 数据采集](#li10670349115211)。若路径下无配置文件，工具将自动生成默认配置（采集开关默认为关闭状态）。
+`SERVICE_PROF_CONFIG_PATH` 的值需要指定到 JSON 文件名，该 JSON 文件即为控制性能数据采集的配置文件，比如采集性能元数据存放位置、算子采集开关等，具体字段介绍参考[3. 数据采集](#li10670349115211)。若路径下无配置文件，工具将自动生成默认配置（采集开关默认为关闭状态）。
 
 >[!NOTE]
 >
@@ -74,7 +74,7 @@ vllm serve Qwen/Qwen2.5-0.5B-Instruct &
 
 #### 2.3 SGLang 
 
-### 1. 准备采集
+##### 2.3.1 准备采集
 
 a. 在启动服务前，需要在SGLang框架的**三个入口文件**中导入采集模块。
 
@@ -118,7 +118,7 @@ except ImportError:
     pass
 ```
 
-### 2. 环境变量设置及启动服务
+##### 2.3.2 环境变量设置及启动服务
 
 - `SERVICE_PROF_CONFIG_PATH`：指定性能分析配置文件路径
 - `PROFILING_SYMBOLS_PATH`：指定符号配置文件路径（可选，如不设置默认读取本项目路径下ms_service_profiler/patcher/sglang/config/service_profiling_symbols.yaml文件）
@@ -144,7 +144,7 @@ python3 -m sglang.launch_server --model-path=/Qwen2.5-0.5B-Instruct --device npu
 }
 ```
 
-**表 1**  参数说明
+**表 1** 参数说明
 
 | 参数          | 说明                                                         | 是否必选 |
 | ------------- | ------------------------------------------------------------ | -------- |

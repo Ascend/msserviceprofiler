@@ -4,7 +4,7 @@
 
 > [!NOTE]
 >
->昇腾产品的具体型号，请参见《[昇腾产品形态说明](https://www.hiascend.com/document/detail/zh/Glossary/productform/hardwaredesc_0001.html)》
+>昇腾产品的具体型号，请参见《[昇腾产品形态说明](https://www.hiascend.com/document/detail/zh/Glossary/productform/hardwaredesc_0001.html)》。
 
 <!-- npu="950" id1 -->
 - Ascend 950PR&950DT系列产品：不支持
@@ -32,7 +32,7 @@
 
 ## 功能说明<a name="section12591713163317"></a>
 
-创建并激活一个跨度。
+创建并激活一个Span。
 
 ## 函数原型<a name="section1121883194711"></a>
 
@@ -42,11 +42,11 @@ static Span StartSpanAsActive(const char* spanName, const char* moduleName = nul
 
 ## 参数说明<a name="section11506138144714"></a>
 
-**表 1**  参数说明
+**表 1** 参数说明
 
 |参数名|输入/输出|说明|
 |--|--|--|
-|spanName|输入|跨度名称。|
+|spanName|输入|Span名称。|
 |moduleName|输入|模块名称（可选）。|
 |autoEnd|输入|是否自动结束（默认true）。|
 

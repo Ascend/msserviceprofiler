@@ -4,7 +4,7 @@
 
 > [!NOTE]
 >
->昇腾产品的具体型号，请参见《[昇腾产品形态说明](https://www.hiascend.com/document/detail/zh/Glossary/productform/hardwaredesc_0001.html)》
+>昇腾产品的具体型号，请参见《[昇腾产品形态说明](https://www.hiascend.com/document/detail/zh/Glossary/productform/hardwaredesc_0001.html)》。
 
 <!-- npu="950" id1 -->
 - Ascend 950PR&950DT系列产品：不支持
@@ -43,13 +43,13 @@ Profiler &ArrayAttr(const char *attrName, const T &startIter, const T &endIter, 
 
 ## 参数说明<a name="section11506138144714"></a>
 
-**表 1**  参数说明
+**表 1** 参数说明
 
 |参数名|输入/输出|说明|
 |--|--|--|
 |attrName|输入|属性名。|
-|startIter|输入|任意的迭代器开始。|
-|endIter|输入|任意的迭代器结束。|
+|startIter|输入|任意迭代器的开始。|
+|endIter|输入|任意迭代器的结束。|
 |callback|输入|回调函数第一个入参是当前对象，可以调用它添加属性，第二个入参是当前迭代，可以用它获取需要记录的属性内容。|
 
 ## 返回值说明<a name="section8800235121218"></a>

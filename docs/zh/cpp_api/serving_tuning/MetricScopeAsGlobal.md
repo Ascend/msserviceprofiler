@@ -4,7 +4,7 @@
 
 > [!NOTE]
 >
->昇腾产品的具体型号，请参见《[昇腾产品形态说明](https://www.hiascend.com/document/detail/zh/Glossary/productform/hardwaredesc_0001.html)》
+>昇腾产品的具体型号，请参见《[昇腾产品形态说明](https://www.hiascend.com/document/detail/zh/Glossary/productform/hardwaredesc_0001.html)》。
 
 <!-- npu="950" id1 -->
 - Ascend 950PR&950DT系列产品：不支持
@@ -32,7 +32,7 @@
 
 ## 功能说明<a name="section20806203412478"></a>
 
-定义一个指标类的作用范围为全局，默认即全局，可不调用该函数。
+定义一个指标类的作用范围为全局，默认即全局，因此可不调用该函数。
 
 ## 函数原型<a name="section1121883194711"></a>
 

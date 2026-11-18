@@ -4,7 +4,7 @@
 
 > [!NOTE]
 >
->昇腾产品的具体型号，请参见《[昇腾产品形态说明](https://www.hiascend.com/document/detail/zh/Glossary/productform/hardwaredesc_0001.html)》
+>昇腾产品的具体型号，请参见《[昇腾产品形态说明](https://www.hiascend.com/document/detail/zh/Glossary/productform/hardwaredesc_0001.html)》。
 
 <!-- npu="950" id1 -->
 - Ascend 950PR&950DT系列产品：支持
@@ -45,7 +45,7 @@ def link(self, from_rid, to_rid):
 |参数名|输入/输出|说明|
 |--|--|--|
 |from_rid|输入|资源ID。|
-|to_rid|输入|资源ID|
+|to_rid|输入|资源ID。|
 
 ## 返回值说明<a name="section776014535188"></a>
 
