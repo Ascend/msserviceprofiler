@@ -16,29 +16,22 @@
 import os
 import sys
 import argparse
-from pathlib import Path
-import re
-import sqlite3
-from concurrent.futures import ProcessPoolExecutor
-from collections import deque
 
-import pandas as pd
 
 from ms_service_profiler.task.task import Task
-import ms_service_profiler.pipeline
-import ms_service_profiler.data_source
 from ms_service_profiler.exporters.factory import ExporterFactory
 from ms_service_profiler.plugins import custom_plugins
-from ms_service_profiler.utils.log import logger, set_log_level, Color
-from ms_service_profiler.utils.timer import Timer
-from ms_service_profiler.utils.error import ParseError, LoadDataError
+from ms_service_profiler.utils.log import logger, set_log_level
 from ms_service_profiler.exporters.utils import (
-    create_sqlite_db, check_input_dir_valid,
-    check_output_path_valid, is_root, get_path_total_size)
-from ms_service_profiler.utils.constants import DATA_SIZE_WARNING_THRESHOLD, KILOBYTE
+    create_sqlite_db,
+    check_input_dir_valid,
+    check_output_path_valid,
+    is_root,
+)
 from ms_service_profiler.task.task_register import get_dag
 from ms_service_profiler.task.task_manager import tasks_run
 from ms_service_profiler.task.task import register
+
 
 class CliLogo:
     """MindStudio CLI logo printer."""
@@ -58,10 +51,14 @@ class CliLogo:
     def _render_simple(self) -> str:
         """Return the plain ASCII logo."""
         return (
-            "=================================================================" "\n"
-            "                   >>>>>   MindStudio   <<<<<" "\n"
-            "    THE END-TO-END TOOLCHAIN TO UNLEASH HUAWEI ASCEND COMPUTE" "\n"
-            "=================================================================" "\n\n"
+            "================================================================="
+            "\n"
+            "                   >>>>>   MindStudio   <<<<<"
+            "\n"
+            "    THE END-TO-END TOOLCHAIN TO UNLEASH HUAWEI ASCEND COMPUTE"
+            "\n"
+            "================================================================="
+            "\n\n"
         )
 
     def _render_colored(self) -> str:
@@ -108,9 +105,9 @@ def parse_run(input_path, exporters, args=None):
     exporter_names = [exporter.name for exporter in exporters]
     for exporter in exporters:
         register(exporter.name)(exporter)
-    
+
     task_dag, data_source_tasks = get_dag(exporter_names)
-    
+
     tasks_run(data_source_tasks, task_dag, input_path, args)
 
     logger.info('Exporter done.')
@@ -118,33 +115,25 @@ def parse_run(input_path, exporters, args=None):
 
 def _setup_parser_arguments(parser):
     parser.add_argument(
-        '--input-path',
-        required=True,
-        type=check_input_dir_valid,
-        help='Path to the folder containing profile data.')
+        '--input-path', required=True, type=check_input_dir_valid, help='Path to the folder containing profile data.'
+    )
     parser.add_argument(
         '--output-path',
         type=check_output_path_valid,
         default=os.path.join(os.getcwd(), 'output'),
-        help='Output file path to save results.')
+        help='Output file path to save results.',
+    )
     parser.add_argument(
         '--log-level',
         type=str,
         default='info',
         choices=['debug', 'info', 'warning', 'error', 'fatal', 'critical'],
-        help='Log level to print')
-    parser.add_argument(
-        '--format',
-        nargs='+',
-        default=['db', 'csv', 'json'],
-        choices=['db', 'csv', 'json'],
-        help='Format to save')
-    parser.add_argument(
-        '--span',
-        nargs='*',
-        default=None,
-        help='Select target span info'
+        help='Log level to print',
     )
+    parser.add_argument(
+        '--format', nargs='+', default=['db', 'csv', 'json'], choices=['db', 'csv', 'json'], help='Format to save'
+    )
+    parser.add_argument('--span', nargs='*', default=None, help='Select target span info')
 
 
 def arg_parse(subparsers):
@@ -165,19 +154,6 @@ def main(args=None):
 
     # 初始化日志等级
     set_log_level(args.log_level)
-
-    # 检查输入数据大小
-    try:
-        input_size = get_path_total_size(args.input_path)
-        if input_size > DATA_SIZE_WARNING_THRESHOLD:
-            logger.info(
-                f"{Color.BRIGHT_YELLOW}Large file detected: {input_size / KILOBYTE / KILOBYTE:.1f}MB (>500MB). "
-                f"This may lead to longer processing time. "
-                f"To optimize performance, use: --format db csv. "
-                f"If --format is already configured, please ignore this message {Color.RESET}."
-            )
-    except OSError as e:
-        logger.error(f"Failed to calculate input data size: {e}")
 
     exporters = ExporterFactory.create_exporters(args)
     if 'db' in args.format and args.span is None:

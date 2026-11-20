@@ -25,7 +25,6 @@ from enum import Enum
 from typing import Optional
 from ms_service_profiler.utils.log import logger
 from ms_service_profiler.utils.constants import PATH_WHITE_LIST_REGEX
-from ms_service_profiler.utils.constants import CONFIG_FILE_MAX_SIZE
 
 MAX_SIZE_UNLIMITE = -1  # 不限制，必须显式表示不限制，读取必须传入
 MAX_SIZE_LIMITE_CONFIG_FILE = 10 * 1024 * 1024  # 10M 普通配置文件，可以根据实际要求变更
@@ -248,15 +247,6 @@ def check_file_exists_and_type(file_stat, file):
         raise OpenException(f"Expecting a file, but it's a folder. {file}")
 
 
-def check_file_size(file_stat, file, max_size):
-    if max_size is None:
-        logger.warning("Reading files should have a size limit control. %s", file)
-        raise OpenException(f"Reading files must have a size limit control. {file}")
-    if max_size != MAX_SIZE_UNLIMITE and max_size < file_stat.file_size:
-        logger.warning("The file size has exceeded the specifications and cannot be read. %s", file)
-        raise OpenException(f"The file size has exceeded the specifications and cannot be read. {file}")
-
-
 def check_file_owner(file_stat, file):
     if not file_stat.is_owner:
         logger.warning(
@@ -267,10 +257,7 @@ def check_file_owner(file_stat, file):
         )
 
 
-def ms_open(
-    file, mode="r", max_size=CONFIG_FILE_MAX_SIZE, softlink=False, write_permission=PERMISSION_NORMAL, **kwargs
-):
-    del softlink, write_permission
+def ms_open(file, mode="r", **kwargs):
     file_stat = FileStat(file)
 
     check_file_exists_and_type(file_stat, file)
@@ -278,7 +265,6 @@ def ms_open(
     if "r" in mode and not any(flag in mode for flag in ("w", "a", "x", "+")):
         if not file_stat.is_exists:
             raise OpenException(f"No such file or directory. {file}")
-        check_file_size(file_stat, file, max_size)
     elif any(flag in mode for flag in ("w", "a", "x", "+")) and file_stat.is_exists:
         check_file_owner(file_stat, file)
 

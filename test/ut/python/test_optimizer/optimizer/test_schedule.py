@@ -22,16 +22,24 @@ import numpy as np
 import pytest
 
 from ms_serviceparam_optimizer.config.config import (
-    CommunicationConfig, map_param_with_value,
-    get_settings, default_support_field,
-    OptimizerConfigField, PerformanceIndex, ErrorSeverity, ErrorType
+    CommunicationConfig,
+    map_param_with_value,
+    get_settings,
+    default_support_field,
+    OptimizerConfigField,
+    PerformanceIndex,
+    ErrorSeverity,
+    ErrorType,
 )
 from ms_serviceparam_optimizer.config.constant import Stage
 from ms_serviceparam_optimizer.optimizer.communication import CommunicationForFile, CustomCommand
 from ms_serviceparam_optimizer.optimizer.scheduler import ScheduleWithMultiMachine, Scheduler
-from ms_serviceparam_optimizer.config.base_config import FOLDER_LIMIT_SIZE
 from ms_serviceparam_optimizer.optimizer.health_check import (
-    FatalError, ErrorContext, RetryableError, ServiceHookPoint, BenchmarkHookPoint
+    FatalError,
+    ErrorContext,
+    RetryableError,
+    ServiceHookPoint,
+    BenchmarkHookPoint,
 )
 
 
@@ -44,18 +52,23 @@ class TestScheduleWithMultiMachine:
         mock_custom_command = MagicMock(spec=CustomCommand)
 
         # 模拟CommunicationForFile和CustomCommand的构造函数
-        with patch('ms_serviceparam_optimizer.optimizer.scheduler.CommunicationForFile',
-                   return_value=mock_communication) as mock_communication_class, \
-                patch('ms_serviceparam_optimizer.optimizer.scheduler.CustomCommand',
-                      return_value=mock_custom_command) as mock_custom_command_class:
+        with (
+            patch(
+                'ms_serviceparam_optimizer.optimizer.scheduler.CommunicationForFile', return_value=mock_communication
+            ) as mock_communication_class,
+            patch(
+                'ms_serviceparam_optimizer.optimizer.scheduler.CustomCommand', return_value=mock_custom_command
+            ) as mock_custom_command_class,
+        ):
             mock_communication_config.cmd_file = None
             mock_communication_config.res_file = None
             # 创建ScheduleWithMultiMachine实例
             scheduler = ScheduleWithMultiMachine(mock_communication_config, MagicMock(), MagicMock(), MagicMock())
 
             # 验证CommunicationForFile和CustomCommand是否被正确初始化
-            mock_communication_class.assert_called_once_with(mock_communication_config.cmd_file,
-                                                             mock_communication_config.res_file)
+            mock_communication_class.assert_called_once_with(
+                mock_communication_config.cmd_file, mock_communication_config.res_file
+            )
             mock_custom_command_class.assert_called_once()
 
             # 验证communication属性是否被正确设置
@@ -68,7 +81,7 @@ class TestScheduleWithMultiMachine:
             # 验证send_command和clear_command方法是否被正确调用
             mock_communication.send_command.assert_called_once_with(mock_custom_command.init)
             mock_communication.clear_command.assert_called_once_with(mock_custom_command.init)
-    
+
     @classmethod
     def test_run_simulate(cls, schedule_with_multi_machine):
         # 模拟方法
@@ -96,10 +109,18 @@ class TestScheduleWithMultiMachine:
         mock_custom_command = MagicMock(spec=CustomCommand)
         mock_communication_config.cmd_file = None
         mock_communication_config.res_file = None
-        with patch('ms_serviceparam_optimizer.optimizer.scheduler.CommunicationForFile',
-                   return_value=mock_communication, autospec=True) as mock_communication_class, \
-                patch('ms_serviceparam_optimizer.optimizer.scheduler.CustomCommand',
-                      return_value=mock_custom_command, autospec=True) as mock_custom_command_class:
+        with (
+            patch(
+                'ms_serviceparam_optimizer.optimizer.scheduler.CommunicationForFile',
+                return_value=mock_communication,
+                autospec=True,
+            ),
+            patch(
+                'ms_serviceparam_optimizer.optimizer.scheduler.CustomCommand',
+                return_value=mock_custom_command,
+                autospec=True,
+            ),
+        ):
             schedule = ScheduleWithMultiMachine(get_settings().communication, MagicMock(), MagicMock(), MagicMock())
             schedule.cmd = MagicMock()
             schedule.communication = MagicMock()
@@ -119,9 +140,11 @@ class TestScheduleWithMultiMachine:
         schedule_with_multi_machine.simulator.bak_path == bak_path
         schedule_with_multi_machine.benchmark.bak_path == bak_path
         schedule_with_multi_machine.communication.send_command.assert_called_once_with(
-            f'{schedule_with_multi_machine.cmd.backup} params:{bak_path}')
+            f'{schedule_with_multi_machine.cmd.backup} params:{bak_path}'
+        )
         schedule_with_multi_machine.communication.clear_command.assert_called_once_with(
-            f'{schedule_with_multi_machine.cmd.backup} params:{bak_path}')
+            f'{schedule_with_multi_machine.cmd.backup} params:{bak_path}'
+        )
 
     @patch('ms_serviceparam_optimizer.optimizer.scheduler.time.sleep', return_value=None)
     def test_monitoring_status_success(self, mock_sleep, schedule_with_multi_machine):
@@ -170,10 +193,12 @@ class TestScheduleWithMultiMachine:
         # 验证communication.send_command和communication.clear_command被正确调用
         assert "params:True" in schedule_with_multi_machine.cmd.history[-1]
         schedule_with_multi_machine.communication.send_command.assert_called_once_with(
-            f"{schedule_with_multi_machine.cmd.history[-1]}")
+            f"{schedule_with_multi_machine.cmd.history[-1]}"
+        )
         schedule_with_multi_machine.communication.clear_command.assert_called_once_with(
-            f"{schedule_with_multi_machine.cmd.history[-1]}")
-        
+            f"{schedule_with_multi_machine.cmd.history[-1]}"
+        )
+
 
 class TestScheduler(unittest.TestCase):
     def setUp(self):
@@ -184,18 +209,6 @@ class TestScheduler(unittest.TestCase):
         self.scheduler = Scheduler(self.simulator, self.benchmark, self.data_storage, self.bak_path)
         # 初始化 simulate_run_info 避免每个测试方法重复设置
         self.scheduler.simulate_run_info = ()
-
-    @patch('ms_serviceparam_optimizer.optimizer.utils.get_folder_size')
-    def test_set_back_up_path_folder_size_exceeds_limit(self, mock_get_folder_size):
-        mock_get_folder_size.return_value = FOLDER_LIMIT_SIZE + 1
-        self.scheduler.set_back_up_path()
-
-    @patch('ms_serviceparam_optimizer.optimizer.utils.get_folder_size')
-    @patch('ms_serviceparam_optimizer.common.get_train_sub_path')
-    def test_set_back_up_path_folder_size_within_limit(self, mock_get_train_sub_path, mock_get_folder_size):
-        mock_get_folder_size.return_value = FOLDER_LIMIT_SIZE - 1
-        mock_get_train_sub_path.return_value = 'sub_path'
-        self.scheduler.set_back_up_path()
 
     @patch('time.sleep', return_value=None)
     def test_wait_simulate_success(self, mock_sleep):
@@ -245,9 +258,7 @@ class TestScheduler(unittest.TestCase):
     def test_handle_fatal_error(self):
         """测试处理致命错误（抛出 FatalError）"""
         error_context = ErrorContext(
-            error_type=ErrorType.OUT_OF_MEMORY,
-            severity=ErrorSeverity.FATAL,
-            message="OOM detected"
+            error_type=ErrorType.OUT_OF_MEMORY, severity=ErrorSeverity.FATAL, message="OOM detected"
         )
         with self.assertRaises(FatalError) as cm:
             self.scheduler._handle_error(error_context)
@@ -256,9 +267,7 @@ class TestScheduler(unittest.TestCase):
     def test_handle_retryable_error(self):
         """测试处理可重试错误（抛出 RetryableError）"""
         error_context = ErrorContext(
-            error_type=ErrorType.NETWORK_ERROR,
-            severity=ErrorSeverity.RETRYABLE,
-            message="Network error"
+            error_type=ErrorType.NETWORK_ERROR, severity=ErrorSeverity.RETRYABLE, message="Network error"
         )
         with self.assertRaises(RetryableError) as cm:
             self.scheduler._handle_error(error_context)
@@ -278,11 +287,7 @@ class TestScheduler(unittest.TestCase):
     @patch('ms_serviceparam_optimizer.optimizer.scheduler.Scheduler.wait_simulate')
     def test_run_target_server_retryable_with_retry(self, mock_wait, _, mock_sleep):
         """测试可重试错误会重试"""
-        mock_wait.side_effect = [
-            RetryableError("Network error"),
-            RetryableError("IO error"),
-            None
-        ]
+        mock_wait.side_effect = [RetryableError("Network error"), RetryableError("IO error"), None]
         self.simulator.health.return_value = MagicMock(stage=Stage.running)
         self.scheduler.wait_time = 1
 
@@ -291,54 +296,49 @@ class TestScheduler(unittest.TestCase):
 
 
 class TestSchedulerRunMethods(unittest.TestCase):
-    
     def setUp(self):
         # 创建测试对象
         self.simulator = MagicMock()
         self.benchmark = MagicMock()
         self.data_storage = MagicMock()
-        self.scheduler = Scheduler(
-            simulator=self.simulator,
-            benchmark=self.benchmark,
-            data_storage=self.data_storage
-        )
-        
+        self.scheduler = Scheduler(simulator=self.simulator, benchmark=self.benchmark, data_storage=self.data_storage)
+
         # 准备测试数据
         self.params = np.array([1.0, 2.0, 3.0])
         self.field1 = OptimizerConfigField(name="param1", value=1.0, min=0.0, max=5.0)
         self.field2 = OptimizerConfigField(name="param2", value=2.0, min=0.0, max=5.0)
         self.field3 = OptimizerConfigField(name="param3", value=3.0, min=0.0, max=5.0)
         self.params_field = (self.field1, self.field2, self.field3)
-        
+
         # 模拟性能指标
         self.performance_index = PerformanceIndex()
         self.performance_index.throughput = 100.0
         self.benchmark.get_performance_index.return_value = self.performance_index
-    
+
     @patch('time.time')
     def test_run_with_fixed_request_rate(self, mock_time):
         """测试run_with_request_rate方法在固定request rate时的行为"""
         # 设置模拟返回值
         mock_time.return_value = 1000.0
-        
+
         # 添加固定REQUESTRATE字段 (min == max)
         req_rate_field = OptimizerConfigField(name="REQUESTRATE", value=50.0, min=50.0, max=50.0)
         params_field_with_fixed_req_rate = self.params_field + (req_rate_field,)
-        
+
         # 调用被测方法
         self.scheduler.run_with_request_rate(self.params, params_field_with_fixed_req_rate)
-        
+
         # 验证request rate没有被修改
         self.assertEqual(req_rate_field.value, 50.0)
         self.assertEqual(req_rate_field.min, 50.0)
         self.assertEqual(req_rate_field.max, 50.0)
-    
+
     @patch('time.time')
     @patch('ms_serviceparam_optimizer.optimizer.scheduler.logger')
     def test_run_logging(self, mock_logger, mock_time):
         """测试run方法的日志记录"""
         # 设置模拟返回值
         mock_time.return_value = 1000.0
-        
+
         # 调用被测方法
         self.scheduler.run(self.params, self.params_field)

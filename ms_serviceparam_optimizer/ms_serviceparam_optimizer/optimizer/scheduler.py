@@ -32,12 +32,11 @@ from ..config.config import (
     ErrorSeverity,
     DecodeContext,
 )
-from ..config.base_config import FOLDER_LIMIT_SIZE, REQUESTRATES
+from ..config.base_config import REQUESTRATES
 from ..config.constant import Stage
 from ..optimizer.communication import CommunicationForFile, CustomCommand
 from ..optimizer.plugins.simulate import Simulator, DisaggregationSimulator
 from ..optimizer.store import DataStorage
-from ..optimizer.utils import get_folder_size
 from ..optimizer.health_check import (
     ErrorContext,
     BenchmarkHealthCheckHook,
@@ -111,13 +110,9 @@ class Scheduler:
 
     def set_back_up_path(self):
         if self.bak_path:
-            if get_folder_size(self.bak_path) > FOLDER_LIMIT_SIZE:
-                self.simulator.bak_path = None
-                self.benchmark.bak_path = None
-            else:
-                self.current_back_path = get_train_sub_path(self.bak_path)
-                self.simulator.bak_path = self.current_back_path
-                self.benchmark.bak_path = self.current_back_path
+            self.current_back_path = get_train_sub_path(self.bak_path)
+            self.simulator.bak_path = self.current_back_path
+            self.benchmark.bak_path = self.current_back_path
 
     def wait_simulate(self):
         logger.debug("wait run simulator")
@@ -396,16 +391,12 @@ class ScheduleWithMultiMachine(Scheduler):
 
     def set_back_up_path(self):
         if self.bak_path:
-            if get_folder_size(self.bak_path) > FOLDER_LIMIT_SIZE:
-                self.simulator.bak_path = None
-                self.benchmark.bak_path = None
-            else:
-                _cur_bak_path = get_train_sub_path(self.bak_path)
-                self.simulator.bak_path = _cur_bak_path
-                self.benchmark.bak_path = _cur_bak_path
-                _cmd = f"{self.cmd.backup} params:{_cur_bak_path}"
-                self.communication.send_command(_cmd)
-                self.communication.clear_command(_cmd)
+            _cur_bak_path = get_train_sub_path(self.bak_path)
+            self.simulator.bak_path = _cur_bak_path
+            self.benchmark.bak_path = _cur_bak_path
+            _cmd = f"{self.cmd.backup} params:{_cur_bak_path}"
+            self.communication.send_command(_cmd)
+            self.communication.clear_command(_cmd)
 
     def monitoring_status(self):
         logger.debug("Start monitoring")

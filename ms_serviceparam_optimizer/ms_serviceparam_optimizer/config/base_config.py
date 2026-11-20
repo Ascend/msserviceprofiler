@@ -24,7 +24,9 @@ RUN_TIME = time.strftime("%Y%m%d%H%M%S", time.localtime())
 INSTALL_PATH = Path(ms_serviceparam_optimizer.__path__[0])
 RUN_PATH = Path(os.getcwd())
 MODEL_EVAL_STATE_CONFIG_PATH = "MODEL_EVAL_STATE_CONFIG_PATH"
-ms_serviceparam_optimizer_config_path = os.getenv(MODEL_EVAL_STATE_CONFIG_PATH) or os.getenv(MODEL_EVAL_STATE_CONFIG_PATH.lower())
+ms_serviceparam_optimizer_config_path = os.getenv(MODEL_EVAL_STATE_CONFIG_PATH) or os.getenv(
+    MODEL_EVAL_STATE_CONFIG_PATH.lower()
+)
 if not ms_serviceparam_optimizer_config_path:
     ms_serviceparam_optimizer_config_path = RUN_PATH.joinpath("config.toml")
 ms_serviceparam_optimizer_config_path = Path(ms_serviceparam_optimizer_config_path).absolute().resolve()
@@ -49,7 +51,6 @@ optimizer_flag = optimizer_env and (optimizer_env.lower() == "true" or optimizer
 
 
 MINDIE_BENCHMARK_PERF_COLUMNS = ["average", "max", "min", "p75", "p90", "slo_p90", "p99", "n"]
-FOLDER_LIMIT_SIZE = 1024 * 1024 * 1024  # 1GB
 
 
 class EnginePolicy(Enum):
@@ -79,7 +80,7 @@ class PDPolicy(Enum):
     competition = "competition"
     disaggregation = "disaggregation"
 
-    
+
 class ServiceType(Enum):
     master = "master"
     slave = "slave"

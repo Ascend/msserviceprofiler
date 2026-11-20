@@ -14,7 +14,6 @@
 # See the Mulan PSL v2 for more details.
 # -------------------------------------------------------------------------
 
-import re
 import os
 import stat
 
@@ -46,6 +45,7 @@ class IsDir(BasePathConstraint):
 
 class HasSoftLink(BasePathConstraint):
     """Check if path contains a soft link; if path does not exist, raise FileNotFoundError."""
+
     description = "a soft link"
 
     def is_satisfied_by(self, val):
@@ -111,51 +111,3 @@ class IsConsistentToCurrentUser(BasePathConstraint):
             raise FileNotFoundError(f"The path {val!r} does not exist or cannot be accessed.")
 
         return stat_result.st_uid == os.geteuid()
-
-
-class IsSizeReasonable(BasePathConstraint):
-    description = "reasonable on its size"
-    
-    def __init__(self, *, size_limit=None, require_confirm=True, description=None):
-        super().__init__(description=description)
-        self.size_limit = size_limit
-        self.require_confirm = require_confirm
-
-    def is_satisfied_by(self, val):
-        stat_result = self._get_path_stat(val)
-        if stat_result is None:
-            raise FileNotFoundError(f"The path {val!r} does not exist or cannot be accessed.")
-
-        if not stat.S_ISREG(stat_result.st_mode):
-            raise OSError(f"The path {val!r} is not a regular file.")
-
-        return self._check_size(val, stat_result.st_size)
-
-    def _check_size(self, path, file_size):
-        if self.size_limit is None:
-            from ..utils.constants import EXT_SIZE_MAPPING
-            
-            ext = os.path.splitext(path)[1]
-            self.size_limit = EXT_SIZE_MAPPING.get(ext, max(EXT_SIZE_MAPPING.values()))
-
-        is_reasonable = file_size < self.size_limit
-
-        if not is_reasonable and self.require_confirm:
-            return self._prompt_user_confirmation(path, file_size)
-
-        return is_reasonable
-
-    def _prompt_user_confirmation(self, path, file_size):
-        prompt = (
-            f"The file {path!r} is larger than expected ({file_size} Bytes). This could be a potential security threat."
-            " Attempting to read such a file could potentially impact system performance.\n"
-            "Please confirm your awareness of the risks associated with this action (y/n): "
-        )
-        confirm_pattern = re.compile(r'y(?:es)?', re.IGNORECASE)
-
-        try:
-            user_action = input(prompt)
-        except Exception:
-            return False
-
-        return bool(confirm_pattern.match(user_action))

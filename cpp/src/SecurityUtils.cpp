@@ -13,23 +13,28 @@
  * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
  * See the Mulan PSL v2 for more details.
  * -------------------------------------------------------------------------
-*/
+ */
 #include "msServiceProfiler/SecurityUtils.h"
-#include <iostream>
+
 #include <sys/stat.h>
-#include <cstring>
 #include <unistd.h>
-#include <climits>
+
 #include <algorithm>
-#include <regex>
+#include <climits>
 #include <cstdlib>
+#include <cstring>
+#include <iostream>
+#include <regex>
+
 #include "msServiceProfiler/SecurityUtilsLog.h"
 
-namespace SecurityUtils {
+namespace SecurityUtils
+{
 bool IsExist(const std::string &absPath)
 {
     struct stat fileStat;
-    if (stat(absPath.c_str(), &fileStat) != 0) {
+    if (stat(absPath.c_str(), &fileStat) != 0)
+    {
         LogWarn("File not exist: %s", absPath.c_str());  // LCOV_EXCL_LINE
         return false;
     }
@@ -39,7 +44,8 @@ bool IsExist(const std::string &absPath)
 bool IsReadable(const std::string &absPath)
 {
     struct stat fileStat;
-    if ((stat(absPath.c_str(), &fileStat) != 0) || (fileStat.st_mode & S_IRUSR) == 0) {
+    if ((stat(absPath.c_str(), &fileStat) != 0) || (fileStat.st_mode & S_IRUSR) == 0)
+    {
         LogWarn("File not readable: %s", absPath.c_str());  // LCOV_EXCL_LINE
         return false;
     }
@@ -49,7 +55,8 @@ bool IsReadable(const std::string &absPath)
 bool IsWritable(const std::string &absPath)
 {
     struct stat fileStat;
-    if ((stat(absPath.c_str(), &fileStat) != 0) || (fileStat.st_mode & S_IWUSR) == 0) {
+    if ((stat(absPath.c_str(), &fileStat) != 0) || (fileStat.st_mode & S_IWUSR) == 0)
+    {
         LogWarn("File not writable: %s", absPath.c_str());  // LCOV_EXCL_LINE
         return false;
     }
@@ -59,7 +66,8 @@ bool IsWritable(const std::string &absPath)
 bool IsExecutable(const std::string &absPath)
 {
     struct stat fileStat;
-    if ((stat(absPath.c_str(), &fileStat) != 0) || (fileStat.st_mode & S_IXUSR) == 0) {
+    if ((stat(absPath.c_str(), &fileStat) != 0) || (fileStat.st_mode & S_IXUSR) == 0)
+    {
         LogWarn("File not executable: %s", absPath.c_str());  // LCOV_EXCL_LINE
         return false;
     }
@@ -69,7 +77,8 @@ bool IsExecutable(const std::string &absPath)
 bool IsOwner(const std::string &absPath)
 {
     struct stat fileStat;
-    if ((stat(absPath.c_str(), &fileStat) != 0) || (fileStat.st_uid != getuid())) {
+    if ((stat(absPath.c_str(), &fileStat) != 0) || (fileStat.st_uid != getuid()))
+    {
         LogWarn("File not owned by current user: %s", absPath.c_str());  // LCOV_EXCL_LINE
         return false;
     }
@@ -85,9 +94,12 @@ bool IsRootUser()
 bool IsSoftLink(const std::string &absPath)
 {
     struct stat fileStat;
-    if ((lstat(absPath.c_str(), &fileStat) != 0) || ((S_IFMT & fileStat.st_mode) != S_IFLNK)) {
+    if ((lstat(absPath.c_str(), &fileStat) != 0) || ((S_IFMT & fileStat.st_mode) != S_IFLNK))
+    {
         return false;
-    } else {
+    }
+    else
+    {
         LogWarn("File is symbol link: %s", absPath.c_str());  // LCOV_EXCL_LINE
         return true;
     }
@@ -96,7 +108,8 @@ bool IsSoftLink(const std::string &absPath)
 bool IsFile(const std::string &absPath)
 {
     struct stat fileStat;
-    if ((stat(absPath.c_str(), &fileStat) != 0) || !S_ISREG(fileStat.st_mode)) {
+    if ((stat(absPath.c_str(), &fileStat) != 0) || !S_ISREG(fileStat.st_mode))
+    {
         LogWarn("Path is not regular file: %s", absPath.c_str());  // LCOV_EXCL_LINE
         return false;
     }
@@ -106,7 +119,8 @@ bool IsFile(const std::string &absPath)
 bool IsDir(std::string const &absPath)
 {
     struct stat fileStat;
-    if (stat(absPath.c_str(), &fileStat) != 0 || (fileStat.st_mode & S_IFDIR) == 0) {
+    if (stat(absPath.c_str(), &fileStat) != 0 || (fileStat.st_mode & S_IFDIR) == 0)
+    {
         LogWarn("Path is not directory: %s", absPath.c_str());  // LCOV_EXCL_LINE
         return false;
     }
@@ -115,7 +129,8 @@ bool IsDir(std::string const &absPath)
 
 bool IsPathLenLegal(const std::string &absPath)
 {
-    if (absPath.empty() || (absPath.size() >= PATH_MAX)) {
+    if (absPath.empty() || (absPath.size() >= PATH_MAX))
+    {
         LogWarn("Path length is ilegal");  // LCOV_EXCL_LINE
         return false;
     }
@@ -124,37 +139,18 @@ bool IsPathLenLegal(const std::string &absPath)
 
 bool IsPathDepthLegal(const std::string &absPath)
 {
-    if (std::count(absPath.begin(), absPath.end(), PATH_SEPARATOR) > PATH_DEPTH_MAX) {
+    if (std::count(absPath.begin(), absPath.end(), PATH_SEPARATOR) > PATH_DEPTH_MAX)
+    {
         LogWarn("Path depth exceeds limit");  // LCOV_EXCL_LINE
         return false;
     }
     return true;
 }
 
-bool IsFileSizeLegal(const std::string &absPath, uint64_t maxSize)
-{
-    struct stat fileStat;
-    if (stat(absPath.c_str(), &fileStat) != 0 || !S_ISREG(fileStat.st_mode)) {
-        LogWarn("File does not exist or not a regular file, path: %s", absPath.c_str());
-        return false;
-    }
-
-    if (fileStat.st_size < 0) {
-        LogWarn("File size unexpectedly negative, path: %s", absPath.c_str());
-        return false;
-    }
-
-    if (static_cast<uint64_t>(fileStat.st_size) > maxSize) {
-        LogWarn("File too large: %lld > %llu, path: %s", fileStat.st_size, maxSize, absPath.c_str());  // LCOV_EXCL_LINE
-        return false;
-    }
-
-    return true;
-}
-
 bool IsPathCharactersValid(const std::string &absPath)
 {
-    if (!std::regex_match(absPath, std::regex(FILE_VALID_PATTERN))) {
+    if (!std::regex_match(absPath, std::regex(FILE_VALID_PATTERN)))
+    {
         LogWarn("File path contain invalid characters");  // LCOV_EXCL_LINE
         return false;
     }
@@ -164,41 +160,48 @@ bool IsPathCharactersValid(const std::string &absPath)
 static std::string GetRealPath(std::string const &path)
 {
     char absPath[PATH_MAX + 1] = {0};
-    
-    if (realpath(path.c_str(), absPath) == nullptr) {
+
+    if (realpath(path.c_str(), absPath) == nullptr)
+    {
         LogWarn("Cannot GetRealPath: %s", path.c_str());  // LCOV_EXCL_LINE
         return "";
     }
-    
+
     return std::string(absPath);
 }
 
 static std::string GetParentDir(const std::string &path)
 {
-    if (path.empty() || path == "/") {
+    if (path.empty() || path == "/")
+    {
         LogWarn("Cannot GetParentDir");  // LCOV_EXCL_LINE
     }
     size_t found = path.find_last_of('/');
-    if (found != std::string::npos) {
+    if (found != std::string::npos)
+    {
         return path.substr(0, found);
     }
     return ".";
 }
 
 static void Split(std::string const &str, std::back_insert_iterator<std::vector<std::string>> it,
-    std::string const &seps)
+                  std::string const &seps)
 {
-    if (!seps.empty() && !str.empty() && str.find_first_of(seps) == 0) {
+    if (!seps.empty() && !str.empty() && str.find_first_of(seps) == 0)
+    {
         *it = "";
         ++it;
     }
     std::string::size_type slow = str.find_first_not_of(seps);
-    while (slow != std::string::npos && slow < str.length()) {
+    while (slow != std::string::npos && slow < str.length())
+    {
         std::string::size_type fast = str.find_first_of(seps, slow);
-        if (fast == std::string::npos) {
+        if (fast == std::string::npos)
+        {
             fast = str.length();
         }
-        if (fast != slow) {
+        if (fast != slow)
+        {
             *it = str.substr(slow, fast - slow);
             ++it;
         }
@@ -210,25 +213,33 @@ bool CheckPathContainSoftLink(const std::string &path)
 {
     constexpr char const *pathSep = "/";
     std::string nonConstPath = path;
-    while (!nonConstPath.empty() && nonConstPath.back() == '/') {
+    while (!nonConstPath.empty() && nonConstPath.back() == '/')
+    {
         nonConstPath.pop_back();
     }
     std::vector<std::string> dirs;
     Split(nonConstPath, std::back_inserter(dirs), pathSep);
-    if (dirs.empty()) {
+    if (dirs.empty())
+    {
         return false;
     }
     std::string current;
-    for (auto it = dirs.cbegin(); it != dirs.cend(); ++it) {
-        if (it == dirs.cbegin()) {
+    for (auto it = dirs.cbegin(); it != dirs.cend(); ++it)
+    {
+        if (it == dirs.cbegin())
+        {
             current = *it;
-        } else {
+        }
+        else
+        {
             current.append(pathSep + *it);
         }
-        if (*it == "." || *it == ".." || *it == "") {
+        if (*it == "." || *it == ".." || *it == "")
+        {
             continue;
         }
-        if (SecurityUtils::IsSoftLink(current)) {
+        if (SecurityUtils::IsSoftLink(current))
+        {
             return true;
         }
     }
@@ -238,7 +249,8 @@ bool CheckPathContainSoftLink(const std::string &path)
 static mode_t GetFilePermissions(const std::string &path)
 {
     struct stat fileStat;
-    if (stat(path.c_str(), &fileStat) != 0) {
+    if (stat(path.c_str(), &fileStat) != 0)
+    {
         return 0;
     }
     mode_t permissions = fileStat.st_mode & (S_IRWXU | S_IRWXG | S_IRWXO);
@@ -247,56 +259,25 @@ static mode_t GetFilePermissions(const std::string &path)
 
 bool CheckFileBeforeWrite(const std::string &path)
 {
-    if (IsSoftLink(path)) {
+    if (IsSoftLink(path))
+    {
         return false;
     }
 
     const auto absPath = GetRealPath(path);
     if (!IsPathLenLegal(absPath) || !IsPathCharactersValid(absPath) || !IsFile(absPath) ||
-        !IsOwner(GetParentDir(absPath)) || !IsOwner(absPath) || !IsWritable(absPath)) {
-        LogWarn("CheckFileBeforeWrite faild, path: %s", path.c_str());  // LCOV_EXCL_LINE
+        !IsOwner(GetParentDir(absPath)) || !IsOwner(absPath) || !IsWritable(absPath))
+    {
+        LogWarn("CheckFileBeforeWrite failed, path: %s", path.c_str());  // LCOV_EXCL_LINE
         return false;
     }
 
     const mode_t defaultWriteFilePerm = 0640;
-    if (GetFilePermissions(absPath) > defaultWriteFilePerm) {
+    if (GetFilePermissions(absPath) > defaultWriteFilePerm)
+    {
         LogWarn("Permission of file to write is over 0640, path: %s", path.c_str());  // LCOV_EXCL_LINE
     }
     return true;
 }
 
-bool CheckFileBeforeRead(const std::string &path, long long maxSize)
-{
-    if (IsSoftLink(path)) {
-        return false;
-    }
-
-    const auto absPath = GetRealPath(path);
-    if (!IsPathLenLegal(absPath) || !IsPathCharactersValid(absPath) || !IsFile(absPath)) {
-        LogWarn("CheckFileBeforeRead faild, path: %s", path.c_str());  // LCOV_EXCL_LINE
-        return false;
-    }
-
-    struct stat fileStat;
-    if (stat(absPath.c_str(), &fileStat) != 0) {
-        LogWarn("File not exist: %s", absPath.c_str());  // LCOV_EXCL_LINE
-        return false;
-    }
-    if ((fileStat.st_mode & (S_IWGRP | S_IWOTH)) != 0) {
-        LogWarn("Group or others user can write, path: %s", path.c_str());  // LCOV_EXCL_LINE
-        return false;
-    }
-    if (fileStat.st_uid != getuid() && fileStat.st_uid != 0) {
-        LogWarn("file owner is not self or root: %s", path.c_str());  // LCOV_EXCL_LINE
-        return false;
-    }
-    if (!IsReadable(absPath)) {
-        return false;
-    }
-    if (!IsFileSizeLegal(absPath, maxSize)) {
-        return false;
-    }
-    return true;
-}
-
-}  // SecurityUtils
+}  // namespace SecurityUtils

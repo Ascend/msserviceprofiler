@@ -16,7 +16,6 @@
 import os
 import json
 import csv
-from pathlib import Path
 import logging
 from collections import namedtuple
 from glob import glob
@@ -26,7 +25,6 @@ from msguard import validate_params, Rule
 TARGETS = namedtuple("TARGETS", ["FirstTokenTime", "Throughput"])("FirstTokenTime", "Throughput")
 _SUGGESTION_TYPES = ["env", "system", "config"]
 SUGGESTION_TYPES = namedtuple("SUGGESTION_TYPES", _SUGGESTION_TYPES)(*_SUGGESTION_TYPES)
-MAX_FILE_ITER_TIME = 10000
 MAX_FILE_SIZE = 10
 BYTES_TO_GB = 1024**3
 MAX_DEVICE_ID_LIST_LENGTH = 128
@@ -80,22 +78,6 @@ def set_logger(msit_logger):
 
 logger = logging.getLogger("msservice_advisor_logger")
 set_logger(logger)
-
-
-def get_directory_size(path):
-    iter_time = 0
-    total_size = 0
-    for dirpath, _, filename in os.walk(path):
-        for f in filename:
-            if iter_time > MAX_FILE_ITER_TIME:
-                raise ValueError(f"path '{path}' iter times cannot exceed {MAX_FILE_ITER_TIME}.")
-            iter_time += 1
-
-            fp = os.path.join(dirpath, f)
-            if not os.path.islink(fp):
-                total_size += os.path.getsize(fp)
-
-    return total_size / BYTES_TO_GB
 
 
 def get_latest_matching_file(instance_path, pattern):
