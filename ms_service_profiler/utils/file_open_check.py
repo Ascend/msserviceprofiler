@@ -25,12 +25,8 @@ from enum import Enum
 from typing import Optional
 from ms_service_profiler.utils.log import logger
 from ms_service_profiler.utils.constants import PATH_WHITE_LIST_REGEX
-from ms_service_profiler.utils.constants import CONFIG_FILE_MAX_SIZE
 
 MAX_SIZE_UNLIMITE = -1  # 不限制，必须显式表示不限制，读取必须传入
-MAX_SIZE_LIMITE_CONFIG_FILE = 10 * 1024 * 1024  # 10M 普通配置文件，可以根据实际要求变更
-MAX_SIZE_LIMITE_NORMAL_FILE = 4 * 1024 * 1024 * 1024  # 4G 普通模型文件，可以根据实际要求变更
-MAX_SIZE_LIMITE_MODEL_FILE = 100 * 1024 * 1024 * 1024  # 100G 超大模型文件，需要确定能处理大文件，可以根据实际要求变更
 
 PATH_WHITE_LIST_REGEX_WIN = re.compile(r"[^_:\\A-Za-z0-9/.-]")
 
@@ -222,16 +218,6 @@ class FileStat:
             return False
         return True
 
-    def is_legal_file_size(self, max_size):
-        if not self.is_file:
-            logger.error("path: %s is not a file", self.file)
-            return False
-        if self.file_size > max_size:
-            logger.error("file_size: %s byte out of max limit %s byte", self.file_size, max_size)
-            return False
-        else:
-            return True
-
     def is_legal_file_type(self, file_types: list):
         if not self.is_file and self.is_exists:
             logger.error("path: %s is not a file", self.file)
@@ -248,15 +234,6 @@ def check_file_exists_and_type(file_stat, file):
         raise OpenException(f"Expecting a file, but it's a folder. {file}")
 
 
-def check_file_size(file_stat, file, max_size):
-    if max_size is None:
-        logger.warning("Reading files should have a size limit control. %s", file)
-        raise OpenException(f"Reading files must have a size limit control. {file}")
-    if max_size != MAX_SIZE_UNLIMITE and max_size < file_stat.file_size:
-        logger.warning("The file size has exceeded the specifications and cannot be read. %s", file)
-        raise OpenException(f"The file size has exceeded the specifications and cannot be read. {file}")
-
-
 def check_file_owner(file_stat, file):
     if not file_stat.is_owner:
         logger.warning(
@@ -267,10 +244,7 @@ def check_file_owner(file_stat, file):
         )
 
 
-def ms_open(
-    file, mode="r", max_size=CONFIG_FILE_MAX_SIZE, softlink=False, write_permission=PERMISSION_NORMAL, **kwargs
-):
-    del softlink, write_permission
+def ms_open(file, mode="r", **kwargs):
     file_stat = FileStat(file)
 
     check_file_exists_and_type(file_stat, file)
@@ -278,7 +252,6 @@ def ms_open(
     if "r" in mode and not any(flag in mode for flag in ("w", "a", "x", "+")):
         if not file_stat.is_exists:
             raise OpenException(f"No such file or directory. {file}")
-        check_file_size(file_stat, file, max_size)
     elif any(flag in mode for flag in ("w", "a", "x", "+")) and file_stat.is_exists:
         check_file_owner(file_stat, file)
 

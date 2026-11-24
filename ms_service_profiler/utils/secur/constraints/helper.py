@@ -19,9 +19,15 @@ from dataclasses import dataclass
 
 from .logic import FunctionConstraint, IfElseConstraint
 from ._path import (
-    IsFile, Exists, IsDir, HasSoftLink, IsReadable, 
-    IsWritable, IsExecutable, IsWritableToGroupOrOthers, 
-    IsConsistentToCurrentUser, IsSizeReasonable
+    IsFile,
+    Exists,
+    IsDir,
+    HasSoftLink,
+    IsReadable,
+    IsWritable,
+    IsExecutable,
+    IsWritableToGroupOrOthers,
+    IsConsistentToCurrentUser,
 )
 from .base import BaseConstraint
 
@@ -32,48 +38,44 @@ class PathConstraintBuilder:
 
     Available constraints:
         is_file, file_exists, is_dir, has_soft_link, is_readable, is_writable,
-        is_executable, is_not_writable_to_group_or_others, is_consistent_to_current_user,
-        is_size_reasonable
+        is_executable, is_not_writable_to_group_or_others, is_consistent_to_current_user
     """
+
     @staticmethod
-    def is_file(): 
+    def is_file():
         return IsFile()
-    
+
     @staticmethod
-    def file_exists(): 
+    def file_exists():
         return Exists()
-    
+
     @staticmethod
-    def is_dir(): 
+    def is_dir():
         return IsDir()
-    
+
     @staticmethod
-    def has_soft_link(): 
+    def has_soft_link():
         return HasSoftLink()
-    
+
     @staticmethod
-    def is_readable(): 
+    def is_readable():
         return IsReadable()
-    
+
     @staticmethod
-    def is_writable(): 
+    def is_writable():
         return IsWritable()
-    
+
     @staticmethod
-    def is_executable(): 
+    def is_executable():
         return IsExecutable()
-    
+
     @staticmethod
     def is_writable_to_group_or_others():
         return IsWritableToGroupOrOthers()
-    
+
     @staticmethod
     def is_consistent_to_current_user():
         return IsConsistentToCurrentUser()
-    
-    @staticmethod
-    def is_size_reasonable(*, size_limit=None, require_confirm=True):
-        return IsSizeReasonable(size_limit=size_limit, require_confirm=require_confirm)
 
 
 Path = PathConstraintBuilder
@@ -86,36 +88,35 @@ def make_constraint(constraint, description=None):
     if callable(constraint):
         return FunctionConstraint(constraint, description)
 
-    raise TypeError(
-        f"Expected a BaseConstraint instance or a callable, but got {type(constraint).__name__}."
-    )
+    raise TypeError(f"Expected a BaseConstraint instance or a callable, but got {type(constraint).__name__}.")
 
 
 def where(condition, if_constraint, else_constraint, *, description=None):
     return IfElseConstraint(
-        condition,
-        make_constraint(if_constraint),
-        make_constraint(else_constraint),
-        description=description
+        condition, make_constraint(if_constraint), make_constraint(else_constraint), description=description
     )
 
 
 @dataclass(frozen=True)
 class Rule:
     read_file_common_check: BaseConstraint = where(
-        os.getuid() == 0, 
+        os.getuid() == 0,
         Path.is_file(),
-        Path.is_file() & ~Path.has_soft_link() & 
-        Path.is_readable() & ~Path.is_writable_to_group_or_others() & 
-        Path.is_consistent_to_current_user() & Path.is_size_reasonable(),
-        description="current user is root"
+        Path.is_file()
+        & ~Path.has_soft_link()
+        & Path.is_readable()
+        & ~Path.is_writable_to_group_or_others()
+        & Path.is_consistent_to_current_user(),
+        description="current user is root",
     )
 
     exec_file_common_check: BaseConstraint = where(
-        os.getuid() == 0, 
+        os.getuid() == 0,
         Path.is_file(),
-        Path.is_file() & ~Path.has_soft_link() & 
-        Path.is_writable() & ~Path.is_writable_to_group_or_others() & 
-        Path.is_consistent_to_current_user() & Path.is_size_reasonable(),
-        description="current user is root"
+        Path.is_file()
+        & ~Path.has_soft_link()
+        & Path.is_writable()
+        & ~Path.is_writable_to_group_or_others()
+        & Path.is_consistent_to_current_user(),
+        description="current user is root",
     )

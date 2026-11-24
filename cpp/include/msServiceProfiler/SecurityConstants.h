@@ -13,7 +13,7 @@
  * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
  * See the Mulan PSL v2 for more details.
  * -------------------------------------------------------------------------
-*/
+ */
 
 #ifndef MS_STANDARD_SECYRUTY_CONSTANTS_H
 #define MS_STANDARD_SECYRUTY_CONSTANTS_H
@@ -22,7 +22,6 @@
 
 constexpr const uint32_t PATH_DEPTH_MAX = 50;
 constexpr const char PATH_SEPARATOR = '/';
-constexpr uint64_t MAX_FILE_SIZE_10G = static_cast<uint64_t>(1024 * 1024 * 1024) * 10; // 10G
 constexpr const char* FILE_VALID_PATTERN = "(\\.|\\\\|/|:|_|-|[~0-9a-zA-Z])+";
 
-#endif // MS_STANDARD_SECYRUTY_CONSTANTS_H
+#endif  // MS_STANDARD_SECYRUTY_CONSTANTS_H

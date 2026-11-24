@@ -13,17 +13,19 @@
  * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
  * See the Mulan PSL v2 for more details.
  * -------------------------------------------------------------------------
-*/
-#include <gtest/gtest.h>
+ */
+#include <dlfcn.h>
 #include <gmock/gmock.h>
-#include "msServiceProfiler/SecurityUtils.h"
+#include <gtest/gtest.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <string>
-#include <vector>
+
 #include <cstdlib>
 #include <iostream>
-#include <dlfcn.h>
+#include <string>
+#include <vector>
+
+#include "msServiceProfiler/SecurityUtils.h"
 #include "msServiceProfiler/SecurityUtilsLog.h"
 
 using namespace SecurityUtils;
@@ -33,7 +35,8 @@ using namespace testing;
 static int (*real_stat)(const char*, struct stat*) = nullptr;
 
 // Mock 控制
-struct MockControl {
+struct MockControl
+{
     bool real_func = true;
     bool bool_return = false;
     int int_return = 0;
@@ -45,17 +48,17 @@ static MockControl mock_control;
 extern "C" int stat(const char* path, struct stat* buf)
 {
     mock_control.call_count++;
-    if (mock_control.real_func) {
-        real_stat = reinterpret_cast<decltype(real_stat)>(
-            dlsym(RTLD_NEXT, "stat")
-        );
+    if (mock_control.real_func)
+    {
+        real_stat = reinterpret_cast<decltype(real_stat)>(dlsym(RTLD_NEXT, "stat"));
         return real_stat(path, buf);
     }
     return mock_control.int_return;
 }
 
-class SecurityUtilsTest : public Test {
-protected:
+class SecurityUtilsTest : public Test
+{
+   protected:
     void SetUp() override
     {
         // 创建临时文件和目录
@@ -65,14 +68,15 @@ protected:
 
         // 创建临时文件
         FILE* file = fopen(tempFile, "w");
-        if (file) {
+        if (file)
+        {
             fclose(file);
         }
         // 创建临时目录
         mkdir(tempDir, 0755);
         // 创建符号链接
         symlink(tempFile, tempLink);
-        mock_control = MockControl{}; // 重置stat状态
+        mock_control = MockControl{};  // 重置stat状态
     }
 
     void TearDown() override
@@ -160,7 +164,8 @@ TEST_F(SecurityUtilsTest, TestIsExecutable)
     // 测试可执行文件（需要一个可执行文件）
     const std::string executableFile = "test.sh";
     FILE* file = fopen(executableFile.c_str(), "w");
-    if (file) {
+    if (file)
+    {
         fclose(file);
         chmod(executableFile.c_str(), 0755);
         EXPECT_TRUE(IsExecutable(executableFile));
@@ -265,7 +270,8 @@ TEST_F(SecurityUtilsTest, TestIsPathDepthLegal)
 
     // 测试路径深度超过限制
     std::string deepPath;
-    for (int i = 0; i < PATH_DEPTH_MAX + 1; ++i) {
+    for (int i = 0; i < PATH_DEPTH_MAX + 1; ++i)
+    {
         deepPath += "/testdir";
     }
     EXPECT_FALSE(IsPathDepthLegal(deepPath));
@@ -276,39 +282,6 @@ TEST_F(SecurityUtilsTest, TestIsPathLenLegal_001)
     // 测试路径长度合法
     const std::string shortPath = "";
     EXPECT_FALSE(IsPathLenLegal(shortPath));
-}
-
-TEST_F(SecurityUtilsTest, TestIsFileSizeLegal)
-{
-    // 测试文件大小合法
-    const std::string smallFile = "testfile.txt";
-    const long long maxSize = 1024; // 1KB
-    EXPECT_TRUE(IsFileSizeLegal(smallFile, maxSize));
-
-    // 测试文件大小超过限制
-    const std::string largeFile = "testfile.txt";
-    // 创建一个大文件（假设大小超过maxSize）
-    FILE* file = fopen(largeFile.c_str(), "w");
-    if (file) {
-        // 写入大量数据
-        const char* data = "0123456789";
-        for (int i = 0; i < 1000; ++i) {
-            fwrite(data, sizeof(char), strlen(data), file);
-        }
-        fclose(file);
-        EXPECT_FALSE(IsFileSizeLegal(largeFile, maxSize));
-        // 清理
-        unlink(largeFile.c_str());
-    }
-}
-
-TEST_F(SecurityUtilsTest, TestIsFileSizeLegal_001)
-{
-    mock_control.real_func = false;
-    mock_control.int_return = 1;
-    // 测试文件大小合法
-    const std::string smallFile = "testfile.txt";
-    const long long maxSize = 1024; // 1KB
 }
 
 TEST_F(SecurityUtilsTest, TestIsPathCharactersValid)
@@ -361,18 +334,6 @@ TEST_F(SecurityUtilsTest, TestCheckFileBeforeWrite_001)
     EXPECT_FALSE(CheckFileBeforeWrite(fileName));
 }
 
-TEST_F(SecurityUtilsTest, TestCheckFileBeforeRead)
-{
-    // 测试文件读取检查
-    const std::string validFile = "testfile.txt";
-    const long long maxSize = 1024;
-    CheckFileBeforeRead(validFile, maxSize);
-
-    // 测试符号链接
-    const std::string link = "testlink";
-    EXPECT_FALSE(CheckFileBeforeRead(link, maxSize));
-}
-
 TEST_F(SecurityUtilsTest, TestSetLogLevelByEnvVar)
 {
     SecurityUtilsLog::GetLog().SetLogLevelByEnvVar();
@@ -391,7 +352,7 @@ TEST_F(SecurityUtilsTest, TestSetLogLevelByEnvVar)
     EXPECT_EQ(map.at("\t"), "\\t");
     EXPECT_EQ(map.at("\v"), "\\v");
     EXPECT_EQ(map.at("\u007F"), "\\u007F");
-    
+
     // 测试不存在的键
     EXPECT_THROW(map.at("not_exist"), std::out_of_range);
 }
@@ -400,7 +361,8 @@ TEST_F(SecurityUtilsTest, TestSetLogLevelByEnvVar)
 static struct tm* (*real_localtime)(const time_t*, struct tm*) = nullptr;
 
 // Mock 控制
-struct TimeMockControl {
+struct TimeMockControl
+{
     bool real_func = true;
     struct tm mock_return;
 };

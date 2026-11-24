@@ -27,7 +27,6 @@ from ms_service_profiler.utils.file_open_check import (
     UmaskWrapper,
     check_file_exists_and_type,
     check_file_owner,
-    check_file_size,
     is_legal_args_path_string,
     is_legal_path_length,
     is_match_path_white_list,
@@ -113,20 +112,6 @@ class TestCSVSanitization:
 
 
 class TestMsOpen:
-    @staticmethod
-    def test_read_mode_file_size_exceeded():
-        with (
-            patch("os.path.exists", return_value=True),
-            patch("os.path.isfile", return_value=True),
-            patch("os.path.isdir", return_value=False),
-            patch("ms_service_profiler.utils.file_open_check.FileStat") as mock_filestat,
-        ):
-            mock_filestat.return_value = Mock(is_exists=True, is_file=True, is_dir=False, file_size=150, is_owner=True)
-            with pytest.raises(OpenException) as exc:
-                with ms_open("/test/file", "r", max_size=100):
-                    pass
-            assert "exceeded" in str(exc.value).lower()
-
     @staticmethod
     def test_write_mode_permission_denied():
         with (
@@ -440,30 +425,6 @@ def test_check_file_exists_and_type_not_exist():
 def test_check_file_exists_and_type_valid_file():
     file_stat = MockFileStat(is_exists=True, is_dir=False)
     check_file_exists_and_type(file_stat, "/test/path")
-
-
-def test_check_file_size_null_max_size():
-    file_stat = MockFileStat()
-    with pytest.raises(OpenException) as excinfo:
-        check_file_size(file_stat, "/test/path", max_size=None)
-    assert "must have a size limit control" in str(excinfo.value)
-
-
-def test_check_file_size_unlimited():
-    file_stat = MockFileStat(file_size=999999)
-    check_file_size(file_stat, "/test/path", max_size=MAX_SIZE_UNLIMITE)
-
-
-def test_check_file_size_exceed_limit():
-    file_stat = MockFileStat(file_size=100)
-    with pytest.raises(OpenException) as excinfo:
-        check_file_size(file_stat, "/test/path", max_size=50)
-    assert "exceeded the specifications" in str(excinfo.value)
-
-
-def test_check_file_size_valid():
-    file_stat = MockFileStat(file_size=100)
-    check_file_size(file_stat, "/test/path", max_size=100)
 
 
 def test_check_file_owner_invalid():
