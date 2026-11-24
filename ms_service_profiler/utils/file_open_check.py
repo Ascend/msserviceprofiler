@@ -27,9 +27,6 @@ from ms_service_profiler.utils.log import logger
 from ms_service_profiler.utils.constants import PATH_WHITE_LIST_REGEX
 
 MAX_SIZE_UNLIMITE = -1  # 不限制，必须显式表示不限制，读取必须传入
-MAX_SIZE_LIMITE_CONFIG_FILE = 10 * 1024 * 1024  # 10M 普通配置文件，可以根据实际要求变更
-MAX_SIZE_LIMITE_NORMAL_FILE = 4 * 1024 * 1024 * 1024  # 4G 普通模型文件，可以根据实际要求变更
-MAX_SIZE_LIMITE_MODEL_FILE = 100 * 1024 * 1024 * 1024  # 100G 超大模型文件，需要确定能处理大文件，可以根据实际要求变更
 
 PATH_WHITE_LIST_REGEX_WIN = re.compile(r"[^_:\\A-Za-z0-9/.-]")
 
@@ -220,16 +217,6 @@ class FileStat:
         if not self.check_basic_permission(perm=perm):
             return False
         return True
-
-    def is_legal_file_size(self, max_size):
-        if not self.is_file:
-            logger.error("path: %s is not a file", self.file)
-            return False
-        if self.file_size > max_size:
-            logger.error("file_size: %s byte out of max limit %s byte", self.file_size, max_size)
-            return False
-        else:
-            return True
 
     def is_legal_file_type(self, file_types: list):
         if not self.is_file and self.is_exists:

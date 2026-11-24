@@ -20,6 +20,7 @@ import re
 PATH_WHITE_LIST_REGEX = re.compile(r"[^_A-Za-z0-9/.-]")
 
 KILOBYTE = 1024
+DATA_SIZE_WARNING_THRESHOLD = 500 * 1024 * 1024
 
 # Constants migrated from ms_service_profiler_ext/common/constants.py
 MAX_BATCH_NUMBER = 1000

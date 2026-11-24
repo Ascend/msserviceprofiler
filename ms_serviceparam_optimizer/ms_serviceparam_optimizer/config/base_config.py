@@ -51,6 +51,7 @@ optimizer_flag = optimizer_env and (optimizer_env.lower() == "true" or optimizer
 
 
 MINDIE_BENCHMARK_PERF_COLUMNS = ["average", "max", "min", "p75", "p90", "slo_p90", "p99", "n"]
+FOLDER_LIMIT_SIZE = 1024 * 1024 * 1024  # 1GB
 
 
 class EnginePolicy(Enum):

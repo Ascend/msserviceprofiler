@@ -315,6 +315,15 @@ class TestSchedulerRunMethods(unittest.TestCase):
         self.performance_index.throughput = 100.0
         self.benchmark.get_performance_index.return_value = self.performance_index
 
+    @patch('ms_serviceparam_optimizer.optimizer.scheduler.get_train_sub_path')
+    def test_set_back_up_path_without_backup_directory(self, mock_get_train_sub_path):
+        self.scheduler.set_back_up_path()
+
+        mock_get_train_sub_path.assert_not_called()
+        self.assertIsNone(self.scheduler.current_back_path)
+        self.assertIsNone(self.simulator.bak_path)
+        self.assertIsNone(self.benchmark.bak_path)
+
     @patch('time.time')
     def test_run_with_fixed_request_rate(self, mock_time):
         """测试run_with_request_rate方法在固定request rate时的行为"""
