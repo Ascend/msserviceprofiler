@@ -38,7 +38,7 @@ vLLM 服务化 Prometheus 数据监测工具用于增强 vLLM-Ascend 推理服�
 ### 环境准备
 
 1. 在昇腾环境安装配套版本的CANN Toolkit开发套件包和ops算子包并配置CANN环境变量，具体请参见[CANN快速安装](https://www.hiascend.com/cann/download)。
-2. 完成 vLLM 和 vLLM-Ascend 的安装和配置并确认 vLLM-Ascend 可以正常运行，metrics端口正常推送数据，具体请参见 [vLLM-Ascend installation](https://vllm-ascend.readthedocs.io/en/latest/installation.html)。
+2. 完成 vLLM 和 vLLM-Ascend 的安装和配置并确认 vLLM-Ascend 可以正常运行，metrics端口正常推送数据，具体请参见 [vLLM-Ascend installation](https://docs.vllm.ai/projects/ascend/en/latest/getting_started/installation.html)。
 
 ### 约束
 

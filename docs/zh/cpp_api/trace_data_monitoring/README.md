@@ -46,7 +46,7 @@ ctx.Unattach(indexHeader);
 |[TraceContext类](TraceContext.md)|Trace上下文管理类，负责管理线程级别的Trace信息。|
 |[GetTraceCtx](GetTraceCtx.md)|获取当前线程的Trace上下文实例。|
 |[addResAttribute](addResAttribute.md)|添加资源属性（全局属性）。|
-|[ExtractAndAttach](ExtractAndAttach.md)|解析HTTPTrace信息并附加到当前上下文。|
+|[ExtractAndAttach](ExtractAndAttach.md)|解析HTTP Trace信息并附加到当前上下文。|
 |[Attach](Attach.md)|附加Trace信息到当前上下文。|
 |[Unattach](Unattach.md)|解除指定索引的Trace上下文。|
 |[GetCurrent](GetCurrent.md)|获取当前Trace上下文信息。|

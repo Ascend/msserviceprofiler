@@ -46,7 +46,7 @@ Span& SetStatus(const bool isSuccess, const std::string& msg)
 
 |参数名|输入/输出|说明|
 |--|--|--|
-|isSuccess|输入|业务的状态，true或者false。|
+|isSuccess|输入|业务状态，true或者false。|
 |msg|输入|状态信息|
 
 ## 返回值说明<a name="section16621124213476"></a>

@@ -9,7 +9,7 @@ msServiceProfiler Trace采集MindIE Motor服务中的请求响应时间、响应
 - 当前版本主要面向MindIE推理框架，支持单机及多机PD竞争部署模式。
 - 当前仅支持对MindIE的[/v1/chat](https://www.hiascend.com/document/detail/zh/mindie/latest/mindiellm/llmdev/mindie_service0078.html)和[/v1/completions](https://www.hiascend.com/document/detail/zh/mindie/latest/mindiellm/llmdev/mindie_service0323.html)两个请求发送的核心接口进行Trace监测。
 - msServiceProfiler Trace数据监测接口包括“msServiceProfiler API参考（C++） \>  [Trace数据监测](../cpp_api/trace_data_monitoring/README.md)”。
-- 有关MindIE Motor相关介绍请参见《[MindIE Motor开发指南](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/README.md)》。
+- MindIE Motor相关介绍请参见《[MindIE Motor开发指南](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/README.md)》。
 
 ## 产品支持情况<a name="ZH-CN_TOPIC_0000002489576470"></a>
 

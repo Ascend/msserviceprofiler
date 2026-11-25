@@ -44,7 +44,7 @@ def span_start(self, span_name):
 
 |参数名|输入/输出|说明|
 |--|--|--|
-|span_name|输入|区间名字。|
+|span_name|输入|区间名。|
 
 ## 返回值说明<a name="section776014535188"></a>
 

@@ -257,7 +257,7 @@ def custom_handler(original_func, this, *args, **kwargs):
 
 自定义配置采集的函数或方法可以展示在解析输出的`chrome_tracing.json`时间轴上，下面给出一个示例：
 
-点位配置文件配置：
+点位配置文件：
 
 ```yaml
 - symbol: vllm.entrypoints.openai.serving_chat:OpenAIServingChat.create_chat_completion
