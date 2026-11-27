@@ -85,7 +85,7 @@ Metrics 和 Tracing 是两条可以独立执行的分析路径，也可以在数
 
 ### 3.3 检查观测链路
 
-Tracing 依赖 vLLM V1 引擎的原生 OpenTelemetry 能力。为减少旧版本维护成本，本资料中 Hook Tracing 的支持策略下限为 vLLM-Ascend `v0.20.0`；实际安装时必须从官方兼容矩阵选择完整组合，首个满足该边界的公开组合为 vLLM-Ascend `v0.20.2rc1` 与 vLLM `v0.20.2`。版本依据、Jaeger 部署、启动参数、网络调试和验证方法参见[《vLLM Hook Tracing 使用指南》](../user_guide/vLLM_hook_tracing_instruct.md)。Metrics 独立分析不以该 Tracing 版本条件为前置要求。
+Tracing 依赖 vLLM V1 引擎的原生 OpenTelemetry 能力。为减少旧版本维护成本，本资料中 Hook Tracing 的支持策略下限为 vLLM-Ascend `v0.20.0`；实际安装时必须从官方兼容矩阵选择完整组合，首个满足该边界的公开组合为 vLLM-Ascend `v0.20.2rc1` 与 vLLM `v0.20.2`。版本依据、Jaeger 部署、启动参数、网络调试和验证方法参见《[vLLM Hook Tracing 使用指南](../user_guide/vLLM_hook_tracing_instruct.md)》。Metrics 独立分析不以该 Tracing 版本条件为前置要求。
 
 | 检查项 | 通过标准 | 失败后的处理 |
 |---|---|---|
@@ -432,7 +432,7 @@ Metrics 和 Trace 的关联使用同一异常时间窗口，并优先使用 `req
 ### 10.2 数据安全
 
 - Trace 属性只记录定位需要的 request ID、Batch、Token 数、状态和阶段信息。
-- 不记录 prompt、生成内容、鉴权头、Cookie、Token 和用户隐私数据。
+- 不记录 prompt、生成内容、认证头、Cookie、Token 和用户隐私数据。
 - Prometheus、Jaeger 和 OTLP 端口只对管理网络或授权客户端开放。
 - 分享 Trace、截图和诊断记录前，对 request ID、IP、主机名和业务标识进行脱敏。
 

@@ -21,10 +21,10 @@
 
 服务化调度层在 Continuous Batching 模式下，同一个 Decode batch 内混入了**刚刚完成 Prefill 的超长请求**和**已经在 Decode 阶段的若干短请求**。Decode 步的执行时间不再只取决于当前 batch 的平均长度，而被最长的那个 Prefill 主导，导致：
 
-- **短请求被拖慢**：原本应该在 ~25ms 内出一个 Token 的短请求，因为等长请求 Prefill 完成，实际等到 80-100ms 才出 token（TPOT 退化 3-4 倍）
+- **短请求被拖慢**：原本应该在 ~25ms 内出一个 Token 的短请求，因为要等长请求的 Prefill 完成，实际等到 80-100ms 才出 token（TPOT 退化 3-4 倍）
 - **Decode 步时长周期性尖峰**：在 timeline 上，Decode 算子时长呈"短-长-短-长"锯齿状波动
 - **AI Core 利用率"虚高"**：NPU 一直在算（Prefill 阶段是计算密集型），但算的不是有效业务 token
-- **KV Cache 申请抖动**：长请求 Prefill 进来时，框架需要紧急申请大块 KV cache，导致调度器 stall，挤占后续请求的入队
+- **KV Cache 申请抖动**：长请求 Prefill 进来时，框架需要紧急申请大块 KV Cache，导致调度器 stall，挤占后续请求的入队
 
 **核心矛盾**：硬件利用率 78% 看上去不低，但**单位时间内的有效 token 产出**（output tokens/s）远低于预期。
 
@@ -36,7 +36,7 @@
 
 ### 步骤 1：用 msServiceProfiler 采集全链路服务化数据
 
-**目的**：拿到请求级、Batch 级、KV Cache 级数据，建立端到端时间线，作为后续 Insight 可视化的数据源。
+**目的**：拿到请求级、Batch 级、KV Cache 级数据，建立端到端时间线，作为后续MindStudio Insight可视化的数据源。
 
 **配置文件**（`/home/user/mindie/ms_service_profiler_config.json`）：
 
@@ -90,7 +90,7 @@ python3 -m ms_service_profiler.parse \
 
 ### 步骤 2：用 MindStudio Insight 看 Summary + Timeline 定位根因
 
-启动 Insight 并导入 `analysis.db`：
+启动MindStudio Insight并导入 `analysis.db`：
 
 #### 2.1 Summary 页面：先看宏观指标
 

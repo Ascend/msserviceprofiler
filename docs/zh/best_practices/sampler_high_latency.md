@@ -1,8 +1,8 @@
-# sampler执行耗时过长
+# Sampler执行耗时过长
 
 ## 【问题背景】
 
-在大模型推理服务化场景中，Sampler（采样器）是生成阶段的核心组件之一，负责在模型完成单次前向推理后，根据logits计算概率分布并采样得到下一个Token。Sampler的执行逻辑包含Softmax归一化、Top-K/Top-P筛选、温度缩放、随机采样或贪心选择等多个环节。当Sampler执行耗时过长时，会直接拖慢整个Decode阶段的端到端延迟，尤其是在每轮迭代都会触发的高频Decode阶段，影响将被持续放大。
+在大模型推理服务化场景中，Sampler（采样器）是生成阶段的核心组件之一，负责在模型完成单次前向推理后，根据logits计算概率分布并采样得到下一个Token。Sampler的执行逻辑包含Softmax归一化、Top-K/Top-P筛选、温度缩放、随机采样或贪心选择等多个环节。当Sampler执行耗时过长时，会直接增加整个Decode阶段的端到端延迟，尤其是在每轮迭代都会触发的高频Decode阶段，影响将被持续放大。
 
 ## 【问题来源】
 
@@ -78,7 +78,7 @@
 
 3. **采样参数过于复杂**：同时启用多个采样参数（如Top-K、Top-P、Temperature、Repetition Penalty等）会显著增加采样器的计算复杂度，部分处理逻辑可能是串行的。
 
-4. **调度参数配置不当**：根据vLLM社区的排查经验，`max_num_batched_tokens`设置过小会导致调度频率增加，采样步骤被更频繁地触发，放大了单次采样开销的影响。同时，`max_num_seqs`过大时单次batch内需要采样大量序列，采样时间与batch_size呈线性关系。
+4. **调度参数配置不当**：根据vLLM社区的排查经验，`max_num_batched_tokens`设置过小会导致调度频率增加，采样步骤被更频繁地触发，放大了单次采样开销的影响。同时，`max_num_seqs`过大时单次batch内需要采样大量序列，采样时间与`batch_size`呈线性关系。
 
 ## 【定位方法论总结】
 
@@ -92,4 +92,4 @@
 
 4. **调整调度参数验证**：如果怀疑是调度频率过高导致采样开销被放大，可以尝试增大`max_num_batched_tokens`参数，观察P99延迟是否改善。如果改善，说明原始配置下采样步骤被过度频繁触发。
 
-5. **利用msprof进行算子级分析**：如果需要进一步定位到Sampler内部的哪个具体算子（如Softmax、TopK）耗时最高，可以使用msprof工具采集算子级别的Profiling数据，再通过MindStudio Insight的算子耗时面板定位TOP耗时算子。
+5. **利用msProf进行算子级分析**：如果需要进一步定位到Sampler内部的哪个具体算子（如Softmax、TopK）耗时最高，可以使用msProf工具采集算子级别的Profiling数据，再通过MindStudio Insight的算子耗时面板定位TOP耗时算子。

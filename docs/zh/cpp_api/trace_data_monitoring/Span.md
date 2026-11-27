@@ -54,4 +54,4 @@ Span(const char* spanName, TraceContext& ctx, bool isSampled = true, const char*
 
 ## 返回值说明<a name="section16621124213476"></a>
 
-当前Trace的上下文信息。
+返回当前Trace的上下文信息。

@@ -318,7 +318,7 @@ vllm_profiling_server:create_chat_completion:duration_count{dp="-1"} 9.0
 性能分析按“业务 SLO、调度与容量、模型执行、异常状态”的顺序展开：
 
 1. 使用 `fine_grained_ttft`、`fine_grained_tpot` 和 `engine:generate:duration` 确认异常影响首 Token、后续 Token 还是引擎生成过程；压测客户端端到端时延单独记录，不能与服务端引擎耗时混用。
-2. 使用 `waiting_batch_size`、`batch_size` 和 `scheduler:duration` 判断请求是否堵塞在调度阶段。
+2. 使用 `waiting_batch_size`、`batch_size` 和 `scheduler:duration` 判断请求是否阻塞在调度阶段。
 3. 使用 `free_kvcache_blocks`、`allocated_kvcache_blocks`、`block_allocate_failures`、`running_to_waiting_count` 判断 KVCache 是否限制请求进入执行阶段。
 4. 使用 `executor:execute_model:duration`、`executor:model_runner_execute_model:duration` 和 `npu:forward_duration` 判断模型执行是否变慢。
 5. 使用 `output_processor_duration`、`rpc_errors` 和 `health_check_failed` 排查输出处理和异常路径。
@@ -428,7 +428,7 @@ Metrics 已经能够形成阶段或容量结论时，可以直接进入处理和
 4. 使用 `request.id`、`request.ids`、Trace ID 和 Span Links 确认请求与 Batch 的关联。
 5. 对比 scheduler、model、model runner 和 output Span；只有同一 Trace ID 或统一 Perfetto Timeline 才计算 Span 间空白。
 
-完整流程参见[《vLLM-Ascend 可观测性性能诊断指南》](../best_practices/vllm_ascend_observability_analysis_guide.md)。
+完整流程参见《[vLLM-Ascend 可观测性性能诊断指南](../best_practices/vllm_ascend_observability_analysis_guide.md)》。
 
 ## 相关文档
 

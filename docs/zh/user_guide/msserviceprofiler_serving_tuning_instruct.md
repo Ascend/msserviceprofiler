@@ -99,7 +99,7 @@
      | torch_prof_stack         | 采集算子调用栈信息，包括框架层及CPU算子层的调用信息。取值为：<br/>false：关闭。默认值。<br/>true：开启。<br/>开启该配置前需要配置acl_task_time参数值为3。开启该配置后会引入额外的性能膨胀。                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                | 否       |
      | torch_prof_modules       | 采集modules层级的Python调用栈信息，即框架层的调用信息。取值为：<br/>false：关闭。默认值。<br/>true：开启。<br/>开启该配置前需要配置acl_task_time参数值为3。开启该配置后会引入额外的性能膨胀。                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | 否       |
      | torch_prof_step_num      | 采集的step轮数。取值为大于等于0的整数，默认值为0（表示采集所有step）。<br/>开启该配置前需要配置acl_task_time参数值为3。                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | 否       |
-     | profiler_step_num        | 控制算子和服务化采集的step步数。取值为大于0的整数。配置为0或者其他非法值均会关闭整个服务化采集进程。采集步数确认：<br> &#8226; MindIE通过确认forward点的个数确定该参数配置是否生效。<br> &#8226; vllm通过modelRunnerExec点的个数确定该参数配置是否生效。                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | 否        |
+     | profiler_step_num        | 控制算子和服务化采集的step步数。取值为大于0的整数。配置为0或者其他非法值均会关闭整个服务化采集进程。采集步数确认：<br> &#8226; MindIE通过确认forward点的个数确定该参数配置是否生效。<br> &#8226; vLLM通过modelRunnerExec点的个数确定该参数配置是否生效。                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | 否        |
 
 2. <a name="li177905365245"></a>执行采集数据。
 
@@ -273,7 +273,7 @@ ms\_service\_profiler.parse解析生成的结果如下。
 |--|--|
 |batch|用于在MindStudio Insight展示batch表格数据。|
 |decode_gen_speed|用于生成decode阶段，服务化数据不同时刻吞吐的token平均时延折线图。|
-|first_token_latency|用于生成服务化框架首token时延折线图。|
+|first_token_latency|用于生成服务化框架首Token延迟折线图。|
 |kvcache|用于生成服务化kvcache显存使用情况折线图可视化。|
 |prefill_gen_speed|用于生成prefill阶段，服务化数据不同时刻吞吐的token平均时延折线图。|
 |req_latency|用于生成服务化框架请求端到端时延折线图。|
@@ -317,12 +317,12 @@ PD分离部署场景及概念详细介绍请参见[PD分离服务部署](https:/
 |batch_size|记录组batch过程中的总batch大小。|
 |prefill_batch_size|记录调度过程中prefill阶段的batch大小。|
 |decode_batch_size|记录调度过程中decode阶段的batch大小。|
-|total_blocks|记录KVCache总内存块的数量，从原始TotalBlocks获取。当前仅支持vllm场景。|
-|used_blocks|记录调度后实际占用内存块的数量，计算方式total_blocks - free_blocks。当前仅支持vllm场景。|
-|free_blocks|记录调度执行后剩余可用内存块的数量，从原始FreeBlocksAfter字段获取。当前仅支持vllm场景。|
-|blocks_allocated|记录本次调度操作消耗的KVCache资源，计算方式FreeBlocksBefore - FreeBlocksAfter。当前仅支持vllm场景。|
-|blocks_freed|记录本次调度操作释放的KVCache资源，计算方式FreeBlocksAfter - FreeBlocksBefore。当前仅支持vllm场景。|
-|kvcache_usage_rate|计算本次调度过程中KVCache的内存使用百分比，计算方式used_blocks / total_blocks。当前仅支持vllm场景。|
+|total_blocks|记录KVCache总内存块的数量，从原始TotalBlocks获取。当前仅支持vLLM场景。|
+|used_blocks|记录调度后实际占用内存块的数量，计算方式total_blocks - free_blocks。当前仅支持vLLM场景。|
+|free_blocks|记录调度执行后剩余可用内存块的数量，从原始FreeBlocksAfter字段获取。当前仅支持vLLM场景。|
+|blocks_allocated|记录本次调度操作消耗的KVCache资源，计算方式FreeBlocksBefore - FreeBlocksAfter。当前仅支持vLLM场景。|
+|blocks_freed|记录本次调度操作释放的KVCache资源，计算方式FreeBlocksAfter - FreeBlocksBefore。当前仅支持vLLM场景。|
+|kvcache_usage_rate|计算本次调度过程中KVCache的内存使用百分比，计算方式used_blocks / total_blocks。当前仅支持vLLM场景。|
 |prefill_scheduled_tokens|记录调度过程中prefill占用的token数。|
 |decode_scheduled_tokens|记录调度过程中decode占用的token数。|
 |total_scheduled_tokens|记录调度过程中的总token数。|
@@ -370,11 +370,11 @@ PD分离部署场景及概念详细介绍请参见[PD分离服务部署](https:/
 |rid|标注KVCache事件的请求ID。该字段仅在MindIE场景下有值。|
 |name|具体改变显存使用的方法。|
 |start_time|发生显存使用情况变更的时间。|
-|total_blocks|记录KVCache总内存块的数量，从原始TotalBlocks获取。当前仅支持vllm场景。|
-|used_blocks|记录调度后实际占用内存块的数量，计算方式total_blocks - free_blocks。当前仅支持vllm场景。|
-|free_blocks|记录调度执行后剩余可用内存块的数量，从原始FreeBlocksAfter字段获取。当前仅支持vllm场景。|
-|blocks_allocated|记录本次调度操作消耗的KVCache资源，计算方式FreeBlocksBefore - FreeBlocksAfter。当前仅支持vllm场景。|
-|blocks_freed|记录本次调度操作释放的KVCache资源，计算方式FreeBlocksAfter - FreeBlocksBefore。当前仅支持vllm场景。|
+|total_blocks|记录KVCache总内存块的数量，从原始TotalBlocks获取。当前仅支持vLLM场景。|
+|used_blocks|记录调度后实际占用内存块的数量，计算方式total_blocks - free_blocks。当前仅支持vLLM场景。|
+|free_blocks|记录调度执行后剩余可用内存块的数量，从原始FreeBlocksAfter字段获取。当前仅支持vLLM场景。|
+|blocks_allocated|记录本次调度操作消耗的KVCache资源，计算方式FreeBlocksBefore - FreeBlocksAfter。当前仅支持vLLM场景。|
+|blocks_freed|记录本次调度操作释放的KVCache资源，计算方式FreeBlocksAfter - FreeBlocksBefore。当前仅支持vLLM场景。|
 |device_kvcache_left|计算本次显存操作后KVCache的剩余量。为MindIE框架独有。|
 |kvcache_usage_rate|计算本次调度过程中KVCache的内存使用百分比，计算方式used_blocks / total_blocks。|
 
@@ -526,7 +526,7 @@ Span 是分布式追踪（Tracing）中的最小性能监测单元，对应推�
 
 记录DeepSeek专家模型服务化推理时，基于MSPTI采集的MoeDistributeCombine算子和MoeDistributeDispatch算子快慢卡分析结果。
 
-只要有moe\_analysis分析能力对应的数据，执行解析命令，结果目录下默认会生成该分析结果的箱型图[图2](#fig106051734569)，图中横轴为各个Device对应的Process ID，纵轴为耗时之和。图中展示耗时之和的均值和上下2.5%分位点，各个卡之间差距越大，上下分位点间隔越远，说明快慢卡现象越明显。
+只要有moe\_analysis分析能力对应的数据，执行解析命令，结果目录下默认会生成该分析结果的箱线图[图2](#fig106051734569)，图中横轴为各个Device对应的Process ID，纵轴为耗时之和。图中展示耗时之和的均值和上下2.5%分位点，各个卡之间差距越大，上下分位点间隔越远，说明快慢卡现象越明显。
 
 **表 11**  moe\_analysis.csv
 
@@ -550,7 +550,7 @@ Span 是分布式追踪（Tracing）中的最小性能监测单元，对应推�
 **图 3**  热力图<a name="fig732654205612"></a>
 ![](../figures/热力图.png "热力图")
 
-横轴为专家编号，纵轴代表模型的moe层。
+横轴为专家编号，纵轴代表模型的MoE层。
 
 专家编号为模型实例中，Rank\_id从小到大排序，每个Rank内按照顺序进行编号，例如16张卡，每张卡17个专家，专家编号为42的专家代表Rank\_2（第三张卡）的expert\_7（第8个专家）。
 
@@ -564,7 +564,7 @@ Span 是分布式追踪（Tracing）中的最小性能监测单元，对应推�
 **图 4**  热力图<a name="fig455912215212"></a>
 ![](../figures/热力图-0.png "热力图-0")
 
-横轴为Rank\_ID，纵轴代表模型的moe层。
+横轴为Rank\_ID，纵轴代表模型的MoE层。
 
 ### **\{host\_name\}\_eplb\_\{i\}\_summed\_hot\_map\_by\_model\_expert.png**
 
@@ -728,7 +728,7 @@ cd grafana-v11.3.0/bin/
 
 - Kvcache_usage_percent_curve
 
-    所有请求Kvcache使用率随时间变化折线图。
+    所有请求KVCache使用率随时间变化折线图。
 
     横轴：服务化推理运行时间轴。
 
@@ -739,7 +739,7 @@ cd grafana-v11.3.0/bin/
 
 - First_Token_Latency_curve
 
-    所有请求token时延随时间变化折线图。
+    所有请求首Token延迟随时间变化折线图。
 
     横轴：服务化推理运行时间轴。
 

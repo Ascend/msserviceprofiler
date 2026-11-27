@@ -2,7 +2,7 @@
 
 ## 问题背景
 
-在LLM推理应用中，长system prompt场景和多轮对话场景非常普遍。长system prompt场景下，不同请求的system prompt相同，对应的KV Cache计算也相同；多轮对话场景中，每一轮对话依赖所有历史轮次的上下文，历史轮次的KV Cache在后续每一轮中都要被重新计算。Prefix Caching（前缀缓存）通过缓存和复用已计算的公共前缀KV Cache，可以显著降低首Token时延（TTFT）和Prefill阶段计算量。Ascend-vLLM默认开启Prefix Caching特性，但在实际使用中，由于缓存命中条件不满足、缓存容量不足被淘汰、跨请求公共前缀token数不足block size等原因，可能出现PrefixCache未命中，导致TTFT升高、Prefill耗时增加。
+在LLM推理应用中，长system prompt场景和多轮对话场景非常普遍。长system prompt场景下，不同请求的system prompt相同，对应的KV Cache计算也相同；多轮对话场景中，每一轮对话依赖所有历史轮次的上下文，历史轮次的KV Cache在后续每一轮中都要被重新计算。Prefix Caching（前缀缓存）通过缓存和复用已计算的公共前缀KV Cache，可以显著降低首Token延迟（TTFT）和Prefill阶段计算量。Ascend-vLLM默认开启Prefix Caching特性，但在实际使用中，由于缓存命中条件不满足、缓存容量不足被淘汰、跨请求公共前缀token数不足block size等原因，可能出现PrefixCache未命中，导致TTFT升高、Prefill耗时增加。
 
 ## 问题来源
 
@@ -10,7 +10,7 @@
 
 ## 问题现象
 
-用户通常先看到推理服务的首Token时延（TTFT）出现波动性升高，部分请求的TTFT明显高于同类请求。进一步观察KVCache和请求相关指标时，可能出现：
+用户通常先看到推理服务的首Token延迟（TTFT）出现波动性升高，部分请求的TTFT明显高于同类请求。进一步观察KVCache和请求相关指标时，可能出现：
 
 - 在`request.csv`中可观察到`cache_hit_rate`字段值偏低，`first_token_latency(ms)`偏高。
 - 在`batch.csv`中，Prefill类型Batch的`during_time(ms)`和`prefill_scheduled_tokens`均偏高，说明大量前缀token被重新计算而非复用缓存。

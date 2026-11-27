@@ -125,7 +125,7 @@ msserviceprofiler parse --input-path=./ --output-path output
 
 点位配置文件已在 vLLM-Ascend 以及工具中内置：
 
-- 默认加载路径：`~/.config/vllm_ascend/service_profiling_symbols.MAJOR.MINOR.PATCH.yaml`（适用于 vLLM-Ascend 框架且文件名随已安装的 vllm 版本变化）
+- 默认加载路径：`~/.config/vllm_ascend/service_profiling_symbols.MAJOR.MINOR.PATCH.yaml`（适用于 vLLM-Ascend 框架且文件名随已安装的 vLLM 版本变化）
 - 备用加载路径：`工具安装路径/ms_service_profiler/patcher/vllm/config/service_profiling_symbols.yaml`
 
 如需自定义采集点，推荐通过设置环境变量`PROFILING_SYMBOLS_PATH`，将一份点位配置文件复制到工作目录进行修改使用。
@@ -285,11 +285,11 @@ def custom_handler(original_func, this, *args, **kwargs):
 |:---------------------:|:-------------------------------------------------------------------------------------------------------------------------------------------|
 | `chrome_tracing.json` | 记录推理服务化请求trace数据，可使用不同可视化工具进行查看，详细介绍请参考[数据可视化](./msserviceprofiler_serving_tuning_instruct.md#数据可视化)                                       |
 |     `profiler.db`     | 用于生成可视化折线图的SQLite数据库文件，详细介绍请参考[profiler.db 说明](./msserviceprofiler_serving_tuning_instruct.md#profilerdb)                                 |
-|     `request.csv`     | 记录服务化推理请求为粒度的详细数据，详细介绍请参考[request.csv 说明](./msserviceprofiler_serving_tuning_instruct.md#requestcsv)                                      |
+|     `request.csv`     | 记录以服务化推理请求为粒度的详细数据，详细介绍请参考[request.csv 说明](./msserviceprofiler_serving_tuning_instruct.md#requestcsv)                                      |
 | `request_summary.csv` | 请求总体统计指标                                                                                                                                   |
 | `forward.csv` | 记录服务化推理模型前向执行过程的详细数据，详细介绍请参考[forward.csv 说明](./msserviceprofiler_serving_tuning_instruct.md#forwardcsv)                                    |
 |     `kvcache.csv`     | 记录推理过程的显存使用情况，详细介绍请参考[kvcache.csv 说明](./msserviceprofiler_serving_tuning_instruct.md#kvcachecsv)                                          |
-|      `batch.csv`      | 记录服务化推理batch为粒度的详细数据，详细介绍请参考[batch.csv 说明](./msserviceprofiler_serving_tuning_instruct.md#batchcsv)                                       |
+|      `batch.csv`      | 记录以服务化推理batch为粒度的详细数据，详细介绍请参考[batch.csv 说明](./msserviceprofiler_serving_tuning_instruct.md#batchcsv)                                       |
 |   `spec_decode.csv`   | 投机推理场景下以每条请求为粒度的详细数据，详细介绍请参考[spec_decode.csv 说明](./msserviceprofiler_serving_tuning_instruct.md#spec_decodecsv) |
 |  `batch_summary.csv`  | 批次调度总体统计指标                                                                                                                                 |
 | `service_summary.csv` | 服务化维度总体统计指标                                                                                                                                |

@@ -80,7 +80,7 @@
  pip install -e .[speed] # 选择 speed 选项安装寻优工具插件
  ```
 
- 如果上述安装失败，可尝试安装较少依赖的第三方包，但训练模型时，大数据量时性能较低。
+ 如果上述安装失败，可尝试安装依赖较少的第三方包，但训练模型时，大数据量时性能较低。
 
  ```bash
  pip install -e .[train] # 选择 train 选项安装寻优工具插件
@@ -147,7 +147,7 @@ msserviceprofiler optimizer [options]
 |--pd|可选|指定推理框架模式pd竞争或pd分离，可取值：<br>&#8226;competition：pd竞争模式<br>&#8226;disaggregation：pd分离模式<br/>默认值为`competition`。|
 |-c或--config|可选|指定自定义配置文件路径（TOML格式）。支持以下三种形式：<br>&#8226;绝对路径：直接使用指定路径；<br>&#8226;相对路径（含目录分隔符）：相对于当前工作目录解析；<br>&#8226;仅文件名：在当前工作目录下查找。<br/>默认不指定，工具按预设路径顺序自动搜索配置文件。<br/>指定文件必须为有效 TOML 格式，且具有最高配置优先级。|
 
-**使用示例（mindie服务化参数寻优）**
+**使用示例（MindIE服务化参数寻优）**
 
 1. 修改配置文件：启动寻优前需用户按照实际情况配置[`config.toml`](../../../ms_serviceparam_optimizer/ms_serviceparam_optimizer/config.toml)，包括寻优参数、测评工具参数、服务化参数。参考[配置文件说明](#配置文件说明)章节完成配置。
 
@@ -165,10 +165,10 @@ msserviceprofiler optimizer [options]
     msserviceprofiler optimizer
     ```
 
-**使用示例（vllm服务化参数寻优）**
+**使用示例（vLLM服务化参数寻优）**
 
 1. 修改配置文件：启动寻优前需用户按照实际情况配置[`config.toml`](../../../ms_serviceparam_optimizer/ms_serviceparam_optimizer/config.toml)，包括寻优参数、测评工具参数、服务化参数。参考[配置文件说明](#配置文件说明)章节完成配置。
-2. 如果需要设置环境变量作用于mindie/vllm服务，只需在运行工具前设置环境变量即可，例如：
+2. 如果需要设置环境变量作用于MindIE/vLLM服务，只需在运行工具前设置环境变量即可，例如：
 
     ```bash
     export ASCEND_RT_VISIBLE_DEVICES=0
@@ -287,15 +287,15 @@ msserviceprofiler optimizer -e vllm -b vllm_benchmark -c ../configs/vllm_config.
 | 字段 | 说明 |
 | --- | --- |
 | generate_speed | 吞吐。 |
-| time_to_first_token | ttft时延，单位为秒。 |
-| time_per_output_token | tpot时延，单位为秒。 |
+| time_to_first_token | TTFT时延，单位为秒。 |
+| time_per_output_token | TPOT时延，单位为秒。 |
 | success_rate | 测试返回请求成功率。 |
 | throughput | 测试吞吐，单位为请求数/秒。 |
 | CONCURRENCY | 并发数。 |
 | REQUESTRATE | 发送速率。 |
 | error | 记录这次参数没有正常执行的原因，在发生错误时记录。 |
 | backup | 数据记录地址，当开启--backup时记录。 |
-| real_evaluation | 标记数据是否由真实测试结果得到。false代表该组数据由gp模型预测得到。 |
+| real_evaluation | 标记数据是否由真实测试结果得到。false代表该组数据由GP模型预测得到。 |
 | fitness | 寻优算法优化值，该值越小代表该组参数效果越好 |
 | num_prompts | 记录这次寻优测评工具发送的请求数。 |
 
@@ -306,7 +306,7 @@ msserviceprofiler optimizer -e vllm -b vllm_benchmark -c ../configs/vllm_config.
 ### 配置文件说明
 
 **寻优参数**： `n_particles` （寻优种子数）、`iters` （迭代轮次数）、 `tpot_slo` （`time_per_output_token`的限制时延）等。
-用户可根据预估时间来自行配置种子和迭代次数。我们单个种子使用时间为拉起服务+测试数据。比如用户拉起服务+完成测试需9-10min，且愿意用8小时来进行寻优，则一共可跑约50个种子，建议用户配置5 * 10，即设置种子数为10，迭代次数为5，种子数为迭代次数的2倍左右。
+用户可根据预估时间来自行配置种子和迭代次数。我们单个种子使用时间为拉起服务+测试数据的时间。比如用户拉起服务+完成测试需9-10min，且愿意用8小时来进行寻优，则一共可跑约50个种子，建议用户配置5 * 10，即设置种子数为10，迭代次数为5，种子数为迭代次数的2倍左右。
 
 > **注意**：以下寻优参数均为必填项，不可删除或省略，否则运行时会报错。
 
@@ -320,7 +320,7 @@ msserviceprofiler optimizer -e vllm -b vllm_benchmark -c ../configs/vllm_config.
 |ttft_slo|必选|`time_to_first_token`的限制时延。如对`time_to_first_token`限制为2s内，则设为2，取值范围：(0, 100]，单位s。|
 |tpot_slo|必选|`time_per_output_token`的限制时延。如对`time_per_output_token`限制为50ms内，则设为0.05，取值范围：(0, 100]，单位s。 |
 |service|必选|标注多机启动时为主机或从机，多机场景下从机设为 `slave`，可取值：<br>&#8226;master：主机<br/>&#8226;slave：从机，<br/>默认值为`master`。|
-|sample_size|可选|对原始数据集采样大小，用采样后的数据进行调优，可增加寻优效率，取值范围为：1000-10000的整数，建议设为原数据集请求的1 / 3。|
+|sample_size|可选|对原始数据集采样大小，用采样后的数据进行调优，可提高寻优效率，取值范围为：1000-10000的整数，建议设为原数据集请求的1 / 3。|
 
 **测评工具参数**：
 若使用`AISBench`测评，需修改以下参数，可以参照[AISBench 使用说明](https://github.com/AISBench/benchmark/blob/master/README.md)进行修改。
@@ -525,7 +525,7 @@ dtype_param = {target_names = ["seq_len", "prefill_batch_size"], product = 2, dt
 # 当 seq_len=1024, prefill_batch_size=4 时，max_prefill_tokens = 2 × 1024 × 4 = 8192
 ```
 
-使用vllm框架时，需修改`config.toml`中的`[vllm.command]`参数，如：
+使用vLLM框架时，需修改`config.toml`中的`[vllm.command]`参数，如：
 
 ```toml
 [vllm.command]
@@ -538,7 +538,7 @@ others = ""
 
 |参数|可选/必选|说明|
 |---|---|---|
-|host|必选| 主机ip，需与`[vllm_benchmark.command]`中的`host`保持一致，可设为`127.0.0.1`。|
+|host|必选| 主机IP，需与`[vllm_benchmark.command]`中的`host`保持一致，可设为`127.0.0.1`。|
 |port|必选| 端口号，需与`[vllm_benchmark.command]`中的`port`保持一致。|
 |model|必选| 模型路径，需与`[vllm_benchmark.command]`中的`model`保持一致。|
 |served_model_name|必选| 模型名称，需与`[vllm_benchmark.command]`中的`served_model_name`保持一致。|
@@ -546,7 +546,7 @@ others = ""
 
 ### 自定义参数寻优
 
-寻优工具支持通过 `[[vllm.target_field]]` 添加任意 vllm 启动参数参与寻优。配置方式分为两步：**声明寻优字段** + **在 `others` 中引用变量**。
+寻优工具支持通过 `[[vllm.target_field]]` 添加任意 vLLM 启动参数参与寻优。配置方式分为两步：**声明寻优字段** + **在 `others` 中引用变量**。
 
 > **变量引用规则**：在 `others` 中使用 `$字段名大写` 的格式引用寻优字段，工具运行时会自动将其替换为当前迭代的实际值。
 
@@ -644,7 +644,7 @@ K8s_v1.23_MindCluster.7.1.RC1.B098.aarch/
 │   ├── calico3_23.yaml
 │   ├── k8s1_23_0+calico3_23.tar.gz
 │   └── ubuntu-18.04.tar
-└── kubernetes
+├── kubernetes
 │   ├── Packages.gz
 │   ├── kubeadm_1.23.0-00_arm64.deb
 │   ├── kubectl_1.23.0-00_arm64.deb
@@ -674,7 +674,7 @@ K8s_v1.23_MindCluster.7.1.RC1.B098.aarch/
 kubectl_default_path = "K8s_v1.23_MindCluster.7.1.RC1.B098.aarch/kubernetes_deploy_scripts_latest" #使用绝对路径
 ```
 
-如果需要配置pd配比的参数寻优只需在config.toml的mindie配置中添加如下参数：
+如果需要配置PD配比的参数寻优只需在config.toml的MindIE配置中添加如下参数：
 
 ```toml
 [[mindie.target_field]]

@@ -394,11 +394,11 @@ vllm bench serve \
 - 少数 Trace 是长尾：在散点图选中长尾 Trace，与正常 Trace 使用 Compare 对比 Span 时长和属性差异。
 - 大量 Trace 只有 1～2 个 Span：只能证明埋点已导出，不能单独证明完整请求父子链；需要继续检查 Trace 详情中的 Links、`request.ids` 和原生 vLLM 根 Span。
 
-Tracing 用于缩小问题所在阶段；若需要分析算子、kernel、HCCL、显存或 NPU 时间线，继续使用原 profiling 采集和解析能力。
+Tracing 用于缩小问题所在阶段；若需要分析算子、Kernel、HCCL、显存或 NPU 时间线，继续使用原 profiling 采集和解析能力。
 
 #### 4. 标准分析步骤
 
-Tracing 不依赖 Metrics 才能开始分析。根据已有信息选择入口：
+Tracing 不依赖 Metrics 也能开始分析。根据已有信息选择入口：
 
 - 已知 Trace ID 或 request ID：直接搜索目标请求。
 - 已知故障时间或服务日志：按服务、时间、操作名和最小时长筛选 Trace。
@@ -441,7 +441,7 @@ Tracing 不依赖 Metrics 才能开始分析。根据已有信息选择入口：
 | execute model 升高，model runner 稳定 | model Span 的外围时间增加 | Executor 外围 IPC、同步或数据准备变慢 |
 | output processor 升高，模型执行稳定 | output Span 变长 | 输出处理阶段变慢 |
 
-Tracing 独立分析可以定位目标请求的关键路径和异常阶段，但结论范围仅覆盖已分析的请求或观测组。Metrics 独立分析可以确认异常趋势、容量和影响范围，但不描述单请求调用链。两类数据联合使用时，要求 SLO 现象、Metrics 定界和 Trace 定位相互对应。完整流程参见[《vLLM-Ascend 可观测性性能诊断指南》](../best_practices/vllm_ascend_observability_analysis_guide.md)。
+Tracing 独立分析可以定位目标请求的关键路径和异常阶段，但结论范围仅覆盖已分析的请求或观测组。Metrics 独立分析可以确认异常趋势、容量和影响范围，但不描述单请求调用链。两类数据联合使用时，要求 SLO 现象、Metrics 定界和 Trace 定位相互对应。完整流程参见《[vLLM-Ascend 可观测性性能诊断指南](../best_practices/vllm_ascend_observability_analysis_guide.md)》。
 
 #### 6. 请求关联方式与数量边界
 

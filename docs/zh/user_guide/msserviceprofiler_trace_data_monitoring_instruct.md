@@ -8,7 +8,7 @@ msServiceProfiler Trace采集MindIE Motor服务中的请求响应时间、响应
 
 - 当前版本主要面向MindIE推理框架，支持单机及多机PD竞争部署模式。
 - 当前仅支持对MindIE的[/v1/chat](https://www.hiascend.com/document/detail/zh/mindie/latest/mindiellm/llmdev/mindie_service0078.html)和[/v1/completions](https://www.hiascend.com/document/detail/zh/mindie/latest/mindiellm/llmdev/mindie_service0323.html)两个请求发送的核心接口进行Trace监测。
-- msServiceProfiler Trace数据监测接口包括“msServiceProfiler API参考（C++） \>  [Trace数据监测](../cpp_api/trace_data_monitoring/README.md)”。
+- msServiceProfiler Trace数据监测接口请参见“msServiceProfiler API参考（C++） \>  [Trace数据监测](../cpp_api/trace_data_monitoring/README.md)”。
 - MindIE Motor相关介绍请参见《[MindIE Motor开发指南](https://gitcode.com/Ascend/MindIE-Motor/blob/master/docs/zh/user_guide/README.md)》。
 
 ## 产品支持情况<a name="ZH-CN_TOPIC_0000002489576470"></a>
@@ -144,7 +144,7 @@ export MS_PROFILER_SAMPLE_ERROR=1
 
 >[!NOTE]
 >
->本工具依赖OpenTelemetry三方库实现。本文仅说明此工具使用的必备参数。更多功能接口请开发者深入其官方文档自行探索。
+>本工具依赖OpenTelemetry第三方库实现。本文仅说明此工具使用的必备参数。更多功能接口请开发者深入其官方文档自行探索。
 >
 >当前只支持单向认证，双向认证相关配置参数不支持，配置会导致功能不可用。不可用配置参数如下：
 >
@@ -248,7 +248,7 @@ b3: 0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-1-0000000000000001
 |--|--|--|--|--|--|
 |TraceId|1~32位|全局Trace ID|32个十六进制字符|唯一标识整个分布式调用链|必选|
 |SpanId|34~49位|当前Span ID|16个十六进制字符|标识当前服务操作的唯一ID|必选|
-|Sampled|51位|采样决策|1个字符|**1=采样****0=不采样**|必选|
+|Sampled|51位|采样决策|1个字符|**1=采样，0=不采样**|必选|
 |ParentSpanId|53~68位|父Span ID|16个十六进制字符|可选字段，标识直接上游Span|可选|
 
 **B3 Multiple Headers（多头格式）<a name="section1410152418280"></a>**
@@ -267,7 +267,7 @@ X-B3-Sampled: 1
 |--|--|--|--|--|--|
 |X-B3-TraceId|全局Trace ID|32个十六进制字符（16字节）|任意32位十六进制字符串|唯一标识整个分布式调用链，所有相关服务共享同一个TraceId|必选|
 |X-B3-SpanId|当前Span ID|16个十六进制字符（8字节）|任意16位十六进制字符串|标识当前服务操作的唯一ID，每个Span都有独立的SpanId|必选|
-|X-B3-Sampled|采样决策|字符串|**1 = 采样****0 = 不采样**|控制是否记录Trace数据到后端系统，避免产生过多性能开销|必选|
+|X-B3-Sampled|采样决策|字符串|**1 = 采样，0 = 不采样**|控制是否记录Trace数据到后端系统，避免产生过多性能开销|必选|
 
 **执行发送请求<a name="section113815183112"></a>**
 

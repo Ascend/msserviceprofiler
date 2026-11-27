@@ -2,7 +2,7 @@
 
 ## 场景说明
 
-在大模型推理服务化场景中，请求从进入服务到开始执行模型推理之间，通常会经过网关转发、请求入队、批处理组batch、Prefill执行、Decode调度、结果回传等阶段。若请求等待时间过长，用户侧会表现为首Token时延升高、端到端时延P99变差、低负载下响应不稳定或高负载下排队持续堆积。
+在大模型推理服务化场景中，请求从进入服务到开始执行模型推理之间，通常会经过网关转发、请求入队、批处理组batch、Prefill执行、Decode调度、结果回传等阶段。若请求等待时间过长，用户侧会表现为首Token延迟升高、端到端时延P99变差、低负载下响应不稳定或高负载下排队持续堆积。
 
 本文以推理请求等待时间过长为例，介绍如何使用msServiceProfiler采集Request和BatchSchedule数据，定位等待时间主要发生在入口排队、组batch等待、Prefill/Decode资源竞争、外部依赖阻塞还是系统资源瓶颈，并给出批处理、调度、资源、缓存和监控方向的优化方案。
 
@@ -21,7 +21,7 @@
 
 | 影响项 | 表现 |
 | --- | --- |
-| 首Token时延 | 请求长时间等待组batch或Prefill资源，TTFT升高。 |
+| 首Token延迟 | 请求长时间等待组batch或Prefill资源，TTFT升高。 |
 | 端到端时延 | 排队时间被放大，Request Latency P90/P99恶化。 |
 | 吞吐 | batch未打满或调度过于保守，NPU利用率不足。 |
 | 稳定性 | 高峰流量下队列持续堆积，出现超时或请求失败。 |
@@ -69,7 +69,7 @@ ms_service_profiler_parse --input-path ${PROF_DIR} --output-path ${OUTPUT_DIR} -
 
 若框架中已有自定义调度逻辑，可增加请求排队、组batch、外部依赖和模型执行前后的Span与Metric。
 
-```C++
+```cpp
 auto enqueueSpan = PROF(INFO, SpanStart("RequestEnqueue"));
 
 // 请求入队、鉴权、参数解析等逻辑
@@ -91,7 +91,7 @@ PROF(modelReadySpan.SpanEnd());
 
 采集队列长度、组batch等待时间和外部依赖耗时。
 
-```C++
+```cpp
 PROF(INFO, Metric("requestQueueSize", requestQueueSize).MetricScope("scheduler", instanceId).Launch());
 PROF(INFO, Metric("batchWaitMs", batchWaitMs).MetricScope("batch", batchId).Launch());
 PROF(INFO, Metric("externalIOMs", externalIOMs).MetricScope("request", reqId).Launch());
@@ -150,7 +150,7 @@ Prefill阶段通常计算量大，Decode阶段需要持续迭代。如果调度�
 
 **原因**
 
-服务化链路中可能存在鉴权、数据库查询、向量检索、日志落盘、网络调用或后处理逻辑。如果这些操作在主线程或调度线程中同步执行，会导致请求无法及时入队或组batch。
+服务化链路中可能存在认证、数据库查询、向量检索、日志落盘、网络调用或后处理逻辑。如果这些操作在主线程或调度线程中同步执行，会导致请求无法及时入队或组batch。
 
 **解决方案**
 

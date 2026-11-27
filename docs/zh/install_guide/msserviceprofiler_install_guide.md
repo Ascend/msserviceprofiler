@@ -119,7 +119,7 @@ pip list | grep ms_service_profiler
 
    > [!NOTE]
    >
-   > - 需要联网环境才能下载，若环境不允许联网或处于离线状态，请先在可联网的环境下载该脚本后拷贝到目标设备。
+   > - 需要联网环境才能下载，若环境不允许联网或处于离线状态，请先在可联网的环境中下载该脚本后拷贝到目标设备。
    > - 若执行命令无响应或出现连接失败、SSL证书错误等问题，请参见[FAQ](https://www.hiascend.com/developer/blog/details/02176213671719317003)。
 
 2. 执行卸载。
@@ -128,7 +128,7 @@ pip list | grep ms_service_profiler
    python3 ms_install.py uninstall {tools_name}
    ```
 
-   其中{tools_name}配置为需卸载的工具名称，可通过`python3 ms_install.py help`命令查询，在打印信息中的Available Tools字段下显示工具名称。
+   其中{tools_name}需配置为需卸载的工具名称，可通过`python3 ms_install.py help`命令查询，在打印信息中的Available Tools字段下显示工具名称。
 
    卸载成功打印如下信息：
 

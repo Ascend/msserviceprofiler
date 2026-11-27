@@ -11,7 +11,7 @@
 
 ## 自定义插件开发操作步骤
 
-### 自定义参数搜索配置
+### 自定义搜索参数配置
 
 1. 继承Settings类
 
@@ -63,7 +63,7 @@
         update_config(params: Tuple[OptimizerConfigField] | None = None) → bool
             #根据参数更新服务的配置文件，或者其他配置，服务启动前根据传递的参数值 修改配置文件。使得新的配置生效。
             Args:
-                #params: 调优参数列表，是一个元组，根据其中每一个元素的value和config position进行定义
+                #params: 调优参数列表，是一个元组，根据其中每一个元素的value和config_position进行定义
             Returns: bool，返回更新成功或者失败。
         abstract stop()
             #运行时，其他的准备工作。 
@@ -126,7 +126,7 @@
     将自定义内容的注册函数添加到入口组'ms_serviceparam_optimizer.plugins'即可。
     可通过调用vllm_inference_optimization模块的register来注册，例如：
 
-    ```python
+    ```toml
     [project.entry-points.'ms_serviceparam_optimizer.plugins']
     vllm_inference_optimization = "vllm_inference_optimization:register"
     ```
@@ -134,7 +134,7 @@
 4. 安装插件
     入口设置为ms_serviceparam_optimizer.plugins，例如：
 
-    ```python
+    ```toml
     [project.entry-points.'ms_serviceparam_optimizer.plugins']
     vllm_inference_optimization="vllm_inference_optimization:register"
     ```

@@ -74,7 +74,7 @@ vllm serve Qwen/Qwen2.5-0.5B-Instruct &
 
 #### 2.3 SGLang 
 
-### 1. 准备采集
+##### 2.3.1 准备采集
 
 a. 在启动服务前，需要在SGLang框架的**三个入口文件**中导入采集模块。
 
@@ -118,7 +118,7 @@ except ImportError:
     pass
 ```
 
-### 2. 环境变量设置及启动服务
+##### 2.3.2 环境变量设置及启动服务
 
 - `SERVICE_PROF_CONFIG_PATH`：指定性能分析配置文件路径
 - `PROFILING_SYMBOLS_PATH`：指定符号配置文件路径（可选，如不设置默认读取本项目路径下ms_service_profiler/patcher/sglang/config/service_profiling_symbols.yaml文件）

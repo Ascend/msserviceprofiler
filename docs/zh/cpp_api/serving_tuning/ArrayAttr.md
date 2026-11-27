@@ -48,8 +48,8 @@ Profiler &ArrayAttr(const char *attrName, const T &startIter, const T &endIter, 
 |参数名|输入/输出|说明|
 |--|--|--|
 |attrName|输入|属性名。|
-|startIter|输入|任意的迭代器开始。|
-|endIter|输入|任意的迭代器结束。|
+|startIter|输入|任意迭代器的开始。|
+|endIter|输入|任意迭代器的结束。|
 |callback|输入|回调函数第一个入参是当前对象，可以调用它添加属性，第二个入参是当前迭代，可以用它获取需要记录的属性内容。|
 
 ## 返回值说明<a name="section8800235121218"></a>

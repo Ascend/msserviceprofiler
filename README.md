@@ -36,7 +36,7 @@ MindStudio Service Profiler 是一款专为大模型推理服务设计的全栈�
 | 【性能采集】vLLM 服务化性能采集         | 针对 vLLM 框架场景的专项服务化性能采集             | [点击查看](docs/zh/user_guide/vLLM_service_oriented_performance_collection_tool.md)   |
 | 【性能采集】SGLang 服务化性能采集       | 针对 SGLang 框架场景的专项服务化性能采集           | [点击查看](docs/zh/user_guide/SGLang_service_oriented_performance_collection_tool.md) |
 | 【数据监测】MindIE Trace 数据链路监测  | 将服务端请求链路打通到 Jaeger 等 OTLP 生态       | [点击查看](docs/zh/user_guide/msserviceprofiler_trace_data_monitoring_instruct.md)    |
-| 【在线监测】vLLM Prometheus 在线监测 | 在 vLLM-Ascend 上结合 Prometheus 做在线监控 | [点击查看](docs/zh/user_guide/vLLM_metrics_tool_instruct.md)                          |
+| 【在线监测】vLLM Prometheus 在线监测 | 在 vLLM-Ascend 上结合 Prometheus 做在线监测| [点击查看](docs/zh/user_guide/vLLM_metrics_tool_instruct.md)                          |
 | 【比对分析】性能数据比对               | 对不同版本/配置的性能结果做对比分析                 | [点击查看](docs/zh/user_guide/ms_service_profiler_compare_tool_instruct.md)           |
 | 【比对分析】多维度解析                | 从多维度对采集的性能数据做深入分析                  | [点击查看](docs/zh/user_guide/msserviceprofiler_multi_analyze_instruct.md)            |
 | 【比对分析】拆解分析                 | 对服务化性能数据做细粒度拆解分析                   | [点击查看](docs/zh/user_guide/service_performance_split_tool_instruct.md)             |

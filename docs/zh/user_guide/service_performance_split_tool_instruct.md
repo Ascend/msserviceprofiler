@@ -2,7 +2,7 @@
 
 ## 简介
 
-服务化拆解工具（Service Performance Split Tool）基于msServiceProfiler工具采集的性能数据拆解服务化Batch执行中各阶段耗时，如组Batch、数据下发、模型执行、数据接收等。通过拆解识别性能瓶颈，方便开发人员优化框架。
+服务化拆解工具（Service Performance Split Tool）基于msServiceProfiler工具采集的性能数据拆解服务化batch执行中各阶段耗时，如组batch、数据下发、模型执行、数据接收等。通过拆解识别性能瓶颈，方便开发人员优化框架。
 
 **基本概念**
 
@@ -89,10 +89,10 @@ msserviceprofiler split
 | --log-level  | 日志级别，可选值debug,info,warning,error,fatal,critical，默认info  |否|
 | --prefill-batch-size  | 指定拆解的Prefill batch的batch_size大小，该值可以从batch.csv中的`batch_size`字段中获取，默认值为0 ，代表不执行 prefill性能拆解 |否|
 | --prefill-number  | 指定拆解的Prefill batch的数量，用于统计执行时间的最大值、最小值、平均值和标准差，默认值为1 |否|
-| --prefill-rid  | 指定拆解的Prefill batch的请求id，该值可以从request.csv 中的`http_rid`字段中获取，默认值为-1，代表不执行prefill性能拆解 |否|
+| --prefill-rid  | 指定拆解的Prefill batch的请求ID，该值可以从request.csv 中的`http_rid`字段中获取，默认值为-1，代表不执行prefill性能拆解 |否|
 | --decode-batch-size | 指定拆解的Decode batch的batch_size大小，该值可以从batch.csv中的`batch_size`字段中获取，默认值为0，代表不执行 decode性能拆解 |否|
 | --decode-number  | 指定拆解的Decode batch的数量，用于统计执行时间的最大值、最小值、平均值和标准差，默认值为1 |否|
-| --decode-rid  | 指定拆解的Decode batch的请求id，该值可以从request.csv 中的`http_rid`字段中获取，默认值为-1，代表不执行decode性能拆解 |否|
+| --decode-rid  | 指定拆解的Decode batch的请求ID，该值可以从request.csv 中的`http_rid`字段中获取，默认值为-1，代表不执行decode性能拆解 |否|
 
 ### 使用示例
 
