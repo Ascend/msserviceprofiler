@@ -19,6 +19,8 @@ import argparse
 
 
 from ms_service_profiler.task.task import Task
+import ms_service_profiler.pipeline  # noqa: F401
+import ms_service_profiler.data_source  # noqa: F401
 from ms_service_profiler.exporters.factory import ExporterFactory
 from ms_service_profiler.plugins import custom_plugins
 from ms_service_profiler.utils.log import logger, set_log_level, Color
